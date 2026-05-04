@@ -705,14 +705,14 @@ async function triggerSync(){
   showLoad('INICIANDO SYNC...');
   try{
     setLoad(10,'SCRAPEANDO TIKTOK...',cfg.ttHandle);
-    const ttRaw=await runActor(token,'clockworks/tiktok-scraper',{profiles:[cfg.ttHandle.replace('@','')],resultsType:'posts',maxPostsPerPage:parseInt(cfg.maxPosts)||30});
+    const ttRaw=await runActor(token,'clockworks~tiktok-scraper',{profiles:[cfg.ttHandle.replace('@','')],resultsType:'posts',maxPostsPerPage:parseInt(cfg.maxPosts)||30});
 
     setLoad(40,'SCRAPEANDO INSTAGRAM...',cfg.igHandle);
-    const igRaw=await runActor(token,'apify/instagram-scraper',{directUrls:[`https://www.instagram.com/${cfg.igHandle.replace('@','')}/`],resultsType:'posts',resultsLimit:parseInt(cfg.maxPosts)||30});
+    const igRaw=await runActor(token,'apify~instagram-scraper',{directUrls:[`https://www.instagram.com/${cfg.igHandle.replace('@','')}/`],resultsType:'posts',resultsLimit:parseInt(cfg.maxPosts)||30});
 
     setLoad(72,'SCRAPEANDO TRENDING...','keywords: '+cfg.nicheKw.split(',')[0].trim());
     const kwArr=cfg.nicheKw.split(',').slice(0,3).map(k=>k.trim());
-    const trendRaw=await runActor(token,'clockworks/tiktok-hashtag-scraper',{hashtags:kwArr,resultsPerPage:20});
+    const trendRaw=await runActor(token,'clockworks~tiktok-hashtag-scraper',{hashtags:kwArr,resultsPerPage:20});
 
     setLoad(90,'PROCESANDO DATOS...','');
     realData=processData(ttRaw,igRaw,trendRaw);
