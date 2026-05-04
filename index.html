@@ -469,6 +469,7 @@ body.light::before{display:none}
     <div class="cfg-grid">
       <div class="cfg-field"><div class="cfg-lbl">TU WEB (la IA la leerá automáticamente)</div><input type="url" class="cfg-inp" id="websiteUrl" placeholder="https://tuwebsite.com"></div>
       <div class="cfg-field"><div class="cfg-lbl">BIO / SOBRE TI</div><input type="text" class="cfg-inp" id="creatorBio" placeholder="Ej: Consultor de marketing digital, especialista en IA para marcas personales, audiencia de freelancers y emprendedores 25-40"></div>
+      <div class="cfg-field" style="grid-column:1/-1"><div class="cfg-lbl">TONO Y VOZ DE MARCA (opcional)</div><textarea class="cfg-inp" id="brandTone" rows="4" placeholder="Describe cómo hablas, qué palabras usas, qué evitas, ejemplos de frases tuyas...&#10;&#10;Ej: Tono directo y sin florituras. Uso frases cortas. Nunca digo 'increíble' ni 'revolucionario'. Hablo de tú a tú, sin pedantería. Mis hooks siempre empiezan con un dato o una pregunta. Mi firma es terminar con una pregunta al espectador." style="resize:vertical;line-height:1.55"></textarea></div>
     </div>
     <div class="cfg-acts">
       <button class="btn-p" onclick="testWebsiteScrape()">PROBAR LECTURA WEB</button>
@@ -516,7 +517,7 @@ async function apiFetch(url, opts){
 }
 
 // ═══ STATE ═══
-let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',websiteUrl:'',creatorBio:''};
+let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',websiteUrl:'',creatorBio:'',brandTone:''};
 let realData=null,platformFilter='all',trendFilter='tt',compFilter='all';
 let vChart=null,eChart=null,serverOk=false;
 let selectedAccount='all',currentPeriod='7d',isDark=true;
@@ -1183,6 +1184,7 @@ async function generateIdeas(){
       }catch(e){ /* web scrape failed, continue without it */ }
     }
     const bioPart=cfg.creatorBio?`\nSOBRE EL CREADOR: ${cfg.creatorBio}\n`:'';
+    const tonePart=cfg.brandTone?`\nTONO Y VOZ DE MARCA:\n${cfg.brandTone}\n`:'Aplica un tono directo, sin florituras, orientado a resultados.';
     const prompt=`Eres estratega experto en contenido para redes sociales, IA y marketing digital en español.
 
 Analiza estos datos de @iaconpatrick y genera 6 ideas de contenido para TikTok/Instagram:
@@ -1193,7 +1195,7 @@ ${top.map(p=>`- "${p.title}" (${fn(p.views)} views, ${p.eng}% eng, tipo: ${p.typ
 NICHO: IA aplicada al marketing de contenidos, asesorías 1:1, automatizaciones, prompts para creadores.
 MEJOR HOOK: How-to (11.1K avg views, 6% like rate)
 AUDIENCIA: creadores, marcas personales, marketers hispanohablantes.
-${bioPart}${webContext}${prefPart}
+${bioPart}${webContext}${tonePart}${prefPart}
 Genera 6 ideas en JSON. Responde SOLO con el JSON sin texto adicional:
 [{"score":"SCORE: X.X/10","title":"título del vídeo","desc":"ángulo + hook + por qué funcionará (máx 200 chars)","tags":["tag1","tag2","tag3"]}]`;
 
@@ -1292,10 +1294,13 @@ async function generateScript(){
   if(!serverOk){showNotif('SERVIDOR OFFLINE','Arranca el servidor con: node server.js');return;}
   btn.disabled=true;btn.textContent='GENERANDO...';st.textContent='Claude está escribiendo tu guión...';st.className='cfg-status loading';result.style.display='none';
   try{
+    const scriptTone=cfg.brandTone?`\nTONO Y VOZ DE MARCA DEL CREADOR:\n${cfg.brandTone}\nAdapta el guión a esta voz exacta.`:'';
+    const scriptBio=cfg.creatorBio?`\nSOBRE EL CREADOR: ${cfg.creatorBio}`:'';
     const prompt=`Eres guionista experto en contenido viral para TikTok e Instagram en español.
 
-El creador @iaconpatrick hace contenido sobre IA aplicada al marketing y la automatización.
+El creador hace contenido sobre IA aplicada al marketing y la automatización.
 Audiencia: creadores, marketers, emprendedores hispanohablantes.
+${scriptBio}${scriptTone}
 
 Basándote en esta idea del creador, genera un guión completo listo para grabar:
 
@@ -1530,6 +1535,7 @@ function saveConfig(){
   cfg.anthropicModel=document.getElementById('anthropicModel').value;
   cfg.websiteUrl=document.getElementById('websiteUrl').value;
   cfg.creatorBio=document.getElementById('creatorBio').value;
+  cfg.brandTone=document.getElementById('brandTone').value;
   localStorage.setItem('iac_dash_v2',JSON.stringify(cfg));
   // Guardar también en servidor para el auto-sync semanal
   fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)}).catch(()=>{});
@@ -1539,7 +1545,7 @@ function loadCfg(){
   try{
     const s=JSON.parse(localStorage.getItem('iac_dash_v2')||'{}');
     Object.assign(cfg,s);
-    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel',websiteUrl:'websiteUrl',creatorBio:'creatorBio'};
+    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel',websiteUrl:'websiteUrl',creatorBio:'creatorBio',brandTone:'brandTone'};
     Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&cfg[k])el.value=cfg[k];});
     savedIdeas=JSON.parse(localStorage.getItem('iac_saved_ideas')||'[]');
     likedTags=JSON.parse(localStorage.getItem('iac_liked_tags')||'[]');
