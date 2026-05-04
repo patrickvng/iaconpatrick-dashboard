@@ -389,14 +389,8 @@ body.light::before{display:none}
   <div class="ph"><div><div class="ph-title">CONFIGURAR</div><div class="ph-sub">Conecta tus APIs para datos <b>reales</b></div></div></div>
 
   <!-- Server check -->
-  <div class="cfg-block" style="border-color:rgba(71,255,232,.2)" data-label="// SERVIDOR LOCAL">
-    <div class="cfg-info">
-      El dashboard necesita un servidor local para comunicarse con Apify sin errores de CORS.<br>
-      <b>1.</b> Asegúrate de tener <span class="hl">Node.js</span> instalado (nodejs.org)<br>
-      <b>2.</b> Abre una terminal en la carpeta <span class="hl">iaconpatrick-dashboard</span><br>
-      <b>3.</b> Ejecuta: <span class="hl">node server.js</span><br>
-      <b>4.</b> Abre el navegador en <span class="hl">http://localhost:3000</span>
-    </div>
+  <div class="cfg-block" style="border-color:rgba(71,255,232,.2)" data-label="// SERVIDOR" id="serverBlock">
+    <div class="cfg-info" id="serverInfo"></div>
     <div class="cfg-acts">
       <button class="btn-p" onclick="checkServer()">VERIFICAR SERVIDOR</button>
       <div class="cfg-status" id="serverStatus">No verificado</div>
@@ -579,6 +573,14 @@ const IDEA_TIPS={
 window.addEventListener('DOMContentLoaded',async()=>{
   updateClock();setInterval(updateClock,1000);
   loadCfg();
+  // Texto del bloque servidor según entorno
+  const isLocal=window.location.hostname==='localhost';
+  const si=document.getElementById('serverInfo');
+  if(si){
+    si.innerHTML=isLocal
+      ?'El dashboard necesita un servidor local para comunicarse con Apify sin errores de CORS.<br><b>1.</b> Asegúrate de tener <span class="hl">Node.js</span> instalado<br><b>2.</b> Abre una terminal en la carpeta del proyecto<br><b>3.</b> Ejecuta: <span class="hl">node server.js</span><br><b>4.</b> Abre el navegador en <span class="hl">http://localhost:3000</span>'
+      :'<b>→</b> Servidor corriendo en <span class="hl">Railway</span> ✓<br>No necesitas configurar nada aquí. El servidor está siempre encendido y hace sync automático cada semana.';
+  }
   checkServer(true);
   // Cargar cache del servidor si existe (datos del último auto-sync)
   try{

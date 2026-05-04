@@ -87,6 +87,12 @@ function saveCacheFile(d)  { try { fs.writeFileSync(CACHE_FILE,  JSON.stringify(
 
 // ─── APIFY PROXY ─────────────────────────────────────────────
 function proxyApify(req, res, apifyPath, body) {
+  // Si no hay token en la URL pero existe APIFY_TOKEN en el entorno, inyectarlo
+  if (ENV_TOKEN && !apifyPath.includes('token=')) {
+    apifyPath += (apifyPath.includes('?') ? '&' : '?') + 'token=' + ENV_TOKEN;
+  } else if (ENV_TOKEN && apifyPath.includes('token=test')) {
+    apifyPath = apifyPath.replace('token=test', 'token=' + ENV_TOKEN);
+  }
   const options = {
     hostname: 'api.apify.com',
     path:     apifyPath,
