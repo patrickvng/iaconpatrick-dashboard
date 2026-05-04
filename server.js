@@ -10,8 +10,9 @@ const DASH_USER = process.env.DASHBOARD_USER || 'admin';
 const DASH_PASS = process.env.DASHBOARD_PASS || 'iaconpatrick2025';
 const ENV_TOKEN = process.env.APIFY_TOKEN    || '';
 
-const CONFIG_FILE = path.join(__dirname, 'config.json');
-const CACHE_FILE  = path.join(__dirname, 'cache.json');
+const CONFIG_FILE   = path.join(__dirname, 'config.json');
+const CACHE_FILE    = path.join(__dirname, 'cache.json');
+const SESSIONS_FILE = path.join(__dirname, 'sessions.json');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -22,12 +23,34 @@ const MIME = {
   '.ico':  'image/x-icon',
 };
 
-// ─── SESIONES ────────────────────────────────────────────────
+// ─── SESIONES (persistidas en disco) ─────────────────────────
 const sessions = new Map();
+
+function loadSessions() {
+  try {
+    const data = JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf8'));
+    const now  = Date.now();
+    let n = 0;
+    for (const [token, expiry] of Object.entries(data)) {
+      if (expiry > now) { sessions.set(token, expiry); n++; }
+    }
+    if (n) console.log(`[Auth] ${n} sesión(es) restauradas desde disco`);
+  } catch { /* primera vez, sin archivo */ }
+}
+
+function saveSessions() {
+  try {
+    const data = Object.fromEntries([...sessions.entries()].filter(([, e]) => e > Date.now()));
+    fs.writeFileSync(SESSIONS_FILE, JSON.stringify(data));
+  } catch(e) {}
+}
+
+loadSessions();
 
 function createSession() {
   const token = crypto.randomBytes(32).toString('hex');
   sessions.set(token, Date.now() + 7 * 24 * 60 * 60 * 1000);
+  saveSessions();
   return token;
 }
 
@@ -36,7 +59,7 @@ function isValidSession(req) {
   const match  = cookie.match(/session=([a-f0-9]{64})/);
   if (!match) return false;
   const expiry = sessions.get(match[1]);
-  if (!expiry || Date.now() > expiry) { sessions.delete(match[1]); return false; }
+  if (!expiry || Date.now() > expiry) { sessions.delete(match[1]); saveSessions(); return false; }
   return true;
 }
 
@@ -211,7 +234,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/logout' && req.method === 'POST') {
     const cookie = req.headers['cookie'] || '';
     const match  = cookie.match(/session=([a-f0-9]{64})/);
-    if (match) sessions.delete(match[1]);
+    if (match) { sessions.delete(match[1]); saveSessions(); }
     res.setHeader('Set-Cookie', 'session=; Max-Age=0; Path=/');
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ ok: true }));

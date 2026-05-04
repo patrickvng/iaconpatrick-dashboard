@@ -1,4 +1,5 @@
 config.json
 cache.json
+sessions.json
 node_modules/
 .env

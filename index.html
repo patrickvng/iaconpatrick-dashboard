@@ -1102,8 +1102,9 @@ async function testApify(){
       st.textContent='✕ Token inválido';st.className='cfg-status err';
     }
   }catch(e){
-    log.innerHTML+=`<div class="log-err">✕ ${e.message}</div>`;
-    st.textContent='✕ Error';st.className='cfg-status err';
+    const msg=e.message.includes('<')||e.message.includes('token')?'Sesión expirada — <a href="/login" style="color:var(--accent)">vuelve a iniciar sesión</a>':e.message;
+    log.innerHTML+=`<div class="log-err">✕ ${msg}</div>`;
+    st.textContent='✕ '+(e.message.includes('<')?'Sesión expirada':e.message);st.className='cfg-status err';
   }
 }
 
