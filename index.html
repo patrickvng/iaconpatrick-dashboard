@@ -246,6 +246,7 @@ body.light::before{display:none}
     <button class="nav-btn" onclick="showPage('trending',this)"><i class="ni">↑</i>TRENDING</button>
     <button class="nav-btn" onclick="showPage('ideas',this)"><i class="ni">✦</i>IDEAS IA</button>
     <button class="nav-btn" onclick="showPage('saved',this)"><i class="ni">◉</i>GUARDADO</button>
+    <button class="nav-btn" onclick="showPage('brand',this)"><i class="ni">◆</i>MI MARCA</button>
     <button class="nav-btn" onclick="showPage('config',this)"><i class="ni">⚙</i>CONFIGURAR</button>
   </div>
   <div class="sb-section">
@@ -419,6 +420,67 @@ body.light::before{display:none}
   <div class="saved-empty" id="savedEmpty">Nada guardado aún.<br>Ve a <b>Ideas IA</b> y pulsa <b>+ GUARDAR</b> en las ideas que te gusten.</div>
 </div>
 
+<!-- MI MARCA -->
+<div class="page" id="page-brand">
+  <div class="ph">
+    <div><div class="ph-title">MI MARCA</div><div class="ph-sub">Cuéntale a Claude quién eres — <b>más contexto = ideas más personalizadas</b></div></div>
+    <button class="btn-p" onclick="saveBrand()">GUARDAR MARCA</button>
+  </div>
+
+  <div class="st">IDENTIDAD</div>
+  <div class="cfg-block" data-label="// QUIÉN ERES">
+    <div class="cfg-info">Lo básico sobre ti y tu audiencia. Claude lo usará en cada generación de ideas, guiones y análisis.</div>
+    <div class="cfg-grid">
+      <div class="cfg-field"><div class="cfg-lbl">TU NOMBRE / MARCA</div><input type="text" class="cfg-inp" id="brandName" placeholder="Ej: Patrick · IA con Patrick · iaconpatrick"></div>
+      <div class="cfg-field"><div class="cfg-lbl">NICHO PRINCIPAL</div><input type="text" class="cfg-inp" id="brandNiche" placeholder="Ej: IA aplicada al marketing de contenidos para creadores"></div>
+      <div class="cfg-field" style="grid-column:1/-1"><div class="cfg-lbl">BIO / SOBRE TI</div><textarea class="cfg-inp" id="creatorBio" rows="3" placeholder="Ej: Consultor de marketing digital y especialista en IA para marcas personales. Ayudo a creadores y emprendedores a automatizar su contenido. Audiencia: freelancers y emprendedores 25-40 hispanohablantes." style="resize:vertical;line-height:1.5"></textarea></div>
+    </div>
+  </div>
+
+  <div class="st">TU WEB</div>
+  <div class="cfg-block" data-label="// WEB">
+    <div class="cfg-info">La IA leerá tu web automáticamente antes de generar ideas, para entender tus servicios, tu propuesta de valor y tu lenguaje.</div>
+    <div class="cfg-grid">
+      <div class="cfg-field" style="grid-column:1/-1"><div class="cfg-lbl">URL DE TU WEB</div><input type="url" class="cfg-inp" id="websiteUrl" placeholder="https://tuwebsite.com"></div>
+    </div>
+    <div class="cfg-acts">
+      <button class="btn-p" onclick="testWebsiteScrape()">PROBAR LECTURA</button>
+      <div class="cfg-status" id="websiteStatus"></div>
+    </div>
+    <div class="log-box" id="websiteLog"></div>
+  </div>
+
+  <div class="st">TONO Y VOZ DE MARCA</div>
+  <div class="cfg-block" data-label="// VOZ">
+    <div class="cfg-info">Cómo hablas, qué palabras usas, qué evitas. Cuanto más específico, más fiel al original será lo que genere Claude.<br>Puedes escribirlo manualmente o subir un documento de marca en PDF o TXT.</div>
+    <div class="cfg-field" style="margin-top:12px">
+      <div class="cfg-lbl" style="display:flex;justify-content:space-between;align-items:center">
+        <span>VOZ DE MARCA</span>
+        <label style="cursor:pointer;font-size:9px;color:var(--accent3);letter-spacing:.08em;border:1px solid rgba(71,255,232,.3);padding:3px 9px;transition:background .14s" onmouseenter="this.style.background='rgba(71,255,232,.07)'" onmouseleave="this.style.background=''">
+          ↑ SUBIR PDF / TXT
+          <input type="file" id="brandFile" accept=".pdf,.txt,.md" style="display:none" onchange="uploadBrandFile(this)">
+        </label>
+      </div>
+      <div id="brandFileStatus" style="font-size:10px;color:var(--text3);margin:4px 0;display:none"></div>
+      <textarea class="cfg-inp" id="brandTone" rows="6" placeholder="Describe cómo hablas, qué palabras usas, qué evitas, ejemplos de frases tuyas...&#10;&#10;Ej: Tono directo y sin florituras. Frases cortas. Nunca digo 'increíble' ni 'revolucionario'. Hablo de tú a tú. Mis hooks siempre empiezan con un dato concreto o una afirmación que choca. Termino casi siempre con una pregunta al espectador para generar comentarios." style="resize:vertical;line-height:1.55;margin-top:6px"></textarea>
+    </div>
+  </div>
+
+  <div class="st">AUDIENCIA Y OBJETIVOS</div>
+  <div class="cfg-block" data-label="// AUDIENCIA">
+    <div class="cfg-grid">
+      <div class="cfg-field"><div class="cfg-lbl">AUDIENCIA PRINCIPAL</div><input type="text" class="cfg-inp" id="brandAudience" placeholder="Ej: Creadores de contenido y emprendedores 25-40, hispanohablantes, con negocio propio"></div>
+      <div class="cfg-field"><div class="cfg-lbl">OBJETIVO DE CONTENIDO</div><input type="text" class="cfg-inp" id="brandGoal" placeholder="Ej: Generar leads para asesorías 1:1 y crecer en TikTok e Instagram"></div>
+      <div class="cfg-field" style="grid-column:1/-1"><div class="cfg-lbl">TEMAS QUE EVITAS / LÍNEAS ROJAS</div><textarea class="cfg-inp" id="brandAvoid" rows="2" placeholder="Ej: No hago contenido de motivación vacía, no menciono precios de mis servicios en redes, no hablo de política." style="resize:vertical;line-height:1.5"></textarea></div>
+    </div>
+  </div>
+
+  <div style="margin-top:6px;display:flex;gap:8px">
+    <button class="btn-p" onclick="saveBrand()">GUARDAR MARCA</button>
+    <div class="cfg-status" id="brandSaveStatus"></div>
+  </div>
+</div>
+
 <!-- CONFIG -->
 <div class="page" id="page-config">
   <div class="ph"><div><div class="ph-title">CONFIGURAR</div><div class="ph-sub">Conecta tus APIs para datos <b>reales</b></div></div></div>
@@ -463,32 +525,6 @@ body.light::before{display:none}
     <div class="cfg-acts"><button class="btn-s" onclick="saveConfig()">GUARDAR</button></div>
   </div>
 
-  <div class="st">CONTEXTO DEL CREADOR — PERSONALIZA LA IA</div>
-  <div class="cfg-block" data-label="// CONTEXTO IA">
-    <div class="cfg-info">Claude usará esta información para generar ideas y guiones más ajustados a tu marca, estilo y audiencia.<br><b>Cuanto más detallado, más personalizado el resultado.</b></div>
-    <div class="cfg-grid">
-      <div class="cfg-field"><div class="cfg-lbl">TU WEB (la IA la leerá automáticamente)</div><input type="url" class="cfg-inp" id="websiteUrl" placeholder="https://tuwebsite.com"></div>
-      <div class="cfg-field"><div class="cfg-lbl">BIO / SOBRE TI</div><input type="text" class="cfg-inp" id="creatorBio" placeholder="Ej: Consultor de marketing digital, especialista en IA para marcas personales, audiencia de freelancers y emprendedores 25-40"></div>
-      <div class="cfg-field" style="grid-column:1/-1">
-        <div class="cfg-lbl" style="display:flex;justify-content:space-between;align-items:center">
-          <span>TONO Y VOZ DE MARCA (opcional)</span>
-          <label style="cursor:pointer;font-size:9px;color:var(--accent3);letter-spacing:.08em;border:1px solid rgba(71,255,232,.3);padding:3px 9px;transition:background .14s" onmouseenter="this.style.background='rgba(71,255,232,.07)'" onmouseleave="this.style.background=''">
-            ↑ SUBIR PDF / TXT
-            <input type="file" id="brandFile" accept=".pdf,.txt,.md" style="display:none" onchange="uploadBrandFile(this)">
-          </label>
-        </div>
-        <div id="brandFileStatus" style="font-size:10px;color:var(--text3);margin:4px 0;display:none"></div>
-        <textarea class="cfg-inp" id="brandTone" rows="5" placeholder="Describe cómo hablas, qué palabras usas, qué evitas, ejemplos de frases tuyas...&#10;&#10;Ej: Tono directo y sin florituras. Frases cortas. Nunca digo 'increíble' ni 'revolucionario'. Hablo de tú a tú. Mis hooks siempre empiezan con un dato concreto. Termino con una pregunta al espectador." style="resize:vertical;line-height:1.55"></textarea>
-      </div>
-    </div>
-    <div class="cfg-acts">
-      <button class="btn-p" onclick="testWebsiteScrape()">PROBAR LECTURA WEB</button>
-      <button class="btn-s" onclick="saveConfig()">GUARDAR</button>
-      <div class="cfg-status" id="websiteStatus"></div>
-    </div>
-    <div class="log-box" id="websiteLog"></div>
-  </div>
-
   <div class="st">ANTHROPIC — IDEAS CON CLAUDE</div>
   <div class="cfg-block" data-label="// CLAUDE">
     <div class="cfg-info"><b>→</b> <span class="hl">console.anthropic.com</span> → API Keys → Create Key</div>
@@ -527,7 +563,7 @@ async function apiFetch(url, opts){
 }
 
 // ═══ STATE ═══
-let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',websiteUrl:'',creatorBio:'',brandTone:''};
+let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',websiteUrl:'',creatorBio:'',brandTone:'',brandName:'',brandNiche:'',brandAudience:'',brandGoal:'',brandAvoid:''};
 let realData=null,platformFilter='all',trendFilter='tt',compFilter='all';
 let vChart=null,eChart=null,serverOk=false;
 let selectedAccount='all',currentPeriod='7d',isDark=true;
@@ -1193,7 +1229,15 @@ async function generateIdeas(){
         document.getElementById('ideasGrid').innerHTML='<div class="empty">✦ Claude generando ideas...</div>';
       }catch(e){ /* web scrape failed, continue without it */ }
     }
-    const bioPart=cfg.creatorBio?`\nSOBRE EL CREADOR: ${cfg.creatorBio}\n`:'';
+    const brandCtx=[
+      cfg.brandName&&`NOMBRE/MARCA: ${cfg.brandName}`,
+      cfg.brandNiche&&`NICHO: ${cfg.brandNiche}`,
+      cfg.creatorBio&&`BIO: ${cfg.creatorBio}`,
+      cfg.brandAudience&&`AUDIENCIA: ${cfg.brandAudience}`,
+      cfg.brandGoal&&`OBJETIVO DE CONTENIDO: ${cfg.brandGoal}`,
+      cfg.brandAvoid&&`EVITAR: ${cfg.brandAvoid}`,
+    ].filter(Boolean).join('\n');
+    const bioPart=brandCtx?`\nCONTEXTO DEL CREADOR:\n${brandCtx}\n`:'';
     const tonePart=cfg.brandTone?`\nTONO Y VOZ DE MARCA:\n${cfg.brandTone}\n`:'Aplica un tono directo, sin florituras, orientado a resultados.';
     const prompt=`Eres estratega experto en contenido para redes sociales, IA y marketing digital en español.
 
@@ -1304,13 +1348,19 @@ async function generateScript(){
   if(!serverOk){showNotif('SERVIDOR OFFLINE','Arranca el servidor con: node server.js');return;}
   btn.disabled=true;btn.textContent='GENERANDO...';st.textContent='Claude está escribiendo tu guión...';st.className='cfg-status loading';result.style.display='none';
   try{
-    const scriptTone=cfg.brandTone?`\nTONO Y VOZ DE MARCA DEL CREADOR:\n${cfg.brandTone}\nAdapta el guión a esta voz exacta.`:'';
-    const scriptBio=cfg.creatorBio?`\nSOBRE EL CREADOR: ${cfg.creatorBio}`:'';
+    const scriptCtx=[
+      cfg.brandName&&`Marca: ${cfg.brandName}`,
+      cfg.brandNiche&&`Nicho: ${cfg.brandNiche}`,
+      cfg.creatorBio&&`Bio: ${cfg.creatorBio}`,
+      cfg.brandAudience&&`Audiencia: ${cfg.brandAudience}`,
+      cfg.brandGoal&&`Objetivo: ${cfg.brandGoal}`,
+      cfg.brandAvoid&&`Evitar: ${cfg.brandAvoid}`,
+    ].filter(Boolean).join(' · ')||'IA aplicada al marketing y la automatización. Audiencia: creadores y emprendedores hispanohablantes.';
+    const scriptTone=cfg.brandTone?`\nTONO Y VOZ DE MARCA:\n${cfg.brandTone}\nAdapta el guión a esta voz exacta.`:'';
     const prompt=`Eres guionista experto en contenido viral para TikTok e Instagram en español.
 
-El creador hace contenido sobre IA aplicada al marketing y la automatización.
-Audiencia: creadores, marketers, emprendedores hispanohablantes.
-${scriptBio}${scriptTone}
+CONTEXTO DEL CREADOR: ${scriptCtx}
+${scriptTone}
 
 Basándote en esta idea del creador, genera un guión completo listo para grabar:
 
@@ -1579,6 +1629,19 @@ async function uploadBrandFile(input){
 }
 
 // ═══ CONFIG ═══
+function saveBrand(){
+  // Collect all brand fields
+  ['brandName','brandNiche','creatorBio','websiteUrl','brandTone','brandAudience','brandGoal','brandAvoid'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) cfg[id]=el.value;
+  });
+  localStorage.setItem('iac_dash_v2',JSON.stringify(cfg));
+  fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)}).catch(()=>{});
+  const st=document.getElementById('brandSaveStatus');
+  if(st){st.textContent='✓ Marca guardada';st.className='cfg-status ok';setTimeout(()=>{st.textContent='';},3000);}
+  showNotif('MARCA GUARDADA','Claude usará estos datos en la próxima generación de ideas.');
+}
+
 function saveConfig(){
   cfg.apifyToken=document.getElementById('apifyToken').value;
   cfg.ttHandle=document.getElementById('ttHandle').value;
@@ -1592,6 +1655,11 @@ function saveConfig(){
   cfg.websiteUrl=document.getElementById('websiteUrl').value;
   cfg.creatorBio=document.getElementById('creatorBio').value;
   cfg.brandTone=document.getElementById('brandTone').value;
+  cfg.brandName=document.getElementById('brandName')?.value||cfg.brandName;
+  cfg.brandNiche=document.getElementById('brandNiche')?.value||cfg.brandNiche;
+  cfg.brandAudience=document.getElementById('brandAudience')?.value||cfg.brandAudience;
+  cfg.brandGoal=document.getElementById('brandGoal')?.value||cfg.brandGoal;
+  cfg.brandAvoid=document.getElementById('brandAvoid')?.value||cfg.brandAvoid;
   localStorage.setItem('iac_dash_v2',JSON.stringify(cfg));
   // Guardar también en servidor para el auto-sync semanal
   fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)}).catch(()=>{});
@@ -1601,7 +1669,7 @@ function loadCfg(){
   try{
     const s=JSON.parse(localStorage.getItem('iac_dash_v2')||'{}');
     Object.assign(cfg,s);
-    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel',websiteUrl:'websiteUrl',creatorBio:'creatorBio',brandTone:'brandTone'};
+    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel',websiteUrl:'websiteUrl',creatorBio:'creatorBio',brandTone:'brandTone',brandName:'brandName',brandNiche:'brandNiche',brandAudience:'brandAudience',brandGoal:'brandGoal',brandAvoid:'brandAvoid'};
     Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&cfg[k])el.value=cfg[k];});
     savedIdeas=JSON.parse(localStorage.getItem('iac_saved_ideas')||'[]');
     likedTags=JSON.parse(localStorage.getItem('iac_liked_tags')||'[]');
