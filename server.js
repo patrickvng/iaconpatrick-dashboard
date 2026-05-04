@@ -1,9 +1,10 @@
-const http   = require('http');
-const https  = require('https');
-const fs     = require('fs');
-const path   = require('path');
-const url    = require('url');
-const crypto = require('crypto');
+const http      = require('http');
+const https     = require('https');
+const fs        = require('fs');
+const path      = require('path');
+const url       = require('url');
+const crypto    = require('crypto');
+const pdfParse  = require('pdf-parse');
 
 const PORT      = process.env.PORT           || 3000;
 const DASH_USER = process.env.DASHBOARD_USER || 'admin';
@@ -285,6 +286,27 @@ const server = http.createServer((req, res) => {
     const apifyPath = pathname.replace('/api/apify', '') + (req.url.includes('?') ? '?' + req.url.split('?')[1] : '');
     if (req.method === 'POST') { let body = ''; req.on('data', c => body += c); req.on('end', () => proxyApify(req, res, apifyPath, body)); }
     else { proxyApify(req, res, apifyPath, null); }
+    return;
+  }
+
+  // ── POST /api/parse-pdf — extrae texto de un PDF en base64
+  if (pathname === '/api/parse-pdf' && req.method === 'POST') {
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', async () => {
+      try {
+        const { data, name } = JSON.parse(body);
+        if (!data) { res.statusCode = 400; res.end(JSON.stringify({ error: 'Missing data' })); return; }
+        const buffer = Buffer.from(data, 'base64');
+        const result = await pdfParse(buffer);
+        const text = result.text.replace(/\s+/g, ' ').trim().slice(0, 6000);
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ text, pages: result.numpages, chars: text.length }));
+      } catch(e) {
+        res.statusCode = 500;
+        res.end(JSON.stringify({ error: 'Error al parsear el PDF: ' + e.message }));
+      }
+    });
     return;
   }
 

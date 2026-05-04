@@ -469,7 +469,17 @@ body.light::before{display:none}
     <div class="cfg-grid">
       <div class="cfg-field"><div class="cfg-lbl">TU WEB (la IA la leerá automáticamente)</div><input type="url" class="cfg-inp" id="websiteUrl" placeholder="https://tuwebsite.com"></div>
       <div class="cfg-field"><div class="cfg-lbl">BIO / SOBRE TI</div><input type="text" class="cfg-inp" id="creatorBio" placeholder="Ej: Consultor de marketing digital, especialista en IA para marcas personales, audiencia de freelancers y emprendedores 25-40"></div>
-      <div class="cfg-field" style="grid-column:1/-1"><div class="cfg-lbl">TONO Y VOZ DE MARCA (opcional)</div><textarea class="cfg-inp" id="brandTone" rows="4" placeholder="Describe cómo hablas, qué palabras usas, qué evitas, ejemplos de frases tuyas...&#10;&#10;Ej: Tono directo y sin florituras. Uso frases cortas. Nunca digo 'increíble' ni 'revolucionario'. Hablo de tú a tú, sin pedantería. Mis hooks siempre empiezan con un dato o una pregunta. Mi firma es terminar con una pregunta al espectador." style="resize:vertical;line-height:1.55"></textarea></div>
+      <div class="cfg-field" style="grid-column:1/-1">
+        <div class="cfg-lbl" style="display:flex;justify-content:space-between;align-items:center">
+          <span>TONO Y VOZ DE MARCA (opcional)</span>
+          <label style="cursor:pointer;font-size:9px;color:var(--accent3);letter-spacing:.08em;border:1px solid rgba(71,255,232,.3);padding:3px 9px;transition:background .14s" onmouseenter="this.style.background='rgba(71,255,232,.07)'" onmouseleave="this.style.background=''">
+            ↑ SUBIR PDF / TXT
+            <input type="file" id="brandFile" accept=".pdf,.txt,.md" style="display:none" onchange="uploadBrandFile(this)">
+          </label>
+        </div>
+        <div id="brandFileStatus" style="font-size:10px;color:var(--text3);margin:4px 0;display:none"></div>
+        <textarea class="cfg-inp" id="brandTone" rows="5" placeholder="Describe cómo hablas, qué palabras usas, qué evitas, ejemplos de frases tuyas...&#10;&#10;Ej: Tono directo y sin florituras. Frases cortas. Nunca digo 'increíble' ni 'revolucionario'. Hablo de tú a tú. Mis hooks siempre empiezan con un dato concreto. Termino con una pregunta al espectador." style="resize:vertical;line-height:1.55"></textarea>
+      </div>
     </div>
     <div class="cfg-acts">
       <button class="btn-p" onclick="testWebsiteScrape()">PROBAR LECTURA WEB</button>
@@ -1520,6 +1530,52 @@ async function testWebsiteScrape(){
     log.innerHTML+=`<div class="log-warn">⚠ Algunas webs bloquean bots. Prueba con otra URL o usa el campo BIO para describir tu web manualmente.</div>`;
     st.textContent='✕ No se pudo leer la web';st.className='cfg-status err';
   }
+}
+
+async function uploadBrandFile(input){
+  const file=input.files[0];
+  if(!file)return;
+  const status=document.getElementById('brandFileStatus');
+  status.style.display='block';
+  status.style.color='var(--warn)';
+  status.textContent='Leyendo archivo...';
+
+  // TXT / MD — leer en cliente
+  if(file.type==='text/plain'||file.name.endsWith('.txt')||file.name.endsWith('.md')){
+    try{
+      const text=await file.text();
+      document.getElementById('brandTone').value=text.slice(0,6000);
+      status.style.color='var(--success)';
+      status.textContent=`✓ ${file.name} cargado (${text.length} caracteres). Edita el texto si quieres y guarda.`;
+      showNotif('ARCHIVO CARGADO',file.name+' importado correctamente.');
+    }catch(e){status.style.color='var(--accent2)';status.textContent='✕ Error leyendo el archivo.';}
+    input.value='';return;
+  }
+
+  // PDF — enviar al servidor
+  if(file.type==='application/pdf'||file.name.endsWith('.pdf')){
+    if(!serverOk){status.style.color='var(--accent2)';status.textContent='✕ Arranca el servidor primero.';input.value='';return;}
+    try{
+      const b64=await new Promise((res,rej)=>{
+        const r=new FileReader();
+        r.onload=e=>res(e.target.result.split(',')[1]);
+        r.onerror=rej;
+        r.readAsDataURL(file);
+      });
+      const resp=await apiFetch('/api/parse-pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:b64,name:file.name})});
+      const d=await resp.json();
+      if(d.error)throw new Error(d.error);
+      document.getElementById('brandTone').value=d.text;
+      status.style.color='var(--success)';
+      status.textContent=`✓ ${file.name} — ${d.pages} página(s), ${d.chars} caracteres extraídos. Edita si necesitas y guarda.`;
+      showNotif('PDF IMPORTADO',`${d.pages} páginas leídas de ${file.name}`);
+    }catch(e){status.style.color='var(--accent2)';status.textContent='✕ '+e.message;}
+    input.value='';return;
+  }
+
+  status.style.color='var(--accent2)';
+  status.textContent='✕ Formato no soportado. Usa PDF, TXT o MD.';
+  input.value='';
 }
 
 // ═══ CONFIG ═══
