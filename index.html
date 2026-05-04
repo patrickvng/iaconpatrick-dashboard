@@ -285,7 +285,12 @@ body.light::before{display:none}
 <!-- OVERVIEW -->
 <div class="page active" id="page-overview">
   <div class="ph">
-    <div><div class="ph-title">OVERVIEW</div><div class="ph-sub">Todas las cuentas · <b id="periodLabel">Últimos 7 días</b></div></div>
+    <div><div class="ph-title">OVERVIEW</div><div class="ph-sub"><b id="ovAccountLabel">Todas las cuentas</b> · <b id="periodLabel">Últimos 7 días</b></div></div>
+    <div class="period-sel">
+      <button class="pb active" id="ovBtnAll" onclick="setAccount('all')">TODAS</button>
+      <button class="pb" id="ovBtnTT" onclick="setAccount('tt')" style="border-left:1px solid var(--border)">TIKTOK</button>
+      <button class="pb" id="ovBtnIG" onclick="setAccount('ig')" style="border-left:1px solid var(--border)">INSTAGRAM</button>
+    </div>
   </div>
   <div class="srv-banner" id="srvBanner">
     <b>⚠ Servidor no detectado.</b> Abre una terminal en la carpeta del proyecto y ejecuta <b>node server.js</b>, luego recarga la página en <b>http://localhost:3000</b>
@@ -458,6 +463,21 @@ body.light::before{display:none}
     <div class="cfg-acts"><button class="btn-s" onclick="saveConfig()">GUARDAR</button></div>
   </div>
 
+  <div class="st">CONTEXTO DEL CREADOR — PERSONALIZA LA IA</div>
+  <div class="cfg-block" data-label="// CONTEXTO IA">
+    <div class="cfg-info">Claude usará esta información para generar ideas y guiones más ajustados a tu marca, estilo y audiencia.<br><b>Cuanto más detallado, más personalizado el resultado.</b></div>
+    <div class="cfg-grid">
+      <div class="cfg-field"><div class="cfg-lbl">TU WEB (la IA la leerá automáticamente)</div><input type="url" class="cfg-inp" id="websiteUrl" placeholder="https://tuwebsite.com"></div>
+      <div class="cfg-field"><div class="cfg-lbl">BIO / SOBRE TI</div><input type="text" class="cfg-inp" id="creatorBio" placeholder="Ej: Consultor de marketing digital, especialista en IA para marcas personales, audiencia de freelancers y emprendedores 25-40"></div>
+    </div>
+    <div class="cfg-acts">
+      <button class="btn-p" onclick="testWebsiteScrape()">PROBAR LECTURA WEB</button>
+      <button class="btn-s" onclick="saveConfig()">GUARDAR</button>
+      <div class="cfg-status" id="websiteStatus"></div>
+    </div>
+    <div class="log-box" id="websiteLog"></div>
+  </div>
+
   <div class="st">ANTHROPIC — IDEAS CON CLAUDE</div>
   <div class="cfg-block" data-label="// CLAUDE">
     <div class="cfg-info"><b>→</b> <span class="hl">console.anthropic.com</span> → API Keys → Create Key</div>
@@ -496,7 +516,7 @@ async function apiFetch(url, opts){
 }
 
 // ═══ STATE ═══
-let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514'};
+let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',websiteUrl:'',creatorBio:''};
 let realData=null,platformFilter='all',trendFilter='tt',compFilter='all';
 let vChart=null,eChart=null,serverOk=false;
 let selectedAccount='all',currentPeriod='7d',isDark=true;
@@ -673,17 +693,23 @@ function closeModal(e){
 
 // ═══ ACCOUNT SWITCHING ═══
 function setAccount(acc){
-  if(selectedAccount===acc&&acc!=='all'){selectedAccount='all';document.getElementById('accTT').classList.remove('active');document.getElementById('accIG').classList.remove('active');}
-  else{
-    selectedAccount=acc;
-    document.getElementById('accTT').classList.toggle('active',acc==='tt');
-    document.getElementById('accIG').classList.toggle('active',acc==='ig');
-  }
+  // Toggle off if clicking the already-active non-all button
+  if(selectedAccount===acc&&acc!=='all') acc='all';
+  selectedAccount=acc;
+  // Sidebar cards
+  document.getElementById('accTT').classList.toggle('active',acc==='tt');
+  document.getElementById('accIG').classList.toggle('active',acc==='ig');
+  // Overview top toggle
+  ['all','tt','ig'].forEach(a=>{
+    const btn=document.getElementById('ovBtn'+a[0].toUpperCase()+a.slice(1));
+    if(btn) btn.classList.toggle('active',selectedAccount===a);
+  });
+  // Overview subtitle
+  const ovLbl=document.getElementById('ovAccountLabel');
+  if(ovLbl) ovLbl.textContent=selectedAccount==='tt'?'TikTok':selectedAccount==='ig'?'Instagram':'Todas las cuentas';
   platformFilter=selectedAccount==='tt'?'tt':selectedAccount==='ig'?'ig':'all';
-  // Sync trending filter with account
-  if(selectedAccount==='ig') trendFilter='ig';
-  else trendFilter='tt';
-  // Sync trending toggle buttons
+  // Sync trending filter
+  trendFilter=selectedAccount==='ig'?'ig':'tt';
   document.querySelectorAll('#page-trending .period-sel .pb').forEach(b=>{
     b.classList.toggle('active',b.textContent.trim()===(trendFilter==='tt'?'TIKTOK':'INSTAGRAM'));
   });
@@ -1145,6 +1171,18 @@ async function generateIdeas(){
     const d=realData||D;
     const top=[...d.tiktok.topPosts,...d.instagram.topPosts].slice(0,5);
     const prefPart=likedTags.length||dislikedTags.length?`\nPREFERENCIAS DEL CREADOR:\n${likedTags.length?`- Le gustan ideas sobre: ${likedTags.join(', ')}`:''}\n${dislikedTags.length?`- No le interesan ideas sobre: ${dislikedTags.join(', ')}`:''}\n`:'';
+    // Fetch website content if configured
+    let webContext='';
+    if(cfg.websiteUrl){
+      document.getElementById('ideasGrid').innerHTML='<div class="empty">✦ Leyendo tu web...</div>';
+      try{
+        const wr=await apiFetch(`/api/scrape?url=${encodeURIComponent(cfg.websiteUrl)}`);
+        const wd=await wr.json();
+        if(wd.text) webContext=`\nCONTENIDO DE LA WEB DEL CREADOR (${cfg.websiteUrl}):\n${wd.text.slice(0,2000)}\n`;
+        document.getElementById('ideasGrid').innerHTML='<div class="empty">✦ Claude generando ideas...</div>';
+      }catch(e){ /* web scrape failed, continue without it */ }
+    }
+    const bioPart=cfg.creatorBio?`\nSOBRE EL CREADOR: ${cfg.creatorBio}\n`:'';
     const prompt=`Eres estratega experto en contenido para redes sociales, IA y marketing digital en español.
 
 Analiza estos datos de @iaconpatrick y genera 6 ideas de contenido para TikTok/Instagram:
@@ -1155,7 +1193,7 @@ ${top.map(p=>`- "${p.title}" (${fn(p.views)} views, ${p.eng}% eng, tipo: ${p.typ
 NICHO: IA aplicada al marketing de contenidos, asesorías 1:1, automatizaciones, prompts para creadores.
 MEJOR HOOK: How-to (11.1K avg views, 6% like rate)
 AUDIENCIA: creadores, marcas personales, marketers hispanohablantes.
-${prefPart}
+${bioPart}${webContext}${prefPart}
 Genera 6 ideas en JSON. Responde SOLO con el JSON sin texto adicional:
 [{"score":"SCORE: X.X/10","title":"título del vídeo","desc":"ángulo + hook + por qué funcionará (máx 200 chars)","tags":["tag1","tag2","tag3"]}]`;
 
@@ -1455,6 +1493,30 @@ async function testAnthropic(){
   }catch(e){st.textContent='✕ '+e.message;st.className='cfg-status err';}
 }
 
+async function testWebsiteScrape(){
+  const url=document.getElementById('websiteUrl').value.trim();
+  const st=document.getElementById('websiteStatus');
+  const log=document.getElementById('websiteLog');
+  if(!url){st.textContent='✕ Introduce una URL';st.className='cfg-status err';return;}
+  if(!serverOk){st.textContent='✕ Arranca el servidor primero';st.className='cfg-status err';return;}
+  st.textContent='Leyendo web...';st.className='cfg-status loading';
+  log.className='log-box show';log.innerHTML='<div class="log-info">→ Accediendo a '+url+'...</div>';
+  try{
+    const r=await apiFetch(`/api/scrape?url=${encodeURIComponent(url)}`);
+    const d=await r.json();
+    if(d.error) throw new Error(d.error);
+    const preview=d.text.slice(0,300).replace(/</g,'&lt;');
+    log.innerHTML+=`<div class="log-ok">✓ Texto extraído (${d.text.length} caracteres)</div>`;
+    log.innerHTML+=`<div class="log-info" style="font-size:10px;margin-top:6px;color:var(--text3)">Vista previa: "${preview}..."</div>`;
+    st.textContent='✓ Web leída correctamente';st.className='cfg-status ok';
+    showNotif('WEB LEÍDA','Claude usará tu web en la próxima generación de ideas.');
+  }catch(e){
+    log.innerHTML+=`<div class="log-err">✕ Error: ${e.message}</div>`;
+    log.innerHTML+=`<div class="log-warn">⚠ Algunas webs bloquean bots. Prueba con otra URL o usa el campo BIO para describir tu web manualmente.</div>`;
+    st.textContent='✕ No se pudo leer la web';st.className='cfg-status err';
+  }
+}
+
 // ═══ CONFIG ═══
 function saveConfig(){
   cfg.apifyToken=document.getElementById('apifyToken').value;
@@ -1466,6 +1528,8 @@ function saveConfig(){
   cfg.compIG=document.getElementById('compIG').value;
   cfg.anthropicKey=document.getElementById('anthropicKey').value;
   cfg.anthropicModel=document.getElementById('anthropicModel').value;
+  cfg.websiteUrl=document.getElementById('websiteUrl').value;
+  cfg.creatorBio=document.getElementById('creatorBio').value;
   localStorage.setItem('iac_dash_v2',JSON.stringify(cfg));
   // Guardar también en servidor para el auto-sync semanal
   fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)}).catch(()=>{});
@@ -1475,7 +1539,7 @@ function loadCfg(){
   try{
     const s=JSON.parse(localStorage.getItem('iac_dash_v2')||'{}');
     Object.assign(cfg,s);
-    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel'};
+    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel',websiteUrl:'websiteUrl',creatorBio:'creatorBio'};
     Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&cfg[k])el.value=cfg[k];});
     savedIdeas=JSON.parse(localStorage.getItem('iac_saved_ideas')||'[]');
     likedTags=JSON.parse(localStorage.getItem('iac_liked_tags')||'[]');

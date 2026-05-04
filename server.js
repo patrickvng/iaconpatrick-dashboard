@@ -288,6 +288,46 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ── GET /api/scrape?url=... — extrae texto de una URL para contexto IA
+  if (pathname === '/api/scrape' && req.method === 'GET') {
+    const targetUrl = parsed.query && parsed.query.url;
+    if (!targetUrl) { res.statusCode = 400; res.end(JSON.stringify({ error: 'Missing url param' })); return; }
+    let u;
+    try { u = new URL(targetUrl); } catch(e) { res.statusCode = 400; res.end(JSON.stringify({ error: 'Invalid URL' })); return; }
+    if (!['http:', 'https:'].includes(u.protocol)) { res.statusCode = 400; res.end(JSON.stringify({ error: 'Only http/https allowed' })); return; }
+    const mod = u.protocol === 'https:' ? https : http;
+    const scrapeReq = mod.get(
+      { hostname: u.hostname, path: u.pathname + u.search, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DashboardBot/1.0)', 'Accept': 'text/html' }, timeout: 8000 },
+      (scrapeRes) => {
+        // Follow single redirect
+        if ((scrapeRes.statusCode === 301 || scrapeRes.statusCode === 302) && scrapeRes.headers.location) {
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ text: `Redirigido a: ${scrapeRes.headers.location}. Usa la URL final directamente.`, redirected: true }));
+          return;
+        }
+        let data = '';
+        scrapeRes.on('data', c => { if (data.length < 500000) data += c; });
+        scrapeRes.on('end', () => {
+          const text = data
+            .replace(/<script[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[\s\S]*?<\/style>/gi, '')
+            .replace(/<!--[\s\S]*?-->/g, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 4000);
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ text, length: text.length }));
+        });
+      }
+    );
+    scrapeReq.on('error', e => { res.statusCode = 500; res.end(JSON.stringify({ error: e.message })); });
+    scrapeReq.on('timeout', () => { scrapeReq.destroy(); res.statusCode = 504; res.end(JSON.stringify({ error: 'Timeout al leer la web' })); });
+    return;
+  }
+
   // ── PROXY /api/anthropic
   if (pathname === '/api/anthropic') {
     let body = '';
