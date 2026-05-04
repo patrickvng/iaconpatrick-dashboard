@@ -146,9 +146,50 @@ select.cfg-inp option{background:var(--bg3)}
 .srv-banner{background:rgba(255,170,71,.08);border:1px solid rgba(255,170,71,.2);padding:10px 16px;margin-bottom:16px;font-size:11px;color:var(--warn);display:none;line-height:1.6}
 .srv-banner.show{display:block}
 .srv-banner b{color:var(--text)}
+/* ─── LIGHT MODE ────────────────────────────────────────── */
+body.light{--bg:#f5f5f0;--bg2:#eaeae6;--bg3:#deded9;--bg4:#d2d2cd;--border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.18);--accent:#616e00;--accent2:#c41c2c;--accent3:#0b6e68;--accent4:#7a4800;--text:#1a1a18;--text2:#555552;--text3:#888884;--success:#176034;--warn:#7a4800}
+body.light::before{display:none}
+/* ─── MODAL ─────────────────────────────────────────────── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.87);z-index:10000;align-items:center;justify-content:center;padding:16px}
+.modal-ov.show{display:flex}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);width:100%;max-width:660px;max-height:88vh;overflow-y:auto}
+.modal-hd{padding:15px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--bg2);z-index:1}
+.modal-hd-t{font-size:13px;font-weight:700;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90%}
+.modal-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;font-family:var(--mono);padding:0}.modal-close:hover{color:var(--text)}
+.modal-bd{padding:18px}
+/* ─── THEME BTN ─────────────────────────────────────────── */
+.theme-btn{background:none;border:1px solid var(--border2);color:var(--text3);font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:5px 11px;cursor:pointer;transition:all .15s}
+.theme-btn:hover{color:var(--text)}
+/* ─── HOOK + IDEA UPDATES ───────────────────────────────── */
+.hk{cursor:pointer;transition:border-color .14s,background .14s}.hk:hover{border-color:var(--border2);background:var(--bg3)}
+.idea-card{cursor:pointer}.idea-footer{margin-top:10px;display:flex;align-items:center;justify-content:space-between}
+.idea-save-btn{background:none;border:1px solid var(--border2);color:var(--text3);font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:4px 10px;cursor:pointer;transition:all .15s}
+.idea-save-btn:hover{border-color:var(--accent);color:var(--accent)}.idea-save-btn.saved{border-color:var(--success);color:var(--success)}
+/* ─── EXEC TIPS ─────────────────────────────────────────── */
+.exec-tip{background:var(--bg3);border:1px solid var(--border);padding:12px 14px;margin-bottom:8px}
+.exec-label{font-size:9px;color:var(--accent);font-weight:700;letter-spacing:.1em;margin-bottom:5px}
+.exec-text{font-size:12px;color:var(--text2);line-height:1.55}
+/* ─── CREATOR / POST LINKS ──────────────────────────────── */
+.creator-link{display:inline-block;font-size:9px;color:var(--accent3);letter-spacing:.08em;text-decoration:none;margin-top:8px;border:1px solid rgba(71,255,232,.2);padding:3px 8px}
+.creator-link:hover{background:rgba(71,255,232,.07)}
+.post-row{text-decoration:none;color:inherit}
+/* ─── SAVED PAGE ────────────────────────────────────────── */
+.saved-empty{color:var(--text3);font-size:12px;text-align:center;padding:48px;line-height:1.8}
+.rm-btn{background:none;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:9px;padding:3px 8px;cursor:pointer;transition:all .14s}
+.rm-btn:hover{border-color:var(--accent2);color:var(--accent2)}
 </style>
 </head>
 <body>
+
+<div class="modal-ov" id="modalOv" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <div class="modal-hd-t" id="modalTitle"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-bd" id="modalBody"></div>
+  </div>
+</div>
 
 <div class="lo-overlay" id="loOverlay">
   <div class="lo-lbl">SYNC EN PROGRESO</div>
@@ -171,6 +212,7 @@ select.cfg-inp option{background:var(--bg3)}
   </div>
   <div class="tb-r">
     <div class="tb-time" id="tbTime"></div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀ LIGHT</button>
     <button class="sync-btn" id="syncBtn" onclick="triggerSync()">↻ SYNC</button>
   </div>
 </div>
@@ -203,20 +245,22 @@ select.cfg-inp option{background:var(--bg3)}
     <button class="nav-btn" onclick="showPage('competitors',this)"><i class="ni">◎</i>CREADORES</button>
     <button class="nav-btn" onclick="showPage('trending',this)"><i class="ni">↑</i>TRENDING</button>
     <button class="nav-btn" onclick="showPage('ideas',this)"><i class="ni">✦</i>IDEAS IA</button>
+    <button class="nav-btn" onclick="showPage('saved',this)"><i class="ni">◉</i>GUARDADO</button>
     <button class="nav-btn" onclick="showPage('config',this)"><i class="ni">⚙</i>CONFIGURAR</button>
   </div>
   <div class="sb-section">
     <div class="sb-label">CUENTAS</div>
-    <div class="acc-card active" onclick="this.parentNode.querySelectorAll('.acc-card').forEach(c=>c.classList.remove('active'));this.classList.add('active')">
+    <div class="acc-card" id="accTT" onclick="setAccount('tt')">
       <div class="acc-top"><div class="acc-name">iaconpatrick</div><div class="acc-badge b-tt">TIKTOK</div></div>
       <div class="acc-handle">@iaconpatrick</div>
       <div class="acc-stat"><b id="sbTTFol">651</b> seguidores</div>
     </div>
-    <div class="acc-card" onclick="this.parentNode.querySelectorAll('.acc-card').forEach(c=>c.classList.remove('active'));this.classList.add('active')">
+    <div class="acc-card" id="accIG" onclick="setAccount('ig')">
       <div class="acc-top"><div class="acc-name">iaconpatrick</div><div class="acc-badge b-ig">INSTAGRAM</div></div>
       <div class="acc-handle">@iaconpatrick</div>
       <div class="acc-stat"><b id="sbIGFol">813</b> seguidores</div>
     </div>
+    <div style="padding:6px 10px 0"><button class="btn-s" style="width:100%;font-size:9px;padding:5px" onclick="setAccount('all')">◈ VER TODAS</button></div>
   </div>
   <div class="sb-section">
     <div class="sb-label">PERÍODO</div>
@@ -329,6 +373,17 @@ select.cfg-inp option{background:var(--bg3)}
   <div class="ideas-grid" id="ideasGrid"></div>
 </div>
 
+<!-- GUARDADO -->
+<div class="page" id="page-saved">
+  <div class="ph">
+    <div><div class="ph-title">GUARDADO</div><div class="ph-sub">Ideas que quieres ejecutar</div></div>
+    <button class="btn-s" onclick="clearSaved()">LIMPIAR TODO</button>
+  </div>
+  <div class="st">IDEAS GUARDADAS</div>
+  <div class="ideas-grid" id="savedGrid"></div>
+  <div class="saved-empty" id="savedEmpty">Nada guardado aún.<br>Ve a <b>Ideas IA</b> y pulsa <b>+ GUARDAR</b> en las ideas que te gusten.</div>
+</div>
+
 <!-- CONFIG -->
 <div class="page" id="page-config">
   <div class="ph"><div><div class="ph-title">CONFIGURAR</div><div class="ph-sub">Conecta tus APIs para datos <b>reales</b></div></div></div>
@@ -403,36 +458,36 @@ select.cfg-inp option{background:var(--bg3)}
 </div>
 
 <script>
-// ═══ BASE URL — cuando corre en servidor local usa proxy, si no avisa ═══
 const BASE = window.location.hostname === 'localhost' ? '' : null;
 
 // ═══ STATE ═══
 let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514'};
 let realData=null,platformFilter='all',trendFilter='tt';
-let vChart=null,eChart=null;
-let serverOk=false;
+let vChart=null,eChart=null,serverOk=false;
+let selectedAccount='all',currentPeriod='7d',isDark=true;
+let currentIdeas=[],currentHooks=[],savedIdeas=[];
 
 // ═══ DEMO DATA ═══
 const D={
   tiktok:{followers:651,followersDelta:61,views:64700,viewsDelta:12.3,engagement:7.4,shares:549,posts:30,
     viewsByDay:[3200,5100,4800,7200,9100,8400,11200,8900,12400,10200,9800,14200,12100,11800],
     topPosts:[
-      {rank:1,title:"Cómo automaticé 80% de mi creación de contenido con Claude",platform:'tt',type:'How-to',views:18400,likes:892,comments:67,shares:145,eng:6.1},
-      {rank:2,title:"El stack de IA que uso para gestionar 2 marcas sin morir",platform:'tt',type:'Tutorial',views:12100,likes:543,comments:41,shares:89,eng:5.6},
-      {rank:3,title:"ChatGPT no es suficiente — esto es lo que realmente necesitas",platform:'tt',type:'Storytelling',views:9800,likes:421,comments:38,shares:72,eng:5.4},
-      {rank:4,title:"Prompt que me ahorró 3h de trabajo esta semana",platform:'tt',type:'How-to',views:7200,likes:334,comments:28,shares:55,eng:5.8},
-      {rank:5,title:"Por qué el 90% de creadores usa mal la IA (y cómo evitarlo)",platform:'tt',type:'Opinión',views:5400,likes:287,comments:44,shares:61,eng:7.2},
+      {rank:1,title:"Cómo automaticé 80% de mi creación de contenido con Claude",platform:'tt',type:'How-to',views:18400,likes:892,comments:67,shares:145,eng:6.1,url:'https://www.tiktok.com/@iaconpatrick'},
+      {rank:2,title:"El stack de IA que uso para gestionar 2 marcas sin morir",platform:'tt',type:'Tutorial',views:12100,likes:543,comments:41,shares:89,eng:5.6,url:'https://www.tiktok.com/@iaconpatrick'},
+      {rank:3,title:"ChatGPT no es suficiente — esto es lo que realmente necesitas",platform:'tt',type:'Storytelling',views:9800,likes:421,comments:38,shares:72,eng:5.4,url:'https://www.tiktok.com/@iaconpatrick'},
+      {rank:4,title:"Prompt que me ahorró 3h de trabajo esta semana",platform:'tt',type:'How-to',views:7200,likes:334,comments:28,shares:55,eng:5.8,url:'https://www.tiktok.com/@iaconpatrick'},
+      {rank:5,title:"Por qué el 90% de creadores usa mal la IA (y cómo evitarlo)",platform:'tt',type:'Opinión',views:5400,likes:287,comments:44,shares:61,eng:7.2,url:'https://www.tiktok.com/@iaconpatrick'},
     ],
     hooks:[{type:'How-to',views:11100,videos:3,rate:6},{type:'Storytelling',views:8400,videos:4,rate:5},{type:'Tutorial',views:7200,videos:5,rate:4},{type:'Opinión',views:5200,videos:3,rate:7}],
     mix:{Video:18,Carrusel:7,Foto:5}},
   instagram:{followers:813,followersDelta:24,views:28400,viewsDelta:8.1,engagement:4.2,shares:189,posts:30,
     viewsByDay:[1200,2100,1900,3100,2800,3400,4100,3800,4600,3900,4200,5100,4800,5400],
     topPosts:[
-      {rank:1,title:"New campaign for @sportyandrich — Photographer BTS",platform:'ig',type:'Reel',views:458,likes:61,comments:21,shares:12,eng:8.4},
-      {rank:2,title:"We turn vision into impact, ideas into experience...",platform:'ig',type:'Reel',views:389,likes:23,comments:7,shares:8,eng:5.9},
-      {rank:3,title:"CALEB PARIS TEXAS for @calebparisofficial campaign",platform:'ig',type:'Reel',views:80,likes:21,comments:12,shares:5,eng:6.1},
-      {rank:4,title:"Campaign for the @adidas x @sportyandrich collab",platform:'ig',type:'Reel',views:64,likes:8,comments:4,shares:2,eng:4.4},
-      {rank:5,title:"Content Creation con @raniafawazz at the @loe...",platform:'ig',type:'Reel',views:309,likes:0,comments:7,shares:3,eng:0.3},
+      {rank:1,title:"New campaign for @sportyandrich — Photographer BTS",platform:'ig',type:'Reel',views:458,likes:61,comments:21,shares:12,eng:8.4,url:'https://www.instagram.com/iaconpatrick/'},
+      {rank:2,title:"We turn vision into impact, ideas into experience...",platform:'ig',type:'Reel',views:389,likes:23,comments:7,shares:8,eng:5.9,url:'https://www.instagram.com/iaconpatrick/'},
+      {rank:3,title:"CALEB PARIS TEXAS for @calebparisofficial campaign",platform:'ig',type:'Reel',views:80,likes:21,comments:12,shares:5,eng:6.1,url:'https://www.instagram.com/iaconpatrick/'},
+      {rank:4,title:"Campaign for the @adidas x @sportyandrich collab",platform:'ig',type:'Reel',views:64,likes:8,comments:4,shares:2,eng:4.4,url:'https://www.instagram.com/iaconpatrick/'},
+      {rank:5,title:"Content Creation con @raniafawazz at the @loe...",platform:'ig',type:'Reel',views:309,likes:0,comments:7,shares:3,eng:0.3,url:'https://www.instagram.com/iaconpatrick/'},
     ],
     hooks:[{type:'Reel',views:7000,videos:17,rate:4},{type:'Post',views:0,videos:4,rate:0},{type:'Carrusel',views:0,videos:9,rate:0}],
     mix:{Reel:17,Post:4,Carrusel:9}}
@@ -470,11 +525,50 @@ const IDEAS_BASE=[
   {score:"SCORE: 7.3/10",title:"Cloné mi voz con ElevenLabs — resultados reales tras 30 días",desc:"Demo en vivo + comparación + resultados. Genera debate y alto engagement.",tags:["Demo","ElevenLabs","polémico"]},
 ];
 
+// ═══ HOOK SUGGESTIONS ═══
+const HOOK_TIPS={
+  'How-to':[
+    {label:'HOOK (primeros 3s)',text:'Empieza con el resultado: "En 2 minutos tendrás X funcionando." Muestra el output antes del proceso.'},
+    {label:'ESTRUCTURA',text:'Problema → herramienta → paso a paso en pantalla → CTA. Máximo 60-90 segundos.'},
+    {label:'IDEAS SIMILARES',text:'• Cómo uso Claude para escribir 7 guiones en 1 hora\n• El sistema exacto que uso para nunca quedarme sin ideas\n• Cómo analizo mis métricas con una sola pregunta a Claude'},
+  ],
+  'Tutorial':[
+    {label:'HOOK (primeros 3s)',text:'"Este tutorial te ahorra X horas/semana." Número específico = más credibilidad.'},
+    {label:'ESTRUCTURA',text:'Muestra el resultado final al inicio, luego el proceso. Pantalla todo el tiempo. Voz + texto en pantalla.'},
+    {label:'IDEAS SIMILARES',text:'• Tutorial: automatiza tus DMs con Make + Claude en 20 min\n• Tutorial completo: crea tu primer workflow sin código\n• Tutorial: conecta n8n con la API de Claude'},
+  ],
+  'Storytelling':[
+    {label:'HOOK (primeros 3s)',text:'Empieza en el momento de mayor tensión: "El día que casi pierdo X..." Enganche emocional antes del contexto.'},
+    {label:'ESTRUCTURA',text:'Situación → conflicto → momento de cambio → resolución → lección accionable.'},
+    {label:'IDEAS SIMILARES',text:'• La historia de cómo casi quemo mi negocio por no usar IA\n• De 0 a mis primeros 1.000 seguidores con IA\n• Por qué renuncié a Notion y cómo la IA cambió mi productividad'},
+  ],
+  'Opinión':[
+    {label:'HOOK (primeros 3s)',text:'Posición polémica: "La mayoría está equivocada sobre X." Genera curiosidad y debate inmediato.'},
+    {label:'ESTRUCTURA',text:'Tesis → 3 argumentos con evidencia → conclusión + pregunta al final para maximizar comentarios.'},
+    {label:'IDEAS SIMILARES',text:'• ChatGPT vs Claude — mi veredicto honesto tras 6 meses\n• El 90% de creadores que usa IA lo hace mal\n• La IA no va a quitarte el trabajo — te lo explico en 60s'},
+  ],
+  'Reel':[
+    {label:'HOOK (primeros 3s)',text:'Directo al grano. Texto en pantalla desde el frame 1. En IG los primeros 2s son críticos para el swipe.'},
+    {label:'ESTRUCTURA',text:'30-60s óptimo. Antes vs después, POV, o tutorial ultra-condensado. Subtítulos siempre.'},
+    {label:'IDEAS SIMILARES',text:'• 30s para entender cómo usar Claude en tu negocio\n• Antes vs después: mejoré mis posts con IA en 1 día\n• POV: eres creator y descubres automatización IA'},
+  ],
+};
+HOOK_TIPS['Video']=HOOK_TIPS['How-to'];
+
+// ═══ IDEA EXEC TIPS ═══
+const IDEA_TIPS={
+  'How-to':[{label:'MEJOR FORMATO',text:'Pantalla compartida + voz en off. Muestra el proceso real, no slides.'},...HOOK_TIPS['How-to']],
+  'Tutorial':[{label:'MEJOR FORMATO',text:'Screen recording con zoom en los pasos clave. Añade capítulos si dura más de 2 min.'},...HOOK_TIPS['Tutorial']],
+  'Storytelling':[{label:'MEJOR FORMATO',text:'Cara a cámara o B-roll + voz. Sé específico con fechas y cifras reales.'},...HOOK_TIPS['Storytelling']],
+  'Opinión':[{label:'MEJOR FORMATO',text:'Cara a cámara, tono directo. El desacuerdo en comentarios es bueno para el algoritmo.'},...HOOK_TIPS['Opinión']],
+  'Reel':[{label:'MEJOR FORMATO',text:'Vertical, subtítulos grandes, sin intro. Los primeros 2 frames determinan todo.'},...HOOK_TIPS['Reel']],
+};
+
 // ═══ INIT ═══
 window.addEventListener('DOMContentLoaded',()=>{
   updateClock();setInterval(updateClock,1000);
   loadCfg();
-  checkServer(true); // silent check on load
+  checkServer(true);
   renderAll();
 });
 
@@ -483,13 +577,60 @@ function renderAll(){
   renderMetrics(d);renderViewsChart(d);renderEngChart();
   renderHooks(d);renderMixCharts(d);
   renderContentMetrics(d);renderPosts(d);
-  renderComps();renderTrending('tt');renderIdeas();
+  renderComps();renderTrending(trendFilter);renderIdeas();
+  renderSaved();
 }
 
 function updateClock(){
   const n=new Date();
   document.getElementById('tbTime').textContent=n.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' · '+n.toLocaleDateString('es-ES',{day:'2-digit',month:'short'}).toUpperCase();
 }
+
+// ═══ THEME ═══
+function toggleTheme(){
+  isDark=!isDark;
+  document.body.classList.toggle('light',!isDark);
+  document.getElementById('themeBtn').textContent=isDark?'☀ LIGHT':'◑ DARK';
+  renderAll();
+}
+
+// ═══ MODAL ═══
+function openModal(title,html){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=html;
+  document.getElementById('modalOv').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modalOv'))return;
+  document.getElementById('modalOv').classList.remove('show');
+  document.body.style.overflow='';
+}
+
+// ═══ ACCOUNT SWITCHING ═══
+function setAccount(acc){
+  if(selectedAccount===acc&&acc!=='all'){selectedAccount='all';document.getElementById('accTT').classList.remove('active');document.getElementById('accIG').classList.remove('active');}
+  else{
+    selectedAccount=acc;
+    document.getElementById('accTT').classList.toggle('active',acc==='tt');
+    document.getElementById('accIG').classList.toggle('active',acc==='ig');
+  }
+  // sync platformFilter with account
+  platformFilter=selectedAccount==='tt'?'tt':selectedAccount==='ig'?'ig':'all';
+  renderAll();
+}
+
+// ═══ CHART COLORS ═══
+function cc(){
+  return isDark
+    ?{grid:'rgba(255,255,255,0.03)',tick:'#444440',border:'rgba(255,255,255,0.07)'}
+    :{grid:'rgba(0,0,0,0.05)',tick:'#888884',border:'rgba(0,0,0,0.1)'};
+}
+
+// ═══ PERIOD HELPERS ═══
+function periodMult(){return{'7d':1,'30d':4.3,'90d':13}[currentPeriod]||1;}
+function getLast(n){const d=[];for(let i=n-1;i>=0;i--){const dt=new Date();dt.setDate(dt.getDate()-i);d.push(dt.toLocaleDateString('es-ES',{day:'2-digit',month:'short'}));}return d;}
+function extend(arr,len){const out=[];for(let i=0;i<len;i++)out.push(arr[i%arr.length]);return out;}
 
 // ═══ SERVER CHECK ═══
 async function checkServer(silent=false){
@@ -518,8 +659,10 @@ function showPage(id,btn){
 function setPeriod(p,btn){
   btn.closest('.period-sel').querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  currentPeriod=p;
   const lbs={'7d':'Últimos 7 días','30d':'Últimos 30 días','90d':'Últimos 90 días'};
   ['periodLabel','contentPeriod'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=lbs[p];});
+  renderAll();
 }
 function filterPlatform(p,btn){
   btn.closest('.period-sel').querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
@@ -532,37 +675,80 @@ function filterTrend(p,btn){
 
 // ═══ OVERVIEW ═══
 function renderMetrics(d){
-  const items=[
-    {lbl:'TOTAL VIEWS',val:fn(d.tiktok.views+d.instagram.views),delta:'+12.3%',up:true,c:'g'},
-    {lbl:'ENGAGEMENT RATE',val:'7.4%',delta:'+0.8pp',up:true,c:'y'},
-    {lbl:'FOLLOWERS TIKTOK',val:fn(d.tiktok.followers),delta:'+'+d.tiktok.followersDelta,up:true,c:'b'},
-    {lbl:'FOLLOWERS INSTAGRAM',val:fn(d.instagram.followers),delta:'+'+d.instagram.followersDelta,up:true,c:'r'},
-  ];
-  document.getElementById('metricsGrid').innerHTML=items.map(m=>`<div class="mc ${m.c}"><div class="mc-lbl">${m.lbl}</div><div class="mc-val">${m.val}</div><div class="mc-delta ${m.up?'up':'dn'}">${m.up?'▲':'▼'} ${m.delta} vs anterior</div></div>`).join('');
+  const m=periodMult();
+  let items;
+  if(selectedAccount==='tt'){
+    items=[
+      {lbl:'VISTAS TIKTOK',val:fn(Math.round(d.tiktok.views*m)),delta:'+'+d.tiktok.viewsDelta+'%',up:true,c:'g'},
+      {lbl:'ENGAGEMENT TT',val:d.tiktok.engagement+'%',delta:'+0.8pp',up:true,c:'y'},
+      {lbl:'FOLLOWERS TT',val:fn(d.tiktok.followers),delta:'+'+d.tiktok.followersDelta,up:true,c:'b'},
+      {lbl:'SHARES TT',val:fn(Math.round(d.tiktok.shares*m)),delta:'—',up:true,c:'r'},
+    ];
+  }else if(selectedAccount==='ig'){
+    items=[
+      {lbl:'VISTAS INSTAGRAM',val:fn(Math.round(d.instagram.views*m)),delta:'+'+d.instagram.viewsDelta+'%',up:true,c:'g'},
+      {lbl:'ENGAGEMENT IG',val:d.instagram.engagement+'%',delta:'+0.4pp',up:true,c:'y'},
+      {lbl:'FOLLOWERS IG',val:fn(d.instagram.followers),delta:'+'+d.instagram.followersDelta,up:true,c:'b'},
+      {lbl:'SHARES IG',val:fn(Math.round(d.instagram.shares*m)),delta:'—',up:true,c:'r'},
+    ];
+  }else{
+    items=[
+      {lbl:'TOTAL VIEWS',val:fn(Math.round((d.tiktok.views+d.instagram.views)*m)),delta:'+12.3%',up:true,c:'g'},
+      {lbl:'ENGAGEMENT RATE',val:'7.4%',delta:'+0.8pp',up:true,c:'y'},
+      {lbl:'FOLLOWERS TIKTOK',val:fn(d.tiktok.followers),delta:'+'+d.tiktok.followersDelta,up:true,c:'b'},
+      {lbl:'FOLLOWERS INSTAGRAM',val:fn(d.instagram.followers),delta:'+'+d.instagram.followersDelta,up:true,c:'r'},
+    ];
+  }
+  document.getElementById('metricsGrid').innerHTML=items.map(i=>`<div class="mc ${i.c}"><div class="mc-lbl">${i.lbl}</div><div class="mc-val">${i.val}</div><div class="mc-delta ${i.up?'up':'dn'}">${i.up?'▲':'▼'} ${i.delta} vs anterior</div></div>`).join('');
 }
 function renderViewsChart(d){
   const ctx=document.getElementById('viewsChart').getContext('2d');
   if(vChart)vChart.destroy();
-  vChart=new Chart(ctx,{type:'line',data:{labels:getLast14(),datasets:[
-    {label:'TikTok',data:d.tiktok.viewsByDay,borderColor:'#e8ff47',backgroundColor:'rgba(232,255,71,.04)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#e8ff47',tension:.4,fill:true},
-    {label:'Instagram',data:d.instagram.viewsByDay,borderColor:'#e1306c',backgroundColor:'rgba(225,48,108,.04)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#e1306c',tension:.4,fill:true,borderDash:[4,3]},
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-    x:{ticks:{color:'#444440',font:{family:'JetBrains Mono',size:9},maxTicksLimit:7},grid:{color:'rgba(255,255,255,0.03)'},border:{color:'rgba(255,255,255,0.07)'}},
-    y:{ticks:{color:'#444440',font:{family:'JetBrains Mono',size:9},callback:v=>fn(v)},grid:{color:'rgba(255,255,255,0.03)'},border:{color:'rgba(255,255,255,0.07)'}},
+  const pLen={'7d':7,'30d':30,'90d':90}[currentPeriod]||7;
+  const labels=getLast(Math.min(pLen,14));
+  const ttData=extend(d.tiktok.viewsByDay,Math.min(pLen,14)).slice(-labels.length);
+  const igData=extend(d.instagram.viewsByDay,Math.min(pLen,14)).slice(-labels.length);
+  const datasets=[];
+  if(selectedAccount!=='ig') datasets.push({label:'TikTok',data:ttData,borderColor:'#e8ff47',backgroundColor:'rgba(232,255,71,.04)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#e8ff47',tension:.4,fill:true});
+  if(selectedAccount!=='tt') datasets.push({label:'Instagram',data:igData,borderColor:'#e1306c',backgroundColor:'rgba(225,48,108,.04)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#e1306c',tension:.4,fill:true,borderDash:[4,3]});
+  const c=cc();
+  vChart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+    x:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9},maxTicksLimit:7},grid:{color:c.grid},border:{color:c.border}},
+    y:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9},callback:v=>fn(v)},grid:{color:c.grid},border:{color:c.border}},
   }}});
 }
 function renderEngChart(){
   const ctx=document.getElementById('engChart').getContext('2d');
   if(eChart)eChart.destroy();
+  const c=cc();
   eChart=new Chart(ctx,{type:'bar',data:{labels:['How-to','Storytelling','Tutorial','Opinión','Carrusel'],datasets:[{data:[7.4,6.1,5.8,7.2,3.1],backgroundColor:['#e8ff47','#47ffe8','#ff4757','#ff9f47','#888880'],borderRadius:0,borderWidth:0}]},
   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-    x:{ticks:{color:'#444440',font:{family:'JetBrains Mono',size:9}},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
-    y:{ticks:{color:'#444440',font:{family:'JetBrains Mono',size:9},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.03)'},border:{color:'rgba(255,255,255,0.07)'}},
+    x:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9}},grid:{display:false},border:{color:c.border}},
+    y:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9},callback:v=>v+'%'},grid:{color:c.grid},border:{color:c.border}},
   }}});
 }
 function renderHooks(d){
-  const max=Math.max(...d.tiktok.hooks.map(h=>h.views))||1;
-  document.getElementById('hookGrid').innerHTML=d.tiktok.hooks.map(h=>`<div class="hk"><div class="hk-type">${h.type}</div><div class="hk-views">${fn(h.views)}<span>avg views</span></div><div class="hk-bar"><div class="hk-fill" style="width:${Math.round(h.views/max*100)}%"></div></div><div class="hk-meta">${h.videos} videos · ${h.rate}% like rate</div></div>`).join('');
+  const hooks=selectedAccount==='ig'?d.instagram.hooks:d.tiktok.hooks;
+  currentHooks=hooks;
+  const max=Math.max(...hooks.map(h=>h.views))||1;
+  document.getElementById('hookGrid').innerHTML=hooks.map((h,i)=>`<div class="hk" onclick="openHookDetail(${i})"><div class="hk-type">${h.type}</div><div class="hk-views">${fn(h.views)}<span>avg views</span></div><div class="hk-bar"><div class="hk-fill" style="width:${Math.round(h.views/max*100)}%"></div></div><div class="hk-meta">${h.videos} videos · ${h.rate}% like rate</div><div style="font-size:9px;color:var(--accent);margin-top:6px;letter-spacing:.08em">VER DETALLES →</div></div>`).join('');
+}
+
+function openHookDetail(idx){
+  const h=currentHooks[idx];
+  const d=realData||D;
+  const allPosts=[...d.tiktok.topPosts,...d.instagram.topPosts];
+  const matching=allPosts.filter(p=>p.type===h.type);
+  const tips=HOOK_TIPS[h.type]||HOOK_TIPS['How-to'];
+  let html=`<div class="st">TUS VIDEOS · ${h.type.toUpperCase()}</div>`;
+  if(matching.length){
+    html+=matching.map(p=>`<div class="post-row" style="display:grid;grid-template-columns:1fr auto auto;gap:12px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);margin-bottom:6px;cursor:default"><div><div style="font-size:12px;font-weight:500;margin-bottom:2px">${p.title}</div><div style="font-size:10px;color:var(--text3)">${fn(p.views)} views · ${p.eng}% eng · <span style="color:${p.platform==='tt'?'var(--tiktok)':'var(--ig)'}">${p.platform==='tt'?'TT':'IG'}</span></div></div><div style="text-align:right"><div style="font-size:13px;font-weight:700">${fn(p.likes)}</div><div style="font-size:9px;color:var(--text3)">LIKES</div></div><div style="text-align:right"><div style="font-size:13px;font-weight:700">${p.comments}</div><div style="font-size:9px;color:var(--text3)">CMTS</div></div></div>`).join('');
+  }else{
+    html+=`<div class="empty">Ningún post coincide con este tipo en el período seleccionado.</div>`;
+  }
+  html+=`<div class="st" style="margin-top:16px">CÓMO HACER MÁS ${h.type.toUpperCase()}</div>`;
+  html+=tips.map(t=>`<div class="exec-tip"><div class="exec-label">${t.label}</div><div class="exec-text" style="white-space:pre-line">${t.text}</div></div>`).join('');
+  openModal(`HOOK SCOREBOARD · ${h.type.toUpperCase()} (${h.videos} videos · ${fn(h.views)} avg views)`,html);
 }
 function renderMixCharts(d){
   mkDonut('mixTT',d.tiktok.mix,['#e8ff47','#47ffe8','#ff4757']);
@@ -570,7 +756,8 @@ function renderMixCharts(d){
 }
 function mkDonut(id,mix,colors){
   const ex=Chart.getChart(id);if(ex)ex.destroy();
-  new Chart(document.getElementById(id).getContext('2d'),{type:'doughnut',data:{labels:Object.keys(mix),datasets:[{data:Object.values(mix),backgroundColor:colors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{color:'#888880',font:{family:'JetBrains Mono',size:10},boxWidth:8,padding:10}}}}});
+  const c=cc();
+  new Chart(document.getElementById(id).getContext('2d'),{type:'doughnut',data:{labels:Object.keys(mix),datasets:[{data:Object.values(mix),backgroundColor:colors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{color:c.tick,font:{family:'JetBrains Mono',size:10},boxWidth:8,padding:10}}}}});
 }
 
 // ═══ CONTENT ═══
@@ -590,20 +777,23 @@ function renderPosts(d){
   const rc=i=>i===0?'gold':i===1?'silver':i===2?'bronze':'';
   const rs=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
   document.getElementById('postsGrid').innerHTML=posts.map((p,i)=>`
-    <div class="post-row">
+    <a class="post-row" href="${p.url||'#'}" target="_blank" rel="noopener">
       <div class="pr-rank ${rc(i)}">${rs(i)}</div>
       <div><div class="pr-title">${p.title}</div><div class="pr-meta"><span class="${p.platform==='tt'?'tag-tt':'tag-ig'}">${p.platform==='tt'?'TIKTOK':'INSTAGRAM'}</span> · ${p.type} · Eng: ${p.eng}%</div></div>
       <div class="pr-stat"><div class="pr-val">${fn(p.views)}</div><div class="pr-lbl">VIEWS</div></div>
       <div class="pr-stat"><div class="pr-val">${fn(p.likes)}</div><div class="pr-lbl">LIKES</div></div>
       <div class="pr-stat"><div class="pr-val">${p.comments}</div><div class="pr-lbl">CMTS</div></div>
       <div class="pr-stat"><div class="pr-val">${p.shares}</div><div class="pr-lbl">SHARES</div></div>
-    </div>`).join('');
+    </a>`).join('');
 }
 
 // ═══ COMPETITORS ═══
 function renderComps(){
-  document.getElementById('compGrid').innerHTML=COMPS.map(c=>`
-    <div class="comp-card">
+  document.getElementById('compGrid').innerHTML=COMPS.map(c=>{
+    const handle=c.handle.replace('@','');
+    const ttUrl=c.platform.includes('TikTok')?`https://www.tiktok.com/@${handle}`:null;
+    const igUrl=c.platform.includes('IG')?`https://www.instagram.com/${handle}/`:null;
+    return `<div class="comp-card">
       <div style="display:flex;align-items:center;margin-bottom:10px">
         <div class="comp-av" style="color:${c.color};border-color:${c.color}44;background:${c.color}11">${c.av}</div>
         <div style="margin-left:10px"><div class="comp-handle">${c.handle}</div><div class="comp-platform">${c.platform}</div></div>
@@ -614,9 +804,14 @@ function renderComps(){
         <div class="cs"><div class="cs-val" style="color:${c.color}">${c.avgViews}</div><div class="cs-lbl">AVG VIEWS</div></div>
       </div>
       <div class="comp-niche">${c.niche}</div>
+      <div style="margin-bottom:8px;display:flex;gap:6px">
+        ${ttUrl?`<a href="${ttUrl}" target="_blank" class="creator-link">↗ TikTok</a>`:''}
+        ${igUrl?`<a href="${igUrl}" target="_blank" class="creator-link">↗ Instagram</a>`:''}
+      </div>
       <div class="ctv-lbl">TOP VIDEOS</div>
       ${c.topVideos.map(v=>`<div class="ctv-item"><div class="ctv-title">${v.t}</div><div class="ctv-views">${v.v}</div></div>`).join('')}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 function syncComp(){
   if(!serverOk){showNotif('SERVIDOR OFFLINE','Arranca el servidor con: node server.js');return;}
@@ -627,22 +822,99 @@ function syncComp(){
 // ═══ TRENDING ═══
 function renderTrending(p){
   const items=p==='tt'?TREND_TT:TREND_IG;
-  document.getElementById('trendingList').innerHTML=items.map(t=>`
-    <div class="trend-item">
-      <div><div class="trend-title">${t.title}</div><div class="trend-meta"><span class="trend-handle">${t.handle}</span> · ${t.dur}</div><div class="trend-tag">${t.tag}</div></div>
+  document.getElementById('trendingList').innerHTML=items.map(t=>{
+    const handle=t.handle.replace('@','');
+    const url=p==='tt'?`https://www.tiktok.com/@${handle}`:`https://www.instagram.com/${handle}/`;
+    return `<div class="trend-item" onclick="window.open('${url}','_blank')" style="cursor:pointer">
+      <div><div class="trend-title">${t.title}</div><div class="trend-meta"><span class="trend-handle">${t.handle}</span> · ${t.dur} <span style="font-size:9px;color:var(--accent3)">↗ ver perfil</span></div><div class="trend-tag">${t.tag}</div></div>
       <div class="trend-stats"><div class="trend-views">${t.views}</div><div class="trend-likes">♥ ${t.likes}</div></div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ═══ IDEAS ═══
 function renderIdeas(ideas){
-  const src=ideas||IDEAS_BASE;
-  document.getElementById('ideasGrid').innerHTML=src.map(i=>`
+  currentIdeas=ideas||IDEAS_BASE;
+  document.getElementById('ideasGrid').innerHTML=currentIdeas.map((i,idx)=>{
+    const saved=savedIdeas.some(s=>s.title===i.title);
+    return `<div class="idea-card" onclick="openIdeaDetail(${idx})">
+      <div class="idea-score">${i.score}</div>
+      <div class="idea-title">${i.title}</div>
+      <div class="idea-desc">${i.desc}</div>
+      <div class="idea-tags">${i.tags.map(t=>`<span class="idea-tag">${t}</span>`).join('')}</div>
+      <div class="idea-footer">
+        <button class="idea-save-btn${saved?' saved':''}" onclick="event.stopPropagation();saveIdea(${idx})">${saved?'✓ GUARDADA':'+ GUARDAR'}</button>
+        <span style="font-size:9px;color:var(--text3)">Click para ver más →</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openIdeaDetail(idx){
+  const idea=currentIdeas[idx];
+  const saved=savedIdeas.some(s=>s.title===idea.title);
+  const tipKey=idea.tags[0]||'How-to';
+  const tips=(IDEA_TIPS[tipKey]||IDEA_TIPS['How-to']);
+  let html=`<div style="margin-bottom:18px">
+    <div class="idea-score">${idea.score}</div>
+    <div class="idea-title" style="font-size:16px;margin:8px 0;line-height:1.3">${idea.title}</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">${idea.desc}</div>
+    <div class="idea-tags">${idea.tags.map(t=>`<span class="idea-tag">${t}</span>`).join('')}</div>
+  </div>
+  <div class="st">CÓMO EJECUTARLO</div>
+  ${tips.map(t=>`<div class="exec-tip"><div class="exec-label">${t.label}</div><div class="exec-text" style="white-space:pre-line">${t.text}</div></div>`).join('')}
+  <div style="margin-top:16px">
+    <button class="btn-p" id="saveModalBtn" onclick="saveIdeaFromModal(${idx})">${saved?'✓ YA GUARDADA':'+ GUARDAR IDEA'}</button>
+  </div>`;
+  openModal(idea.title,html);
+}
+
+function saveIdea(idx){
+  const idea=currentIdeas[idx];
+  if(savedIdeas.some(s=>s.title===idea.title)){showNotif('YA GUARDADA','Esta idea ya está en tu lista.');return;}
+  savedIdeas.push({...idea,savedAt:new Date().toISOString()});
+  localStorage.setItem('iac_saved_ideas',JSON.stringify(savedIdeas));
+  showNotif('IDEA GUARDADA',idea.title.slice(0,60)+'...');
+  renderIdeas(currentIdeas);
+  renderSaved();
+}
+
+function saveIdeaFromModal(idx){
+  saveIdea(idx);
+  const btn=document.getElementById('saveModalBtn');
+  if(btn){btn.textContent='✓ YA GUARDADA';btn.disabled=true;}
+}
+
+function removeSaved(idx){
+  savedIdeas.splice(idx,1);
+  localStorage.setItem('iac_saved_ideas',JSON.stringify(savedIdeas));
+  renderSaved();
+  showNotif('ELIMINADA','Idea removida de tu guardado.');
+}
+
+function clearSaved(){
+  if(!savedIdeas.length)return;
+  savedIdeas=[];
+  localStorage.setItem('iac_saved_ideas',JSON.stringify(savedIdeas));
+  renderSaved();
+}
+
+function renderSaved(){
+  const grid=document.getElementById('savedGrid');
+  const empty=document.getElementById('savedEmpty');
+  if(!grid)return;
+  if(!savedIdeas.length){grid.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  grid.innerHTML=savedIdeas.map((i,idx)=>`
     <div class="idea-card">
       <div class="idea-score">${i.score}</div>
       <div class="idea-title">${i.title}</div>
       <div class="idea-desc">${i.desc}</div>
       <div class="idea-tags">${i.tags.map(t=>`<span class="idea-tag">${t}</span>`).join('')}</div>
+      <div class="idea-footer">
+        <button class="rm-btn" onclick="removeSaved(${idx})">✕ ELIMINAR</button>
+        <span style="font-size:9px;color:var(--text3)">${new Date(i.savedAt).toLocaleDateString('es-ES')}</span>
+      </div>
     </div>`).join('');
 }
 
@@ -685,6 +957,7 @@ Genera 6 ideas en JSON. Responde SOLO con el JSON sin texto adicional:
     const result=await r.json();
     const text=result.content.map(c=>c.text||'').join('');
     const ideas=JSON.parse(text.replace(/```json|```/g,'').trim());
+    currentIdeas=ideas;
     renderIdeas(ideas);
     showNotif('IDEAS GENERADAS','Claude generó 6 ideas personalizadas para tu nicho.');
   }catch(e){
@@ -767,8 +1040,10 @@ function processData(ttRaw,igRaw,trendRaw){
   const ttProf=ttPosts[0]?.authorMeta||{};
   const ttSorted=[...ttPosts].sort((a,b)=>(b.playCount||0)-(a.playCount||0));
   const igSorted=[...igPosts].sort((a,b)=>(b.likesCount||0)-(a.likesCount||0));
-  const ttTop=ttSorted.slice(0,10).map((p,i)=>({rank:i+1,title:(p.text||'').slice(0,120)||'Sin título',platform:'tt',type:detectType(p.text||''),views:p.playCount||0,likes:p.diggCount||0,comments:p.commentCount||0,shares:p.shareCount||0,eng:ttProf.fans?(((p.diggCount||0)+(p.commentCount||0))/(ttProf.fans||1)*100).toFixed(1):0}));
-  const igTop=igSorted.slice(0,10).map((p,i)=>({rank:i+1,title:(p.caption||'').slice(0,120)||'Sin título',platform:'ig',type:p.type||'Reel',views:p.videoViewCount||p.likesCount||0,likes:p.likesCount||0,comments:p.commentsCount||0,shares:0,eng:0}));
+  const ttHandle=cfg.ttHandle.replace('@','');
+  const igHandle=cfg.igHandle.replace('@','');
+  const ttTop=ttSorted.slice(0,10).map((p,i)=>({rank:i+1,title:(p.text||'').slice(0,120)||'Sin título',platform:'tt',type:detectType(p.text||''),views:p.playCount||0,likes:p.diggCount||0,comments:p.commentCount||0,shares:p.shareCount||0,eng:ttProf.fans?(((p.diggCount||0)+(p.commentCount||0))/(ttProf.fans||1)*100).toFixed(1):0,url:p.webVideoUrl||`https://www.tiktok.com/@${ttHandle}`}));
+  const igTop=igSorted.slice(0,10).map((p,i)=>({rank:i+1,title:(p.caption||'').slice(0,120)||'Sin título',platform:'ig',type:p.type||'Reel',views:p.videoViewCount||p.likesCount||0,likes:p.likesCount||0,comments:p.commentsCount||0,shares:0,eng:0,url:p.url||`https://www.instagram.com/${igHandle}/`}));
   const trendItems=trendPosts.slice(0,8).map(p=>({title:(p.text||'').slice(0,100),handle:'@'+(p.authorMeta?.name||'unknown'),dur:p.videoMeta?.duration?Math.round(p.videoMeta.duration)+'s':'—',views:fn(p.playCount||0),likes:p.diggCount||0,tag:(p.hashtags||[]).slice(0,2).map(h=>'#'+h.name).join(' ')||'#ia'}));
   return{
     tiktok:{followers:ttProf.fans||D.tiktok.followers,followersDelta:0,views:ttSorted.reduce((s,p)=>s+(p.playCount||0),0)||D.tiktok.views,viewsDelta:0,engagement:D.tiktok.engagement,shares:ttSorted.reduce((s,p)=>s+(p.shareCount||0),0)||D.tiktok.shares,posts:ttPosts.length||D.tiktok.posts,viewsByDay:D.tiktok.viewsByDay,topPosts:ttTop.length>0?ttTop:D.tiktok.topPosts,hooks:D.tiktok.hooks,mix:D.tiktok.mix},
@@ -852,6 +1127,7 @@ function loadCfg(){
     Object.assign(cfg,s);
     const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel'};
     Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&cfg[k])el.value=cfg[k];});
+    savedIdeas=JSON.parse(localStorage.getItem('iac_saved_ideas')||'[]');
   }catch(e){}
 }
 
@@ -870,7 +1146,6 @@ function showNotif(title,body){
 
 // ═══ UTILS ═══
 function fn(n){n=Math.round(n);if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return String(n);}
-function getLast14(){const d=[];for(let i=13;i>=0;i--){const dt=new Date();dt.setDate(dt.getDate()-i);d.push(dt.toLocaleDateString('es-ES',{day:'2-digit',month:'short'}));}return d;}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 </script>
 </body>
