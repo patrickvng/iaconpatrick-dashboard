@@ -460,6 +460,17 @@ body.light::before{display:none}
 <script>
 const BASE = window.location.hostname === 'localhost' ? '' : null;
 
+// Wrapper de fetch que detecta sesión expirada y redirige al login
+async function apiFetch(url, opts){
+  const r = await fetch(url, opts);
+  if(r.status === 401){
+    showNotif('SESIÓN EXPIRADA','Redirigiendo al login...');
+    setTimeout(()=>window.location.href='/login', 1500);
+    throw new Error('Sesión expirada — vuelve a iniciar sesión');
+  }
+  return r;
+}
+
 // ═══ STATE ═══
 let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514'};
 let realData=null,platformFilter='all',trendFilter='tt';
@@ -956,7 +967,7 @@ Genera 6 ideas en JSON. Responde SOLO con el JSON sin texto adicional:
 [{"score":"SCORE: X.X/10","title":"título del vídeo","desc":"ángulo + hook + por qué funcionará (máx 200 chars)","tags":["tag1","tag2","tag3"]}]`;
 
     // Llamada a través del proxy local
-    const r=await fetch('/api/anthropic',{
+    const r=await apiFetch('/api/anthropic',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
@@ -1022,7 +1033,7 @@ async function triggerSync(){
 // ── Llamadas a Apify VÍA PROXY (no directas al browser) ──
 async function runActor(token,actorId,input){
   // POST para arrancar el actor — va por /api/apify/ que reenvía a api.apify.com
-  const start=await fetch(`/api/apify/v2/acts/${actorId}/runs?token=${token}`,{
+  const start=await apiFetch(`/api/apify/v2/acts/${actorId}/runs?token=${token}`,{
     method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)
   });
   if(!start.ok){const e=await start.json().catch(()=>({}));throw new Error(`Actor ${actorId}: ${e.error?.message||start.status}`);}
@@ -1034,14 +1045,14 @@ async function runActor(token,actorId,input){
   while(status==='RUNNING'||status==='READY'){
     if(att++>80)throw new Error('Timeout: actor '+actorId+' tardó demasiado');
     await sleep(3000);
-    const pr=await fetch(`/api/apify/v2/actor-runs/${runId}?token=${token}`);
+    const pr=await apiFetch(`/api/apify/v2/actor-runs/${runId}?token=${token}`);
     const pd=await pr.json();
     status=pd.data.status;
     if(status==='FAILED'||status==='ABORTED')throw new Error(`Actor ${actorId} falló: ${status}`);
   }
 
   // Traer items del dataset
-  const ir=await fetch(`/api/apify/v2/datasets/${dsId}/items?token=${token}&format=json`);
+  const ir=await apiFetch(`/api/apify/v2/datasets/${dsId}/items?token=${token}&format=json`);
   if(!ir.ok)throw new Error('Error obteniendo dataset de '+actorId);
   return ir.json();
 }
@@ -1083,7 +1094,7 @@ async function testApify(){
   st.textContent='Probando...';st.className='cfg-status loading';
   log.className='log-box show';log.innerHTML='<div class="log-info">→ Conectando con Apify vía servidor local...</div>';
   try{
-    const r=await fetch(`/api/apify/v2/users/me?token=${token}`);
+    const r=await apiFetch(`/api/apify/v2/users/me?token=${token}`);
     const d=await r.json();
     if(d.data?.username){
       log.innerHTML+=`<div class="log-ok">✓ Autenticado como: ${d.data.username}</div>`;
@@ -1115,7 +1126,7 @@ async function testAnthropic(){
   if(!serverOk){st.textContent='✕ Arranca el servidor primero';st.className='cfg-status err';return;}
   st.textContent='Probando...';st.className='cfg-status loading';
   try{
-    const r=await fetch('/api/anthropic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:document.getElementById('anthropicModel').value,max_tokens:20,messages:[{role:'user',content:'Responde solo: OK'}]})});
+    const r=await apiFetch('/api/anthropic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:document.getElementById('anthropicModel').value,max_tokens:20,messages:[{role:'user',content:'Responde solo: OK'}]})});
     if(r.ok){st.textContent='✓ API key válida';st.className='cfg-status ok';cfg.anthropicKey=key;showNotif('ANTHROPIC OK','Ve a Ideas IA y pulsa Generar Nuevas.');}
     else{const e=await r.json();st.textContent='✕ '+(e.error?.message||r.status);st.className='cfg-status err';}
   }catch(e){st.textContent='✕ '+e.message;st.className='cfg-status err';}

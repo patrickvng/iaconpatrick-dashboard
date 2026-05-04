@@ -65,9 +65,17 @@ function isValidSession(req) {
 
 function requireAuth(req, res) {
   if (isValidSession(req)) return true;
-  res.statusCode = 302;
-  res.setHeader('Location', '/login');
-  res.end();
+  const pathname = url.parse(req.url).pathname;
+  if (pathname.startsWith('/api/')) {
+    // Las rutas de API devuelven JSON 401, no HTML redirect
+    res.statusCode = 401;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ error: 'session_expired' }));
+  } else {
+    res.statusCode = 302;
+    res.setHeader('Location', '/login');
+    res.end();
+  }
   return false;
 }
 
