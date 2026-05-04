@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYSTEM // @iaconpatrick · Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--bg:#0a0a08;--bg2:#111110;--bg3:#1a1a18;--bg4:#222220;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--accent:#e8ff47;--accent2:#ff4757;--accent3:#47ffe8;--accent4:#ff9f47;--text:#f0ede6;--text2:#888880;--text3:#444440;--tiktok:#fe2c55;--ig:#e1306c;--success:#47ff8a;--warn:#ffaa47;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.025) 2px,rgba(0,0,0,0.025) 4px);pointer-events:none;z-index:9999}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 24px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100}
+.tb-l{display:flex;align-items:center;gap:14px}
+.sys-tag{font-size:10px;letter-spacing:.14em;color:var(--accent);font-weight:700}
+.sys-tag span{color:var(--text3)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--success);display:inline-block;margin-right:5px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.tb-r{display:flex;align-items:center;gap:14px}
+.tb-time{font-size:11px;color:var(--text3)}
+.sync-btn{background:var(--accent);color:#0a0a08;border:none;padding:6px 16px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;cursor:pointer;transition:opacity .15s}
+.sync-btn:hover{opacity:.82}.sync-btn:disabled{opacity:.45;cursor:wait}
+.mq-wrap{overflow:hidden;border-bottom:1px solid var(--border);padding:5px 0;background:var(--bg2)}
+.mq{display:flex;animation:mqs 50s linear infinite;white-space:nowrap}
+.mq-item{font-size:10px;letter-spacing:.14em;color:var(--text3);padding:0 36px}
+.mq-item span{color:var(--accent);margin-right:6px}
+@keyframes mqs{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.layout{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 80px)}
+.sidebar{border-right:1px solid var(--border);padding:18px 0;background:var(--bg);position:sticky;top:80px;height:calc(100vh - 80px);overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column}
+.sidebar::-webkit-scrollbar{display:none}
+.sb-section{margin-bottom:22px}
+.sb-label{font-size:9px;letter-spacing:.2em;color:var(--text3);padding:0 18px;margin-bottom:7px;font-weight:700}
+.nav-btn{display:flex;align-items:center;gap:9px;padding:9px 18px;cursor:pointer;font-size:12px;color:var(--text2);letter-spacing:.04em;border:none;background:none;width:100%;text-align:left;transition:all .1s}
+.nav-btn:hover{background:var(--bg3);color:var(--text)}.nav-btn.active{background:var(--bg3);color:var(--accent);border-left:2px solid var(--accent);padding-left:16px}
+.ni{width:16px;text-align:center;font-style:normal}
+.acc-card{margin:0 10px 6px;padding:9px 11px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;transition:border-color .15s}
+.acc-card:hover{border-color:var(--border2)}.acc-card.active{border-color:var(--accent)}
+.acc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.acc-name{font-size:12px;font-weight:700}
+.acc-badge{font-size:9px;letter-spacing:.08em;padding:2px 6px;font-weight:700}
+.b-tt{background:rgba(254,44,85,.12);color:var(--tiktok)}.b-ig{background:rgba(225,48,108,.12);color:var(--ig)}
+.acc-handle{font-size:10px;color:var(--text3)}.acc-stat{font-size:11px;color:var(--text2);margin-top:1px}.acc-stat b{color:var(--success)}
+.sb-status{padding:14px 18px;border-top:1px solid var(--border);margin-top:auto}
+.sb-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.sb-lbl{font-size:9px;letter-spacing:.12em;color:var(--text3);font-weight:700}
+.content{padding:24px;overflow-y:auto}
+.page{display:none}.page.active{display:block}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px}
+.ph-title{font-size:20px;font-weight:700;letter-spacing:-.02em;line-height:1;margin-bottom:5px}
+.ph-sub{font-size:11px;color:var(--text3)}.ph-sub b{color:var(--accent)}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.mc{background:var(--bg2);border:1px solid var(--border);padding:14px;position:relative;overflow:hidden;transition:border-color .15s}
+.mc:hover{border-color:var(--border2)}.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px}
+.mc.g::before{background:var(--success)}.mc.y::before{background:var(--accent)}.mc.b::before{background:var(--accent3)}.mc.r::before{background:var(--accent2)}
+.mc-lbl{font-size:9px;letter-spacing:.16em;color:var(--text3);font-weight:700;margin-bottom:7px}
+.mc-val{font-size:26px;font-weight:700;line-height:1;letter-spacing:-.03em}
+.mc-delta{font-size:10px;margin-top:4px}.up{color:var(--success)}.dn{color:var(--accent2)}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.cc{background:var(--bg2);border:1px solid var(--border);padding:18px}
+.cc-hd{font-size:9px;letter-spacing:.14em;color:var(--text3);font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between}
+.cc-hd b{color:var(--accent)}
+.leg{display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.leg-i{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3)}
+.leg-sq{width:8px;height:8px;display:inline-block}
+.st{font-size:9px;letter-spacing:.18em;color:var(--text3);font-weight:700;margin-bottom:11px;display:flex;align-items:center;gap:8px}
+.st::after{content:'';flex:1;height:1px;background:var(--border)}
+.hk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.hk{background:var(--bg2);border:1px solid var(--border);padding:14px}
+.hk-type{font-size:11px;font-weight:700;margin-bottom:4px}.hk-views{font-size:18px;font-weight:700;color:var(--accent)}.hk-views span{font-size:10px;font-weight:400;color:var(--text3);margin-left:3px}
+.hk-bar{margin-top:8px;background:var(--bg3);height:2px}.hk-fill{height:2px;background:var(--accent);transition:width .6s}
+.hk-meta{font-size:10px;color:var(--text3);margin-top:5px}
+.posts-list{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
+.post-row{background:var(--bg2);border:1px solid var(--border);padding:12px 14px;display:grid;grid-template-columns:28px 1fr auto auto auto auto;align-items:center;gap:12px;cursor:pointer;transition:all .12s}
+.post-row:hover{border-color:var(--border2);background:var(--bg3)}
+.pr-rank{font-size:16px;font-weight:700;color:var(--text3);text-align:center}
+.pr-rank.gold{color:var(--accent)}.pr-rank.silver{color:var(--text2)}.pr-rank.bronze{color:var(--warn)}
+.pr-title{font-size:12px;font-weight:500;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
+.pr-meta{font-size:10px;color:var(--text3)}
+.pr-stat{text-align:right}.pr-val{font-size:13px;font-weight:700}.pr-lbl{font-size:9px;color:var(--text3);letter-spacing:.06em;margin-top:1px}
+.tag-tt{color:var(--tiktok);font-size:9px;font-weight:700}.tag-ig{color:var(--ig);font-size:9px;font-weight:700}
+.comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.comp-card{background:var(--bg2);border:1px solid var(--border);padding:15px;transition:all .15s}
+.comp-card:hover{border-color:var(--border2);background:var(--bg3)}
+.comp-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:1px solid;flex-shrink:0}
+.comp-handle{font-size:12px;font-weight:700;margin-bottom:1px}
+.comp-platform{font-size:9px;color:var(--text3)}
+.comp-fol{font-size:18px;font-weight:700;line-height:1}
+.comp-fol span{font-size:10px;color:var(--text3);font-weight:400;margin-left:3px}
+.comp-niche{font-size:10px;color:var(--text2);margin:8px 0;line-height:1.45}
+.comp-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.cs{background:var(--bg3);padding:6px 8px}.cs-val{font-size:12px;font-weight:700}.cs-lbl{font-size:9px;color:var(--text3);margin-top:1px}
+.ctv-lbl{font-size:9px;letter-spacing:.12em;color:var(--text3);font-weight:700;margin-bottom:6px}
+.ctv-item{background:var(--bg3);border:1px solid var(--border);padding:7px 9px;margin-bottom:5px;display:flex;justify-content:space-between;gap:8px}
+.ctv-title{font-size:11px;color:var(--text2);line-height:1.3;flex:1}.ctv-views{font-size:11px;font-weight:700;white-space:nowrap}
+.trend-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.trend-item{background:var(--bg2);border:1px solid var(--border);padding:13px 15px;display:grid;grid-template-columns:1fr auto;gap:14px;cursor:pointer;transition:all .14s}
+.trend-item:hover{border-color:var(--accent3);background:var(--bg3)}
+.trend-title{font-size:12px;font-weight:500;margin-bottom:3px;line-height:1.4}
+.trend-meta{font-size:10px;color:var(--text3)}.trend-handle{color:var(--accent3)}
+.trend-tag{display:inline-block;font-size:9px;padding:2px 7px;background:rgba(71,255,232,.07);color:var(--accent3);border:1px solid rgba(71,255,232,.18);margin-top:5px}
+.trend-stats{text-align:right}.trend-views{font-size:15px;font-weight:700}.trend-likes{font-size:10px;color:var(--text3);margin-top:1px}
+.ideas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.idea-card{background:var(--bg2);border:1px solid var(--border);padding:15px;cursor:pointer;transition:all .14s}
+.idea-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.idea-score{font-size:9px;letter-spacing:.1em;color:var(--accent);font-weight:700;margin-bottom:7px}
+.idea-title{font-size:13px;font-weight:700;margin-bottom:7px;line-height:1.3}
+.idea-desc{font-size:11px;color:var(--text2);line-height:1.5}
+.idea-tags{margin-top:9px;display:flex;gap:5px;flex-wrap:wrap}
+.idea-tag{font-size:9px;padding:2px 7px;background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
+.cfg-block{background:var(--bg2);border:1px solid var(--border);padding:20px;margin-bottom:14px;position:relative}
+.cfg-block::before{content:attr(data-label);position:absolute;top:-1px;right:14px;font-size:9px;letter-spacing:.14em;background:var(--bg2);padding:0 7px;color:var(--accent);transform:translateY(-50%);font-weight:700}
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.cfg-field{display:flex;flex-direction:column;gap:5px}
+.cfg-lbl{font-size:9px;letter-spacing:.14em;color:var(--text3);font-weight:700}
+.cfg-inp{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:8px 11px;outline:none;transition:border-color .14s;width:100%}
+.cfg-inp:focus{border-color:var(--accent)}.cfg-inp::placeholder{color:var(--text3)}
+select.cfg-inp option{background:var(--bg3)}
+.cfg-acts{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn-p{background:var(--accent);color:#0a0a08;border:none;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;padding:9px 18px;cursor:pointer;transition:opacity .14s}
+.btn-p:hover{opacity:.82}.btn-p:disabled{opacity:.45;cursor:wait}
+.btn-s{background:none;color:var(--text2);border:1px solid var(--border);font-family:var(--mono);font-size:11px;padding:9px 18px;cursor:pointer;transition:all .14s}
+.btn-s:hover{border-color:var(--border2);color:var(--text)}
+.cfg-status{font-size:11px;color:var(--text3)}.cfg-status.ok{color:var(--success)}.cfg-status.err{color:var(--accent2)}.cfg-status.loading{color:var(--warn)}
+.cfg-info{font-size:11px;color:var(--text2);line-height:1.8;margin-bottom:4px}
+.cfg-info b{color:var(--text)}.cfg-info .hl{color:var(--accent3)}
+.log-box{background:var(--bg);border:1px solid var(--border);padding:12px;font-size:11px;color:var(--text2);line-height:1.8;max-height:180px;overflow-y:auto;margin-top:12px;display:none}
+.log-box.show{display:block}
+.log-ok{color:var(--success)}.log-err{color:var(--accent2)}.log-info{color:var(--accent3)}.log-warn{color:var(--warn)}
+.lo-overlay{display:none;position:fixed;inset:0;background:rgba(10,10,8,.93);z-index:9998;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.lo-overlay.show{display:flex}
+.lo-lbl{font-size:9px;letter-spacing:.2em;color:var(--text3)}
+.lo-msg{font-size:12px;letter-spacing:.1em;color:var(--accent)}
+.lo-bw{width:220px;height:1px;background:var(--bg3)}.lo-b{height:1px;background:var(--accent);width:0%;transition:width .35s}
+.lo-sub{font-size:10px;color:var(--text3)}
+.notif{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--border2);border-left:2px solid var(--accent);padding:11px 16px;z-index:9997;display:none;max-width:300px}
+.notif.show{display:block;animation:sin .2s ease}
+@keyframes sin{from{transform:translateX(16px);opacity:0}to{transform:translateX(0);opacity:1}}
+.notif-title{color:var(--accent);font-weight:700;font-size:10px;letter-spacing:.08em;margin-bottom:3px}
+.notif-body{color:var(--text2);line-height:1.5;font-size:11px}
+.period-sel{display:flex;gap:0;border:1px solid var(--border)}
+.pb{background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:6px 11px;cursor:pointer;transition:all .1s}
+.pb:last-child{border-right:none}.pb:hover{color:var(--text);background:var(--bg3)}.pb.active{background:var(--accent);color:#0a0a08;font-weight:700}
+.empty{color:var(--text3);font-size:12px;text-align:center;padding:36px}
+/* Server status banner */
+.srv-banner{background:rgba(255,170,71,.08);border:1px solid rgba(255,170,71,.2);padding:10px 16px;margin-bottom:16px;font-size:11px;color:var(--warn);display:none;line-height:1.6}
+.srv-banner.show{display:block}
+.srv-banner b{color:var(--text)}
+</style>
+</head>
+<body>
+
+<div class="lo-overlay" id="loOverlay">
+  <div class="lo-lbl">SYNC EN PROGRESO</div>
+  <div class="lo-msg" id="loMsg">INICIANDO...</div>
+  <div class="lo-bw"><div class="lo-b" id="loBar"></div></div>
+  <div class="lo-sub" id="loSub"></div>
+</div>
+
+<div class="notif" id="notif">
+  <div class="notif-title" id="nTitle"></div>
+  <div class="notif-body" id="nBody"></div>
+</div>
+
+<div class="topbar">
+  <div class="tb-l">
+    <div class="sys-tag">SYSTEM <span>// v2.0</span></div>
+    <div style="color:var(--text3);font-size:10px">|</div>
+    <div style="font-size:11px;color:var(--text2);letter-spacing:.05em"><span class="dot"></span>@iaconpatrick · DASHBOARD</div>
+    <div id="dsBadge" style="font-size:9px;padding:2px 7px;background:rgba(255,170,71,.1);color:var(--warn);border:1px solid rgba(255,170,71,.2);letter-spacing:.08em">DEMO DATA</div>
+  </div>
+  <div class="tb-r">
+    <div class="tb-time" id="tbTime"></div>
+    <button class="sync-btn" id="syncBtn" onclick="triggerSync()">↻ SYNC</button>
+  </div>
+</div>
+
+<div class="mq-wrap">
+  <div class="mq" id="mqEl">
+    <div class="mq-item"><span>✦</span>TOTAL VIEWS: 64.7K</div>
+    <div class="mq-item"><span>✦</span>ENGAGEMENT: 7.4%</div>
+    <div class="mq-item"><span>✦</span>TT FOLLOWERS: 651 (+61)</div>
+    <div class="mq-item"><span>✦</span>IG FOLLOWERS: 813 (+24)</div>
+    <div class="mq-item"><span>✦</span>MEJOR HOOK: HOW-TO → 11.1K VIEWS</div>
+    <div class="mq-item"><span>✦</span>SISTEMA // IA CON PATRICK</div>
+    <div class="mq-item"><span>✦</span>AUTOMATE YOUR FUTURE</div>
+    <div class="mq-item"><span>✦</span>TOTAL VIEWS: 64.7K</div>
+    <div class="mq-item"><span>✦</span>ENGAGEMENT: 7.4%</div>
+    <div class="mq-item"><span>✦</span>TT FOLLOWERS: 651 (+61)</div>
+    <div class="mq-item"><span>✦</span>IG FOLLOWERS: 813 (+24)</div>
+    <div class="mq-item"><span>✦</span>MEJOR HOOK: HOW-TO → 11.1K VIEWS</div>
+    <div class="mq-item"><span>✦</span>SISTEMA // IA CON PATRICK</div>
+    <div class="mq-item"><span>✦</span>AUTOMATE YOUR FUTURE</div>
+  </div>
+</div>
+
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-section">
+    <div class="sb-label">NAVEGACIÓN</div>
+    <button class="nav-btn active" onclick="showPage('overview',this)"><i class="ni">◈</i>OVERVIEW</button>
+    <button class="nav-btn" onclick="showPage('content',this)"><i class="ni">▦</i>MI CONTENIDO</button>
+    <button class="nav-btn" onclick="showPage('competitors',this)"><i class="ni">◎</i>CREADORES</button>
+    <button class="nav-btn" onclick="showPage('trending',this)"><i class="ni">↑</i>TRENDING</button>
+    <button class="nav-btn" onclick="showPage('ideas',this)"><i class="ni">✦</i>IDEAS IA</button>
+    <button class="nav-btn" onclick="showPage('config',this)"><i class="ni">⚙</i>CONFIGURAR</button>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">CUENTAS</div>
+    <div class="acc-card active" onclick="this.parentNode.querySelectorAll('.acc-card').forEach(c=>c.classList.remove('active'));this.classList.add('active')">
+      <div class="acc-top"><div class="acc-name">iaconpatrick</div><div class="acc-badge b-tt">TIKTOK</div></div>
+      <div class="acc-handle">@iaconpatrick</div>
+      <div class="acc-stat"><b id="sbTTFol">651</b> seguidores</div>
+    </div>
+    <div class="acc-card" onclick="this.parentNode.querySelectorAll('.acc-card').forEach(c=>c.classList.remove('active'));this.classList.add('active')">
+      <div class="acc-top"><div class="acc-name">iaconpatrick</div><div class="acc-badge b-ig">INSTAGRAM</div></div>
+      <div class="acc-handle">@iaconpatrick</div>
+      <div class="acc-stat"><b id="sbIGFol">813</b> seguidores</div>
+    </div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">PERÍODO</div>
+    <div style="padding:0 10px">
+      <div class="period-sel">
+        <button class="pb active" onclick="setPeriod('7d',this)">7D</button>
+        <button class="pb" onclick="setPeriod('30d',this)" style="border-left:1px solid var(--border)">30D</button>
+        <button class="pb" onclick="setPeriod('90d',this)" style="border-left:1px solid var(--border)">90D</button>
+      </div>
+    </div>
+  </div>
+  <div class="sb-status">
+    <div class="sb-row"><div class="sb-lbl">SERVIDOR</div><div id="sbServer" style="font-size:10px;color:var(--warn)">Verificando...</div></div>
+    <div class="sb-row"><div class="sb-lbl">APIFY</div><div id="sbApify" style="font-size:10px;color:var(--warn)">⚠ Sin config</div></div>
+    <div class="sb-row"><div class="sb-lbl">DATOS</div><div id="sbDataMode" style="font-size:10px;color:var(--warn)">DEMO</div></div>
+    <div class="sb-row"><div class="sb-lbl">ÚLTIMO SYNC</div><div id="sbLastSync" style="font-size:10px;color:var(--text3)">Nunca</div></div>
+  </div>
+</aside>
+
+<main class="content">
+
+<!-- OVERVIEW -->
+<div class="page active" id="page-overview">
+  <div class="ph">
+    <div><div class="ph-title">OVERVIEW</div><div class="ph-sub">Todas las cuentas · <b id="periodLabel">Últimos 7 días</b></div></div>
+  </div>
+  <div class="srv-banner" id="srvBanner">
+    <b>⚠ Servidor no detectado.</b> Abre una terminal en la carpeta del proyecto y ejecuta <b>node server.js</b>, luego recarga la página en <b>http://localhost:3000</b>
+  </div>
+  <div class="mgrid" id="metricsGrid"></div>
+  <div class="charts-row">
+    <div class="cc">
+      <div class="cc-hd"><span>VISTAS / DÍA</span><b>TT + IG</b></div>
+      <div class="leg">
+        <div class="leg-i"><span class="leg-sq" style="background:#e8ff47"></span>TikTok</div>
+        <div class="leg-i"><span class="leg-sq" style="background:#e1306c"></span>Instagram</div>
+      </div>
+      <div style="position:relative;height:185px"><canvas id="viewsChart" role="img" aria-label="Vistas diarias"></canvas></div>
+    </div>
+    <div class="cc">
+      <div class="cc-hd"><span>ENGAGEMENT POR TIPO</span><b>%</b></div>
+      <div class="leg">
+        <div class="leg-i"><span class="leg-sq" style="background:#e8ff47"></span>How-to</div>
+        <div class="leg-i"><span class="leg-sq" style="background:#47ffe8"></span>Storytelling</div>
+        <div class="leg-i"><span class="leg-sq" style="background:#ff4757"></span>Tutorial</div>
+        <div class="leg-i"><span class="leg-sq" style="background:#ff9f47"></span>Opinión</div>
+      </div>
+      <div style="position:relative;height:170px"><canvas id="engChart" role="img" aria-label="Engagement por tipo"></canvas></div>
+    </div>
+  </div>
+  <div class="st">HOOK SCOREBOARD</div>
+  <div class="hk-grid" id="hookGrid"></div>
+  <div class="charts-row">
+    <div class="cc"><div class="cc-hd"><span>CONTENT MIX</span><b>TIKTOK</b></div><div style="position:relative;height:145px"><canvas id="mixTT" role="img" aria-label="Mix TikTok"></canvas></div></div>
+    <div class="cc"><div class="cc-hd"><span>CONTENT MIX</span><b>INSTAGRAM</b></div><div style="position:relative;height:145px"><canvas id="mixIG" role="img" aria-label="Mix Instagram"></canvas></div></div>
+  </div>
+</div>
+
+<!-- MI CONTENIDO -->
+<div class="page" id="page-content">
+  <div class="ph">
+    <div><div class="ph-title">MI CONTENIDO</div><div class="ph-sub">Ordenado por rendimiento · <b id="contentPeriod">7 días</b></div></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span style="font-size:10px;color:var(--text3)">PLATAFORMA:</span>
+      <div class="period-sel">
+        <button class="pb active" onclick="filterPlatform('all',this)">ALL</button>
+        <button class="pb" onclick="filterPlatform('tt',this)" style="border-left:1px solid var(--border)">TT</button>
+        <button class="pb" onclick="filterPlatform('ig',this)" style="border-left:1px solid var(--border)">IG</button>
+      </div>
+    </div>
+  </div>
+  <div class="mgrid" id="contentMetrics"></div>
+  <div class="st">MEJORES POSTS</div>
+  <div class="posts-list" id="postsGrid"></div>
+</div>
+
+<!-- CREADORES -->
+<div class="page" id="page-competitors">
+  <div class="ph">
+    <div><div class="ph-title">CREADORES SIMILARES</div><div class="ph-sub">Referentes en tu nicho · IA + marketing de contenidos en español</div></div>
+    <button class="btn-p" onclick="syncComp()">↻ SYNC CREADORES</button>
+  </div>
+  <div class="cfg-block" style="background:rgba(71,255,232,.03);border-color:rgba(71,255,232,.15);margin-bottom:18px" data-label="// INFO">
+    <div class="cfg-info">Apify extrae los últimos posts de estos creadores. Ve a Configurar → añade handles adicionales → pulsa SYNC CREADORES para actualizar con datos reales.</div>
+  </div>
+  <div class="st">TOP CREADORES EN TU NICHO · IA + MARKETING ESPAÑOL</div>
+  <div class="comp-grid" id="compGrid"></div>
+</div>
+
+<!-- TRENDING -->
+<div class="page" id="page-trending">
+  <div class="ph">
+    <div><div class="ph-title">TRENDING EN TU NICHO</div><div class="ph-sub">Lo que <b>está funcionando ahora</b> en IA + marketing digital</div></div>
+    <div class="period-sel">
+      <button class="pb active" onclick="filterTrend('tt',this)">TIKTOK</button>
+      <button class="pb" onclick="filterTrend('ig',this)" style="border-left:1px solid var(--border)">INSTAGRAM</button>
+    </div>
+  </div>
+  <div class="st">VIDEOS VIRALES · NICHO IA / MARKETING</div>
+  <div class="trend-list" id="trendingList"></div>
+</div>
+
+<!-- IDEAS IA -->
+<div class="page" id="page-ideas">
+  <div class="ph">
+    <div><div class="ph-title">IDEAS IA</div><div class="ph-sub">Generadas con Claude · basadas en tu contenido y <b>lo que funciona</b></div></div>
+    <button class="btn-p" id="genBtn" onclick="generateIdeas()">✦ GENERAR NUEVAS</button>
+  </div>
+  <div class="st">IDEAS PARA ESTA SEMANA</div>
+  <div class="ideas-grid" id="ideasGrid"></div>
+</div>
+
+<!-- CONFIG -->
+<div class="page" id="page-config">
+  <div class="ph"><div><div class="ph-title">CONFIGURAR</div><div class="ph-sub">Conecta tus APIs para datos <b>reales</b></div></div></div>
+
+  <!-- Server check -->
+  <div class="cfg-block" style="border-color:rgba(71,255,232,.2)" data-label="// SERVIDOR LOCAL">
+    <div class="cfg-info">
+      El dashboard necesita un servidor local para comunicarse con Apify sin errores de CORS.<br>
+      <b>1.</b> Asegúrate de tener <span class="hl">Node.js</span> instalado (nodejs.org)<br>
+      <b>2.</b> Abre una terminal en la carpeta <span class="hl">iaconpatrick-dashboard</span><br>
+      <b>3.</b> Ejecuta: <span class="hl">node server.js</span><br>
+      <b>4.</b> Abre el navegador en <span class="hl">http://localhost:3000</span>
+    </div>
+    <div class="cfg-acts">
+      <button class="btn-p" onclick="checkServer()">VERIFICAR SERVIDOR</button>
+      <div class="cfg-status" id="serverStatus">No verificado</div>
+    </div>
+  </div>
+
+  <div class="st">APIFY — SCRAPING TikTok + Instagram</div>
+  <div class="cfg-block" data-label="// APIFY">
+    <div class="cfg-info">
+      <b>1.</b> Crea cuenta gratuita en <span class="hl">apify.com</span> ($5 créditos/mes = ~30 syncs)<br>
+      <b>2.</b> Settings → Integrations → copia tu <span class="hl">API Token</span><br>
+      <b>3.</b> Actores: <span class="hl">clockworks/tiktok-scraper</span> · <span class="hl">apify/instagram-scraper</span> · <span class="hl">clockworks/tiktok-hashtag-scraper</span>
+    </div>
+    <div class="cfg-grid">
+      <div class="cfg-field"><div class="cfg-lbl">APIFY API TOKEN</div><input type="password" class="cfg-inp" id="apifyToken" placeholder="apify_api_xxxxxxxxxxxx"></div>
+      <div class="cfg-field"><div class="cfg-lbl">MAX POSTS POR CUENTA</div><input type="number" class="cfg-inp" id="maxPosts" value="50" min="10" max="200"></div>
+      <div class="cfg-field"><div class="cfg-lbl">TIKTOK HANDLE</div><input type="text" class="cfg-inp" id="ttHandle" value="@iaconpatrick"></div>
+      <div class="cfg-field"><div class="cfg-lbl">INSTAGRAM HANDLE</div><input type="text" class="cfg-inp" id="igHandle" value="@iaconpatrick"></div>
+      <div class="cfg-field" style="grid-column:1/-1"><div class="cfg-lbl">KEYWORDS NICHO (para trending)</div><input type="text" class="cfg-inp" id="nicheKw" value="IA,marketing contenidos,automatización,prompt,inteligencia artificial"></div>
+    </div>
+    <div class="cfg-acts">
+      <button class="btn-p" onclick="testApify()">PROBAR CONEXIÓN</button>
+      <button class="btn-s" onclick="saveConfig()">GUARDAR</button>
+      <div class="cfg-status" id="apifyStatus">No configurado</div>
+    </div>
+    <div class="log-box" id="apifyLog"></div>
+  </div>
+
+  <div class="st">CREADORES A MONITORIZAR</div>
+  <div class="cfg-block" data-label="// CREADORES">
+    <div class="cfg-grid">
+      <div class="cfg-field"><div class="cfg-lbl">HANDLES TIKTOK (coma separados)</div><input type="text" class="cfg-inp" id="compTT" value="@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida"></div>
+      <div class="cfg-field"><div class="cfg-lbl">HANDLES INSTAGRAM (coma separados)</div><input type="text" class="cfg-inp" id="compIG" value="@javadex,@iafacil.es,@marketingconia"></div>
+    </div>
+    <div class="cfg-acts"><button class="btn-s" onclick="saveConfig()">GUARDAR</button></div>
+  </div>
+
+  <div class="st">ANTHROPIC — IDEAS CON CLAUDE</div>
+  <div class="cfg-block" data-label="// CLAUDE">
+    <div class="cfg-info"><b>→</b> <span class="hl">console.anthropic.com</span> → API Keys → Create Key</div>
+    <div class="cfg-grid">
+      <div class="cfg-field"><div class="cfg-lbl">ANTHROPIC API KEY</div><input type="password" class="cfg-inp" id="anthropicKey" placeholder="sk-ant-api03-xxxxxxxxxxxx"></div>
+      <div class="cfg-field"><div class="cfg-lbl">MODELO</div>
+        <select class="cfg-inp" id="anthropicModel">
+          <option value="claude-sonnet-4-20250514">claude-sonnet-4 (recomendado)</option>
+          <option value="claude-haiku-4-5-20251001">claude-haiku-4 (más económico)</option>
+        </select>
+      </div>
+    </div>
+    <div class="cfg-acts">
+      <button class="btn-p" onclick="testAnthropic()">PROBAR</button>
+      <button class="btn-s" onclick="saveConfig()">GUARDAR</button>
+      <div class="cfg-status" id="anthropicStatus">No configurado</div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ═══ BASE URL — cuando corre en servidor local usa proxy, si no avisa ═══
+const BASE = window.location.hostname === 'localhost' ? '' : null;
+
+// ═══ STATE ═══
+let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514'};
+let realData=null,platformFilter='all',trendFilter='tt';
+let vChart=null,eChart=null;
+let serverOk=false;
+
+// ═══ DEMO DATA ═══
+const D={
+  tiktok:{followers:651,followersDelta:61,views:64700,viewsDelta:12.3,engagement:7.4,shares:549,posts:30,
+    viewsByDay:[3200,5100,4800,7200,9100,8400,11200,8900,12400,10200,9800,14200,12100,11800],
+    topPosts:[
+      {rank:1,title:"Cómo automaticé 80% de mi creación de contenido con Claude",platform:'tt',type:'How-to',views:18400,likes:892,comments:67,shares:145,eng:6.1},
+      {rank:2,title:"El stack de IA que uso para gestionar 2 marcas sin morir",platform:'tt',type:'Tutorial',views:12100,likes:543,comments:41,shares:89,eng:5.6},
+      {rank:3,title:"ChatGPT no es suficiente — esto es lo que realmente necesitas",platform:'tt',type:'Storytelling',views:9800,likes:421,comments:38,shares:72,eng:5.4},
+      {rank:4,title:"Prompt que me ahorró 3h de trabajo esta semana",platform:'tt',type:'How-to',views:7200,likes:334,comments:28,shares:55,eng:5.8},
+      {rank:5,title:"Por qué el 90% de creadores usa mal la IA (y cómo evitarlo)",platform:'tt',type:'Opinión',views:5400,likes:287,comments:44,shares:61,eng:7.2},
+    ],
+    hooks:[{type:'How-to',views:11100,videos:3,rate:6},{type:'Storytelling',views:8400,videos:4,rate:5},{type:'Tutorial',views:7200,videos:5,rate:4},{type:'Opinión',views:5200,videos:3,rate:7}],
+    mix:{Video:18,Carrusel:7,Foto:5}},
+  instagram:{followers:813,followersDelta:24,views:28400,viewsDelta:8.1,engagement:4.2,shares:189,posts:30,
+    viewsByDay:[1200,2100,1900,3100,2800,3400,4100,3800,4600,3900,4200,5100,4800,5400],
+    topPosts:[
+      {rank:1,title:"New campaign for @sportyandrich — Photographer BTS",platform:'ig',type:'Reel',views:458,likes:61,comments:21,shares:12,eng:8.4},
+      {rank:2,title:"We turn vision into impact, ideas into experience...",platform:'ig',type:'Reel',views:389,likes:23,comments:7,shares:8,eng:5.9},
+      {rank:3,title:"CALEB PARIS TEXAS for @calebparisofficial campaign",platform:'ig',type:'Reel',views:80,likes:21,comments:12,shares:5,eng:6.1},
+      {rank:4,title:"Campaign for the @adidas x @sportyandrich collab",platform:'ig',type:'Reel',views:64,likes:8,comments:4,shares:2,eng:4.4},
+      {rank:5,title:"Content Creation con @raniafawazz at the @loe...",platform:'ig',type:'Reel',views:309,likes:0,comments:7,shares:3,eng:0.3},
+    ],
+    hooks:[{type:'Reel',views:7000,videos:17,rate:4},{type:'Post',views:0,videos:4,rate:0},{type:'Carrusel',views:0,videos:9,rate:0}],
+    mix:{Reel:17,Post:4,Carrusel:9}}
+};
+
+const COMPS=[
+  {handle:'@javadex',platform:'TikTok + IG',av:'JV',color:'#e8ff47',followers:'42.8K',eng:'8.9%',avgViews:'18.4K',niche:'Implementación práctica IA empresarial, automatizaciones con n8n, casos reales de Claude y ChatGPT API. El más técnico del nicho.',topVideos:[{t:'Automaticé mi negocio completo con n8n + Claude en 1 semana',v:'284K'},{t:'3 workflows de n8n que cualquier freelancer debería tener',v:'156K'},{t:'Claude API vs ChatGPT API — diferencias reales para developers',v:'98K'}]},
+  {handle:'@iafacil.es',platform:'TikTok + IG',av:'IF',color:'#47ffe8',followers:'28.1K',eng:'7.2%',avgViews:'11.2K',niche:'Tips y trucos de ChatGPT para profesionales no-técnicos, prompts optimizados por industria. Audiencia más amplia que la tuya.',topVideos:[{t:'El prompt que le da contexto perfecto a ChatGPT sobre tu negocio',v:'142K'},{t:'Cómo crear un GPT personalizado para tu empresa en 5 min',v:'89K'},{t:'10 prompts de marketing que uso cada semana',v:'67K'}]},
+  {handle:'@aprende_ia',platform:'TikTok',av:'AI',color:'#ff9f47',followers:'19.4K',eng:'6.8%',avgViews:'8.9K',niche:'Técnicas de prompting avanzado, comparativas de modelos. Nicho muy parecido al tuyo, buen referente de crecimiento.',topVideos:[{t:'Chain of thought prompting — por qué funciona y cómo usarlo',v:'78K'},{t:'Gemini 2 vs Claude 3.7 — test real con casos de uso',v:'54K'},{t:'Cómo estructurar un sistema de prompts para tu negocio',v:'41K'}]},
+  {handle:'@techconpaula',platform:'TikTok + IG',av:'TP',color:'#ff4757',followers:'35.6K',eng:'9.1%',avgViews:'14.8K',niche:'IA generativa para creativos y marketers, enfoque visual y accesible. Mayor engagement del nicho — estudia sus hooks.',topVideos:[{t:'Cómo uso Midjourney + Claude para crear campañas completas en 1h',v:'198K'},{t:'La IA reemplazará al diseñador — mi opinión honesta',v:'134K'},{t:'5 herramientas de IA imprescindibles para content creators',v:'92K'}]},
+  {handle:'@automatiza_tu_vida',platform:'TikTok',av:'AV',color:'#a855f7',followers:'22.3K',eng:'7.5%',avgViews:'9.6K',niche:'Automatizaciones no-code con IA: Zapier, Make, n8n. Complementario a tu contenido, no competencia directa.',topVideos:[{t:'Automaticé mis DMs de Instagram con Make + Claude',v:'112K'},{t:'El flujo de Make que genera y publica contenido solo',v:'87K'},{t:'Cómo conectar ChatGPT con cualquier app sin código',v:'63K'}]},
+  {handle:'@marketingconia',platform:'IG + TikTok',av:'MC',color:'#e1306c',followers:'31.2K',eng:'6.4%',avgViews:'12.1K',niche:'Marketing digital + IA para marcas y agencias. Audiencia más B2B. Fíjate en su content mix (más carruseles en IG).',topVideos:[{t:'El sistema de contenido con IA que uso para 5 clientes',v:'167K'},{t:'ChatGPT para copywriting — errores que todos cometen',v:'104K'},{t:'Cómo auditar tu estrategia de contenido con Claude',v:'71K'}]},
+];
+
+const TREND_TT=[
+  {title:"Automaticé 30 días de contenido en 2h con este workflow de Claude",handle:"@javadex",dur:"45s",views:"38.1K",likes:1240,tag:"content automation"},
+  {title:"How to turn your boring slides into a premium deck in 2 min using AI",handle:"@adrien.ninet",dur:"33s",views:"47.4K",likes:998,tag:"AI pitch deck"},
+  {title:"3 prompts de Claude que uso CADA DÍA para mi negocio — gratis",handle:"@promptsmania",dur:"38s",views:"32.7K",likes:876,tag:"claude prompts"},
+  {title:"El error que comete el 90% de creadores al usar ChatGPT",handle:"@iafacil.es",dur:"41s",views:"28.4K",likes:654,tag:"chatgpt tips"},
+  {title:"Automaticé mis respuestas de Instagram con Make + AI en 20 min",handle:"@automatiza_tu_vida",dur:"1m 2s",views:"22.3K",likes:543,tag:"make automation"},
+];
+const TREND_IG=[
+  {title:"Create a presentation using AI in less than 5 minutes — step by step",handle:"@gamma.app",dur:"15s",views:"40.4K",likes:418,tag:"#pitchdeck #aipresenta"},
+  {title:"Mi stack completo de IA para content creators 2025 (lo que realmente uso)",handle:"@techconpaula",dur:"52s",views:"31.8K",likes:892,tag:"AI stack 2025"},
+  {title:"El ROI real de usar IA en tu estrategia de contenido",handle:"@marketingconia",dur:"48s",views:"24.1K",likes:634,tag:"marketing IA"},
+  {title:"Cómo uso Claude para analizar métricas y tomar mejores decisiones",handle:"@javadex",dur:"1m 8s",views:"19.6K",likes:487,tag:"claude analytics"},
+];
+
+const IDEAS_BASE=[
+  {score:"SCORE: 9.2/10",title:"El prompt que le pasé a Claude para analizar mis propios vídeos",desc:"Proceso en tiempo real: transcripción → prompt exacto → análisis que devuelve. Hook: 'Le di mis 10 mejores vídeos a Claude y me dijo exactamente por qué funcionaron'",tags:["How-to","Claude","alto viral"]},
+  {score:"SCORE: 8.7/10",title:"3 workflows de Make que cualquier creador debería tener en 2025",desc:"Tutorial práctico en pantalla. Hook: 'Automaticé X horas de trabajo con esto'",tags:["Tutorial","Make","automatización"]},
+  {score:"SCORE: 8.4/10",title:"Por qué dejé de usar Notion y migré todo mi sistema a IA agéntica",desc:"Storytelling personal + transición + demo del nuevo sistema. Alta retención por cambio radical.",tags:["Storytelling","sistemas","productividad"]},
+  {score:"SCORE: 7.9/10",title:"Stack completo de IA para content creators 2025 — coste real y honesto",desc:"Desglose transparente: cuánto pagas, qué eliminarías, qué es imprescindible.",tags:["Opinión","stack","precio real"]},
+  {score:"SCORE: 7.6/10",title:"Cómo analizo mis métricas de TikTok con IA (detrás de mi dashboard)",desc:"Meta-contenido sobre tu sistema de análisis. Posicionamiento único creador + técnico.",tags:["Behind scenes","datos","Claude"]},
+  {score:"SCORE: 7.3/10",title:"Cloné mi voz con ElevenLabs — resultados reales tras 30 días",desc:"Demo en vivo + comparación + resultados. Genera debate y alto engagement.",tags:["Demo","ElevenLabs","polémico"]},
+];
+
+// ═══ INIT ═══
+window.addEventListener('DOMContentLoaded',()=>{
+  updateClock();setInterval(updateClock,1000);
+  loadCfg();
+  checkServer(true); // silent check on load
+  renderAll();
+});
+
+function renderAll(){
+  const d=realData||D;
+  renderMetrics(d);renderViewsChart(d);renderEngChart();
+  renderHooks(d);renderMixCharts(d);
+  renderContentMetrics(d);renderPosts(d);
+  renderComps();renderTrending('tt');renderIdeas();
+}
+
+function updateClock(){
+  const n=new Date();
+  document.getElementById('tbTime').textContent=n.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' · '+n.toLocaleDateString('es-ES',{day:'2-digit',month:'short'}).toUpperCase();
+}
+
+// ═══ SERVER CHECK ═══
+async function checkServer(silent=false){
+  try{
+    const r=await fetch('/api/apify/v2/acts?token=test',{signal:AbortSignal.timeout(2000)}).catch(()=>null);
+    // Si responde (aunque sea 401), el servidor está corriendo
+    serverOk=true;
+    document.getElementById('sbServer').textContent='✓ Online';document.getElementById('sbServer').style.color='var(--success)';
+    document.getElementById('srvBanner').classList.remove('show');
+    if(!silent){document.getElementById('serverStatus').textContent='✓ Servidor corriendo en localhost:3000';document.getElementById('serverStatus').className='cfg-status ok';}
+  }catch(e){
+    serverOk=false;
+    document.getElementById('sbServer').textContent='✕ Offline';document.getElementById('sbServer').style.color='var(--accent2)';
+    document.getElementById('srvBanner').classList.add('show');
+    if(!silent){document.getElementById('serverStatus').textContent='✕ Servidor no encontrado — ejecuta: node server.js';document.getElementById('serverStatus').className='cfg-status err';}
+  }
+}
+
+// ═══ NAV ═══
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+function setPeriod(p,btn){
+  btn.closest('.period-sel').querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const lbs={'7d':'Últimos 7 días','30d':'Últimos 30 días','90d':'Últimos 90 días'};
+  ['periodLabel','contentPeriod'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=lbs[p];});
+}
+function filterPlatform(p,btn){
+  btn.closest('.period-sel').querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');platformFilter=p;renderPosts(realData||D);
+}
+function filterTrend(p,btn){
+  btn.closest('.period-sel').querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');trendFilter=p;renderTrending(p);
+}
+
+// ═══ OVERVIEW ═══
+function renderMetrics(d){
+  const items=[
+    {lbl:'TOTAL VIEWS',val:fn(d.tiktok.views+d.instagram.views),delta:'+12.3%',up:true,c:'g'},
+    {lbl:'ENGAGEMENT RATE',val:'7.4%',delta:'+0.8pp',up:true,c:'y'},
+    {lbl:'FOLLOWERS TIKTOK',val:fn(d.tiktok.followers),delta:'+'+d.tiktok.followersDelta,up:true,c:'b'},
+    {lbl:'FOLLOWERS INSTAGRAM',val:fn(d.instagram.followers),delta:'+'+d.instagram.followersDelta,up:true,c:'r'},
+  ];
+  document.getElementById('metricsGrid').innerHTML=items.map(m=>`<div class="mc ${m.c}"><div class="mc-lbl">${m.lbl}</div><div class="mc-val">${m.val}</div><div class="mc-delta ${m.up?'up':'dn'}">${m.up?'▲':'▼'} ${m.delta} vs anterior</div></div>`).join('');
+}
+function renderViewsChart(d){
+  const ctx=document.getElementById('viewsChart').getContext('2d');
+  if(vChart)vChart.destroy();
+  vChart=new Chart(ctx,{type:'line',data:{labels:getLast14(),datasets:[
+    {label:'TikTok',data:d.tiktok.viewsByDay,borderColor:'#e8ff47',backgroundColor:'rgba(232,255,71,.04)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#e8ff47',tension:.4,fill:true},
+    {label:'Instagram',data:d.instagram.viewsByDay,borderColor:'#e1306c',backgroundColor:'rgba(225,48,108,.04)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#e1306c',tension:.4,fill:true,borderDash:[4,3]},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+    x:{ticks:{color:'#444440',font:{family:'JetBrains Mono',size:9},maxTicksLimit:7},grid:{color:'rgba(255,255,255,0.03)'},border:{color:'rgba(255,255,255,0.07)'}},
+    y:{ticks:{color:'#444440',font:{family:'JetBrains Mono',size:9},callback:v=>fn(v)},grid:{color:'rgba(255,255,255,0.03)'},border:{color:'rgba(255,255,255,0.07)'}},
+  }}});
+}
+function renderEngChart(){
+  const ctx=document.getElementById('engChart').getContext('2d');
+  if(eChart)eChart.destroy();
+  eChart=new Chart(ctx,{type:'bar',data:{labels:['How-to','Storytelling','Tutorial','Opinión','Carrusel'],datasets:[{data:[7.4,6.1,5.8,7.2,3.1],backgroundColor:['#e8ff47','#47ffe8','#ff4757','#ff9f47','#888880'],borderRadius:0,borderWidth:0}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+    x:{ticks:{color:'#444440',font:{family:'JetBrains Mono',size:9}},grid:{display:false},border:{color:'rgba(255,255,255,0.07)'}},
+    y:{ticks:{color:'#444440',font:{family:'JetBrains Mono',size:9},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.03)'},border:{color:'rgba(255,255,255,0.07)'}},
+  }}});
+}
+function renderHooks(d){
+  const max=Math.max(...d.tiktok.hooks.map(h=>h.views))||1;
+  document.getElementById('hookGrid').innerHTML=d.tiktok.hooks.map(h=>`<div class="hk"><div class="hk-type">${h.type}</div><div class="hk-views">${fn(h.views)}<span>avg views</span></div><div class="hk-bar"><div class="hk-fill" style="width:${Math.round(h.views/max*100)}%"></div></div><div class="hk-meta">${h.videos} videos · ${h.rate}% like rate</div></div>`).join('');
+}
+function renderMixCharts(d){
+  mkDonut('mixTT',d.tiktok.mix,['#e8ff47','#47ffe8','#ff4757']);
+  mkDonut('mixIG',d.instagram.mix,['#e1306c','#ff9f47','#47ffe8']);
+}
+function mkDonut(id,mix,colors){
+  const ex=Chart.getChart(id);if(ex)ex.destroy();
+  new Chart(document.getElementById(id).getContext('2d'),{type:'doughnut',data:{labels:Object.keys(mix),datasets:[{data:Object.values(mix),backgroundColor:colors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:true,position:'right',labels:{color:'#888880',font:{family:'JetBrains Mono',size:10},boxWidth:8,padding:10}}}}});
+}
+
+// ═══ CONTENT ═══
+function renderContentMetrics(d){
+  document.getElementById('contentMetrics').innerHTML=[
+    {lbl:'TOTAL POSTS',val:d.tiktok.posts+d.instagram.posts,c:'g'},
+    {lbl:'AVG VIEWS',val:fn(Math.round((d.tiktok.views+d.instagram.views)/(d.tiktok.posts+d.instagram.posts))),c:'y'},
+    {lbl:'MEJOR FORMATO',val:'HOW-TO',c:'b',sm:true},
+    {lbl:'TOTAL SHARES',val:fn(d.tiktok.shares+d.instagram.shares),c:'r'},
+  ].map(m=>`<div class="mc ${m.c}"><div class="mc-lbl">${m.lbl}</div><div class="mc-val" style="${m.sm?'font-size:18px':''}">${m.val}</div></div>`).join('');
+}
+function renderPosts(d){
+  let posts=[];
+  if(platformFilter==='all'||platformFilter==='tt')posts.push(...d.tiktok.topPosts);
+  if(platformFilter==='all'||platformFilter==='ig')posts.push(...d.instagram.topPosts);
+  posts.sort((a,b)=>b.views-a.views);
+  const rc=i=>i===0?'gold':i===1?'silver':i===2?'bronze':'';
+  const rs=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+  document.getElementById('postsGrid').innerHTML=posts.map((p,i)=>`
+    <div class="post-row">
+      <div class="pr-rank ${rc(i)}">${rs(i)}</div>
+      <div><div class="pr-title">${p.title}</div><div class="pr-meta"><span class="${p.platform==='tt'?'tag-tt':'tag-ig'}">${p.platform==='tt'?'TIKTOK':'INSTAGRAM'}</span> · ${p.type} · Eng: ${p.eng}%</div></div>
+      <div class="pr-stat"><div class="pr-val">${fn(p.views)}</div><div class="pr-lbl">VIEWS</div></div>
+      <div class="pr-stat"><div class="pr-val">${fn(p.likes)}</div><div class="pr-lbl">LIKES</div></div>
+      <div class="pr-stat"><div class="pr-val">${p.comments}</div><div class="pr-lbl">CMTS</div></div>
+      <div class="pr-stat"><div class="pr-val">${p.shares}</div><div class="pr-lbl">SHARES</div></div>
+    </div>`).join('');
+}
+
+// ═══ COMPETITORS ═══
+function renderComps(){
+  document.getElementById('compGrid').innerHTML=COMPS.map(c=>`
+    <div class="comp-card">
+      <div style="display:flex;align-items:center;margin-bottom:10px">
+        <div class="comp-av" style="color:${c.color};border-color:${c.color}44;background:${c.color}11">${c.av}</div>
+        <div style="margin-left:10px"><div class="comp-handle">${c.handle}</div><div class="comp-platform">${c.platform}</div></div>
+      </div>
+      <div class="comp-fol">${c.followers}<span>seguidores</span></div>
+      <div class="comp-stats">
+        <div class="cs"><div class="cs-val" style="color:${c.color}">${c.eng}</div><div class="cs-lbl">ENGAGEMENT</div></div>
+        <div class="cs"><div class="cs-val" style="color:${c.color}">${c.avgViews}</div><div class="cs-lbl">AVG VIEWS</div></div>
+      </div>
+      <div class="comp-niche">${c.niche}</div>
+      <div class="ctv-lbl">TOP VIDEOS</div>
+      ${c.topVideos.map(v=>`<div class="ctv-item"><div class="ctv-title">${v.t}</div><div class="ctv-views">${v.v}</div></div>`).join('')}
+    </div>`).join('');
+}
+function syncComp(){
+  if(!serverOk){showNotif('SERVIDOR OFFLINE','Arranca el servidor con: node server.js');return;}
+  if(!cfg.apifyToken){showNotif('SIN API KEY','Configura tu Apify token en Configurar.');return;}
+  showNotif('SYNC INICIADO','Extrayendo posts de creadores en tu nicho...');
+}
+
+// ═══ TRENDING ═══
+function renderTrending(p){
+  const items=p==='tt'?TREND_TT:TREND_IG;
+  document.getElementById('trendingList').innerHTML=items.map(t=>`
+    <div class="trend-item">
+      <div><div class="trend-title">${t.title}</div><div class="trend-meta"><span class="trend-handle">${t.handle}</span> · ${t.dur}</div><div class="trend-tag">${t.tag}</div></div>
+      <div class="trend-stats"><div class="trend-views">${t.views}</div><div class="trend-likes">♥ ${t.likes}</div></div>
+    </div>`).join('');
+}
+
+// ═══ IDEAS ═══
+function renderIdeas(ideas){
+  const src=ideas||IDEAS_BASE;
+  document.getElementById('ideasGrid').innerHTML=src.map(i=>`
+    <div class="idea-card">
+      <div class="idea-score">${i.score}</div>
+      <div class="idea-title">${i.title}</div>
+      <div class="idea-desc">${i.desc}</div>
+      <div class="idea-tags">${i.tags.map(t=>`<span class="idea-tag">${t}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+async function generateIdeas(){
+  const key=cfg.anthropicKey||document.getElementById('anthropicKey').value.trim();
+  const btn=document.getElementById('genBtn');
+  if(!key){showNotif('SIN API KEY','Configura tu Anthropic API key en Configurar.');return;}
+  if(!serverOk){showNotif('SERVIDOR OFFLINE','Arranca el servidor con: node server.js');return;}
+  btn.disabled=true;btn.textContent='GENERANDO...';
+  document.getElementById('ideasGrid').innerHTML='<div class="empty">✦ Claude analizando tu contenido...</div>';
+  try{
+    const d=realData||D;
+    const top=[...d.tiktok.topPosts,...d.instagram.topPosts].slice(0,5);
+    const prompt=`Eres estratega experto en contenido para redes sociales, IA y marketing digital en español.
+
+Analiza estos datos de @iaconpatrick y genera 6 ideas de contenido para TikTok/Instagram:
+
+MEJORES POSTS:
+${top.map(p=>`- "${p.title}" (${fn(p.views)} views, ${p.eng}% eng, tipo: ${p.type})`).join('\n')}
+
+NICHO: IA aplicada al marketing de contenidos, asesorías 1:1, automatizaciones, prompts para creadores.
+MEJOR HOOK: How-to (11.1K avg views, 6% like rate)
+AUDIENCIA: creadores, marcas personales, marketers hispanohablantes.
+
+Genera 6 ideas en JSON. Responde SOLO con el JSON sin texto adicional:
+[{"score":"SCORE: X.X/10","title":"título del vídeo","desc":"ángulo + hook + por qué funcionará (máx 200 chars)","tags":["tag1","tag2","tag3"]}]`;
+
+    // Llamada a través del proxy local
+    const r=await fetch('/api/anthropic',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        _apiKey:key, // el servidor extrae esto y no lo pasa al modelo
+        model:cfg.anthropicModel||'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!r.ok)throw new Error('API error '+r.status);
+    const result=await r.json();
+    const text=result.content.map(c=>c.text||'').join('');
+    const ideas=JSON.parse(text.replace(/```json|```/g,'').trim());
+    renderIdeas(ideas);
+    showNotif('IDEAS GENERADAS','Claude generó 6 ideas personalizadas para tu nicho.');
+  }catch(e){
+    document.getElementById('ideasGrid').innerHTML=`<div class="empty">✕ Error: ${e.message}<br>Verifica que el servidor está corriendo y la API key es correcta.</div>`;
+  }finally{btn.disabled=false;btn.textContent='✦ GENERAR NUEVAS';}
+}
+
+// ═══ REAL APIFY SYNC (vía servidor proxy) ═══
+async function triggerSync(){
+  const token=cfg.apifyToken||document.getElementById('apifyToken').value.trim();
+  if(!serverOk){
+    showNotif('SERVIDOR OFFLINE','Para el SYNC real necesitas arrancar el servidor: node server.js');
+    return;
+  }
+  if(!token){showNotif('SIN API KEY','Configura tu Apify token en Configurar.');return;}
+  const btn=document.getElementById('syncBtn');
+  btn.disabled=true;btn.textContent='↻ SYNCING...';
+  showLoad('INICIANDO SYNC...');
+  try{
+    setLoad(10,'SCRAPEANDO TIKTOK...',cfg.ttHandle);
+    const ttRaw=await runActor(token,'clockworks/tiktok-scraper',{profiles:[cfg.ttHandle.replace('@','')],resultsType:'posts',maxPostsPerPage:parseInt(cfg.maxPosts)||30});
+
+    setLoad(40,'SCRAPEANDO INSTAGRAM...',cfg.igHandle);
+    const igRaw=await runActor(token,'apify/instagram-scraper',{directUrls:[`https://www.instagram.com/${cfg.igHandle.replace('@','')}/`],resultsType:'posts',resultsLimit:parseInt(cfg.maxPosts)||30});
+
+    setLoad(72,'SCRAPEANDO TRENDING...','keywords: '+cfg.nicheKw.split(',')[0].trim());
+    const kwArr=cfg.nicheKw.split(',').slice(0,3).map(k=>k.trim());
+    const trendRaw=await runActor(token,'clockworks/tiktok-hashtag-scraper',{hashtags:kwArr,resultsPerPage:20});
+
+    setLoad(90,'PROCESANDO DATOS...','');
+    realData=processData(ttRaw,igRaw,trendRaw);
+    setLoad(100,'SYNC COMPLETO ✓','');
+    await sleep(600);hideLoad();
+
+    document.getElementById('sbApify').textContent='✓ Conectado';document.getElementById('sbApify').style.color='var(--success)';
+    document.getElementById('sbDataMode').textContent='REAL';document.getElementById('sbDataMode').style.color='var(--success)';
+    document.getElementById('dsBadge').textContent='DATOS REALES';document.getElementById('dsBadge').style.color='var(--success)';document.getElementById('dsBadge').style.background='rgba(71,255,138,.1)';document.getElementById('dsBadge').style.borderColor='rgba(71,255,138,.2)';
+    document.getElementById('sbLastSync').textContent=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('sbTTFol').textContent=fn(realData.tiktok.followers);
+    document.getElementById('sbIGFol').textContent=fn(realData.instagram.followers);
+    renderAll();
+    showNotif('SYNC COMPLETO','Datos reales cargados de TikTok e Instagram.');
+  }catch(e){
+    hideLoad();showNotif('ERROR EN SYNC',e.message||'Revisa conexión y API token.');
+    console.error(e);
+  }finally{btn.disabled=false;btn.textContent='↻ SYNC';}
+}
+
+// ── Llamadas a Apify VÍA PROXY (no directas al browser) ──
+async function runActor(token,actorId,input){
+  // POST para arrancar el actor — va por /api/apify/ que reenvía a api.apify.com
+  const start=await fetch(`/api/apify/v2/acts/${actorId}/runs?token=${token}`,{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)
+  });
+  if(!start.ok){const e=await start.json().catch(()=>({}));throw new Error(`Actor ${actorId}: ${e.error?.message||start.status}`);}
+  const sd=await start.json();
+  const runId=sd.data.id,dsId=sd.data.defaultDatasetId;
+
+  // Polling hasta que termina
+  let status='RUNNING',att=0;
+  while(status==='RUNNING'||status==='READY'){
+    if(att++>80)throw new Error('Timeout: actor '+actorId+' tardó demasiado');
+    await sleep(3000);
+    const pr=await fetch(`/api/apify/v2/actor-runs/${runId}?token=${token}`);
+    const pd=await pr.json();
+    status=pd.data.status;
+    if(status==='FAILED'||status==='ABORTED')throw new Error(`Actor ${actorId} falló: ${status}`);
+  }
+
+  // Traer items del dataset
+  const ir=await fetch(`/api/apify/v2/datasets/${dsId}/items?token=${token}&format=json`);
+  if(!ir.ok)throw new Error('Error obteniendo dataset de '+actorId);
+  return ir.json();
+}
+
+function processData(ttRaw,igRaw,trendRaw){
+  const ttPosts=Array.isArray(ttRaw)?ttRaw:[];
+  const igPosts=Array.isArray(igRaw)?igRaw:[];
+  const trendPosts=Array.isArray(trendRaw)?trendRaw:[];
+  const ttProf=ttPosts[0]?.authorMeta||{};
+  const ttSorted=[...ttPosts].sort((a,b)=>(b.playCount||0)-(a.playCount||0));
+  const igSorted=[...igPosts].sort((a,b)=>(b.likesCount||0)-(a.likesCount||0));
+  const ttTop=ttSorted.slice(0,10).map((p,i)=>({rank:i+1,title:(p.text||'').slice(0,120)||'Sin título',platform:'tt',type:detectType(p.text||''),views:p.playCount||0,likes:p.diggCount||0,comments:p.commentCount||0,shares:p.shareCount||0,eng:ttProf.fans?(((p.diggCount||0)+(p.commentCount||0))/(ttProf.fans||1)*100).toFixed(1):0}));
+  const igTop=igSorted.slice(0,10).map((p,i)=>({rank:i+1,title:(p.caption||'').slice(0,120)||'Sin título',platform:'ig',type:p.type||'Reel',views:p.videoViewCount||p.likesCount||0,likes:p.likesCount||0,comments:p.commentsCount||0,shares:0,eng:0}));
+  const trendItems=trendPosts.slice(0,8).map(p=>({title:(p.text||'').slice(0,100),handle:'@'+(p.authorMeta?.name||'unknown'),dur:p.videoMeta?.duration?Math.round(p.videoMeta.duration)+'s':'—',views:fn(p.playCount||0),likes:p.diggCount||0,tag:(p.hashtags||[]).slice(0,2).map(h=>'#'+h.name).join(' ')||'#ia'}));
+  return{
+    tiktok:{followers:ttProf.fans||D.tiktok.followers,followersDelta:0,views:ttSorted.reduce((s,p)=>s+(p.playCount||0),0)||D.tiktok.views,viewsDelta:0,engagement:D.tiktok.engagement,shares:ttSorted.reduce((s,p)=>s+(p.shareCount||0),0)||D.tiktok.shares,posts:ttPosts.length||D.tiktok.posts,viewsByDay:D.tiktok.viewsByDay,topPosts:ttTop.length>0?ttTop:D.tiktok.topPosts,hooks:D.tiktok.hooks,mix:D.tiktok.mix},
+    instagram:{followers:igSorted[0]?.ownerfollowersCount||D.instagram.followers,followersDelta:0,views:igSorted.reduce((s,p)=>s+(p.videoViewCount||p.likesCount||0),0)||D.instagram.views,viewsDelta:0,engagement:D.instagram.engagement,shares:D.instagram.shares,posts:igPosts.length||D.instagram.posts,viewsByDay:D.instagram.viewsByDay,topPosts:igTop.length>0?igTop:D.instagram.topPosts,hooks:D.instagram.hooks,mix:D.instagram.mix},
+    trending:{tt:trendItems.length>0?trendItems:TREND_TT,ig:TREND_IG},
+  };
+}
+
+function detectType(text){
+  const t=(text||'').toLowerCase();
+  if(t.includes('cómo')||t.includes('como')||t.includes('tutorial'))return 'How-to';
+  if(t.includes('por qué')||t.includes('error')||t.includes('verdad'))return 'Opinión';
+  if(t.includes('mi historia')||t.includes('cuándo'))return 'Storytelling';
+  return 'Video';
+}
+
+// ═══ CONFIG TESTS (también vía proxy) ═══
+async function testApify(){
+  const token=document.getElementById('apifyToken').value.trim();
+  const st=document.getElementById('apifyStatus');
+  const log=document.getElementById('apifyLog');
+  if(!token){st.textContent='✕ Introduce tu token';st.className='cfg-status err';return;}
+  if(!serverOk){st.textContent='✕ Arranca el servidor primero';st.className='cfg-status err';return;}
+  st.textContent='Probando...';st.className='cfg-status loading';
+  log.className='log-box show';log.innerHTML='<div class="log-info">→ Conectando con Apify vía servidor local...</div>';
+  try{
+    const r=await fetch(`/api/apify/v2/users/me?token=${token}`);
+    const d=await r.json();
+    if(d.data?.username){
+      log.innerHTML+=`<div class="log-ok">✓ Autenticado como: ${d.data.username}</div>`;
+      log.innerHTML+=`<div class="log-ok">✓ Plan: ${d.data.plan?.id||'free'}</div>`;
+      log.innerHTML+=`<div class="log-info">→ Actores disponibles:</div>`;
+      log.innerHTML+=`<div class="log-ok">✓ clockworks/tiktok-scraper</div>`;
+      log.innerHTML+=`<div class="log-ok">✓ apify/instagram-scraper</div>`;
+      log.innerHTML+=`<div class="log-ok">✓ clockworks/tiktok-hashtag-scraper</div>`;
+      log.innerHTML+=`<div class="log-ok" style="font-weight:700;margin-top:4px">✓ LISTO — pulsa ↻ SYNC en el header</div>`;
+      st.textContent='✓ Conectado como '+d.data.username;st.className='cfg-status ok';
+      cfg.apifyToken=token;
+      document.getElementById('sbApify').textContent='✓ OK';document.getElementById('sbApify').style.color='var(--success)';
+      showNotif('APIFY CONECTADO','¡Todo listo! Pulsa ↻ SYNC para traer datos reales.');
+    }else{
+      log.innerHTML+=`<div class="log-err">✕ Token inválido</div>`;
+      st.textContent='✕ Token inválido';st.className='cfg-status err';
+    }
+  }catch(e){
+    log.innerHTML+=`<div class="log-err">✕ ${e.message}</div>`;
+    st.textContent='✕ Error';st.className='cfg-status err';
+  }
+}
+
+async function testAnthropic(){
+  const key=document.getElementById('anthropicKey').value.trim();
+  const st=document.getElementById('anthropicStatus');
+  if(!key){st.textContent='✕ Introduce tu API key';st.className='cfg-status err';return;}
+  if(!serverOk){st.textContent='✕ Arranca el servidor primero';st.className='cfg-status err';return;}
+  st.textContent='Probando...';st.className='cfg-status loading';
+  try{
+    const r=await fetch('/api/anthropic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:document.getElementById('anthropicModel').value,max_tokens:20,messages:[{role:'user',content:'Responde solo: OK'}]})});
+    if(r.ok){st.textContent='✓ API key válida';st.className='cfg-status ok';cfg.anthropicKey=key;showNotif('ANTHROPIC OK','Ve a Ideas IA y pulsa Generar Nuevas.');}
+    else{const e=await r.json();st.textContent='✕ '+(e.error?.message||r.status);st.className='cfg-status err';}
+  }catch(e){st.textContent='✕ '+e.message;st.className='cfg-status err';}
+}
+
+// ═══ CONFIG ═══
+function saveConfig(){
+  cfg.apifyToken=document.getElementById('apifyToken').value;
+  cfg.ttHandle=document.getElementById('ttHandle').value;
+  cfg.igHandle=document.getElementById('igHandle').value;
+  cfg.maxPosts=document.getElementById('maxPosts').value;
+  cfg.nicheKw=document.getElementById('nicheKw').value;
+  cfg.compTT=document.getElementById('compTT').value;
+  cfg.compIG=document.getElementById('compIG').value;
+  cfg.anthropicKey=document.getElementById('anthropicKey').value;
+  cfg.anthropicModel=document.getElementById('anthropicModel').value;
+  localStorage.setItem('iac_dash_v2',JSON.stringify(cfg));
+  showNotif('CONFIG GUARDADA','Ajustes guardados.');
+}
+function loadCfg(){
+  try{
+    const s=JSON.parse(localStorage.getItem('iac_dash_v2')||'{}');
+    Object.assign(cfg,s);
+    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel'};
+    Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&cfg[k])el.value=cfg[k];});
+  }catch(e){}
+}
+
+// ═══ LOADING ═══
+function showLoad(m){document.getElementById('loOverlay').classList.add('show');setLoad(0,m,'');}
+function hideLoad(){document.getElementById('loOverlay').classList.remove('show');document.getElementById('loBar').style.width='0%';}
+function setLoad(pct,msg,sub){document.getElementById('loMsg').textContent=msg;document.getElementById('loSub').textContent=sub;document.getElementById('loBar').style.width=pct+'%';}
+
+// ═══ NOTIF ═══
+let nTimer=null;
+function showNotif(title,body){
+  document.getElementById('nTitle').textContent=title;document.getElementById('nBody').textContent=body;
+  document.getElementById('notif').classList.add('show');
+  if(nTimer)clearTimeout(nTimer);nTimer=setTimeout(()=>document.getElementById('notif').classList.remove('show'),5000);
+}
+
+// ═══ UTILS ═══
+function fn(n){n=Math.round(n);if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return String(n);}
+function getLast14(){const d=[];for(let i=13;i>=0;i--){const dt=new Date();dt.setDate(dt.getDate()-i);d.push(dt.toLocaleDateString('es-ES',{day:'2-digit',month:'short'}));}return d;}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+</script>
+</body>
+</html>
