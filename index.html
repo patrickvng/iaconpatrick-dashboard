@@ -317,6 +317,14 @@ body.light::before{display:none}
     <div class="cc"><div class="cc-hd"><span>CONTENT MIX</span><b>TIKTOK</b></div><div style="position:relative;height:145px"><canvas id="mixTT" role="img" aria-label="Mix TikTok"></canvas></div></div>
     <div class="cc"><div class="cc-hd"><span>CONTENT MIX</span><b>INSTAGRAM</b></div><div style="position:relative;height:145px"><canvas id="mixIG" role="img" aria-label="Mix Instagram"></canvas></div></div>
   </div>
+  <div class="st">ANÁLISIS SEMANAL IA</div>
+  <div class="cfg-block" data-label="// RESUMEN" id="summaryBlock">
+    <div id="summaryContent" style="font-size:12px;color:var(--text2);line-height:1.8"></div>
+    <div class="cfg-acts" style="margin-top:10px">
+      <button class="btn-p" id="summaryBtn" onclick="generateOverviewSummary()">✦ GENERAR ANÁLISIS</button>
+      <div class="cfg-status" id="summaryStatus"></div>
+    </div>
+  </div>
 </div>
 
 <!-- MI CONTENIDO -->
@@ -341,13 +349,21 @@ body.light::before{display:none}
 <div class="page" id="page-competitors">
   <div class="ph">
     <div><div class="ph-title">CREADORES SIMILARES</div><div class="ph-sub">Referentes en tu nicho · IA + marketing de contenidos en español</div></div>
-    <button class="btn-p" onclick="syncComp()">↻ SYNC CREADORES</button>
+    <div class="period-sel">
+      <button class="pb active" id="compBtnAll" onclick="setCompFilter('all',this)">TODOS</button>
+      <button class="pb" id="compBtnTT" onclick="setCompFilter('tt',this)" style="border-left:1px solid var(--border)">TIKTOK</button>
+      <button class="pb" id="compBtnIG" onclick="setCompFilter('ig',this)" style="border-left:1px solid var(--border)">INSTAGRAM</button>
+    </div>
   </div>
   <div class="cfg-block" style="background:rgba(71,255,232,.03);border-color:rgba(71,255,232,.15);margin-bottom:18px" data-label="// INFO">
     <div class="cfg-info">Los datos de creadores se actualizan <b>automáticamente cada semana</b> desde Railway.<br>Para añadir más creadores ve a <b>Configurar</b> y edita los handles de TikTok / Instagram. El próximo sync automático los incluirá.</div>
   </div>
-  <div class="st">TOP CREADORES EN TU NICHO · IA + MARKETING ESPAÑOL</div>
+  <div class="st">CREADORES EN TU NICHO · IA + MARKETING ESPAÑOL</div>
   <div class="comp-grid" id="compGrid"></div>
+  <div id="savedCreatorsSection" style="display:none">
+    <div class="st" style="margin-top:24px">CREADORES QUE ME INTERESAN</div>
+    <div class="comp-grid" id="savedCompGrid"></div>
+  </div>
 </div>
 
 <!-- TRENDING -->
@@ -481,10 +497,10 @@ async function apiFetch(url, opts){
 
 // ═══ STATE ═══
 let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514'};
-let realData=null,platformFilter='all',trendFilter='tt';
+let realData=null,platformFilter='all',trendFilter='tt',compFilter='all';
 let vChart=null,eChart=null,serverOk=false;
 let selectedAccount='all',currentPeriod='7d',isDark=true;
-let currentIdeas=[],currentHooks=[],savedIdeas=[],likedTags=[],dislikedTags=[];
+let currentIdeas=[],currentHooks=[],savedIdeas=[],likedTags=[],dislikedTags=[],savedCreators=[];
 
 // ═══ DEMO DATA ═══
 const D={
@@ -512,27 +528,35 @@ const D={
     mix:{Reel:17,Post:4,Carrusel:9}}
 };
 
-const COMPS=[
-  {handle:'@javadex',platform:'TikTok + IG',av:'JV',color:'#e8ff47',followers:'42.8K',eng:'8.9%',avgViews:'18.4K',niche:'Implementación práctica IA empresarial, automatizaciones con n8n, casos reales de Claude y ChatGPT API. El más técnico del nicho.',topVideos:[{t:'Automaticé mi negocio completo con n8n + Claude en 1 semana',v:'284K'},{t:'3 workflows de n8n que cualquier freelancer debería tener',v:'156K'},{t:'Claude API vs ChatGPT API — diferencias reales para developers',v:'98K'}]},
-  {handle:'@iafacil.es',platform:'TikTok + IG',av:'IF',color:'#47ffe8',followers:'28.1K',eng:'7.2%',avgViews:'11.2K',niche:'Tips y trucos de ChatGPT para profesionales no-técnicos, prompts optimizados por industria. Audiencia más amplia que la tuya.',topVideos:[{t:'El prompt que le da contexto perfecto a ChatGPT sobre tu negocio',v:'142K'},{t:'Cómo crear un GPT personalizado para tu empresa en 5 min',v:'89K'},{t:'10 prompts de marketing que uso cada semana',v:'67K'}]},
-  {handle:'@aprende_ia',platform:'TikTok',av:'AI',color:'#ff9f47',followers:'19.4K',eng:'6.8%',avgViews:'8.9K',niche:'Técnicas de prompting avanzado, comparativas de modelos. Nicho muy parecido al tuyo, buen referente de crecimiento.',topVideos:[{t:'Chain of thought prompting — por qué funciona y cómo usarlo',v:'78K'},{t:'Gemini 2 vs Claude 3.7 — test real con casos de uso',v:'54K'},{t:'Cómo estructurar un sistema de prompts para tu negocio',v:'41K'}]},
-  {handle:'@techconpaula',platform:'TikTok + IG',av:'TP',color:'#ff4757',followers:'35.6K',eng:'9.1%',avgViews:'14.8K',niche:'IA generativa para creativos y marketers, enfoque visual y accesible. Mayor engagement del nicho — estudia sus hooks.',topVideos:[{t:'Cómo uso Midjourney + Claude para crear campañas completas en 1h',v:'198K'},{t:'La IA reemplazará al diseñador — mi opinión honesta',v:'134K'},{t:'5 herramientas de IA imprescindibles para content creators',v:'92K'}]},
-  {handle:'@automatiza_tu_vida',platform:'TikTok',av:'AV',color:'#a855f7',followers:'22.3K',eng:'7.5%',avgViews:'9.6K',niche:'Automatizaciones no-code con IA: Zapier, Make, n8n. Complementario a tu contenido, no competencia directa.',topVideos:[{t:'Automaticé mis DMs de Instagram con Make + Claude',v:'112K'},{t:'El flujo de Make que genera y publica contenido solo',v:'87K'},{t:'Cómo conectar ChatGPT con cualquier app sin código',v:'63K'}]},
-  {handle:'@marketingconia',platform:'IG + TikTok',av:'MC',color:'#e1306c',followers:'31.2K',eng:'6.4%',avgViews:'12.1K',niche:'Marketing digital + IA para marcas y agencias. Audiencia más B2B. Fíjate en su content mix (más carruseles en IG).',topVideos:[{t:'El sistema de contenido con IA que uso para 5 clientes',v:'167K'},{t:'ChatGPT para copywriting — errores que todos cometen',v:'104K'},{t:'Cómo auditar tu estrategia de contenido con Claude',v:'71K'}]},
+const COMPS_TT=[
+  {handle:'@javadex',platform:'TikTok',av:'JV',color:'#e8ff47',followers:'42.8K',eng:'8.9%',avgViews:'18.4K',niche:'Implementación práctica IA empresarial, automatizaciones con n8n, casos reales de Claude y ChatGPT API. El más técnico del nicho.',profileUrl:'https://www.tiktok.com/@javadex',topVideos:[{t:'Automaticé mi negocio completo con n8n + Claude en 1 semana',v:'284K'},{t:'3 workflows de n8n que cualquier freelancer debería tener',v:'156K'},{t:'Claude API vs ChatGPT API — diferencias reales para developers',v:'98K'}]},
+  {handle:'@iafacil.es',platform:'TikTok',av:'IF',color:'#47ffe8',followers:'28.1K',eng:'7.2%',avgViews:'11.2K',niche:'Tips y trucos de ChatGPT para profesionales no-técnicos, prompts optimizados por industria. Audiencia más amplia que la tuya.',profileUrl:'https://www.tiktok.com/@iafacil.es',topVideos:[{t:'El prompt que le da contexto perfecto a ChatGPT sobre tu negocio',v:'142K'},{t:'Cómo crear un GPT personalizado para tu empresa en 5 min',v:'89K'},{t:'10 prompts de marketing que uso cada semana',v:'67K'}]},
+  {handle:'@aprende_ia',platform:'TikTok',av:'AI',color:'#ff9f47',followers:'19.4K',eng:'6.8%',avgViews:'8.9K',niche:'Técnicas de prompting avanzado, comparativas de modelos. Nicho muy parecido al tuyo, buen referente de crecimiento.',profileUrl:'https://www.tiktok.com/@aprende_ia',topVideos:[{t:'Chain of thought prompting — por qué funciona y cómo usarlo',v:'78K'},{t:'Gemini 2 vs Claude 3.7 — test real con casos de uso',v:'54K'},{t:'Cómo estructurar un sistema de prompts para tu negocio',v:'41K'}]},
+  {handle:'@techconpaula',platform:'TikTok',av:'TP',color:'#ff4757',followers:'35.6K',eng:'9.1%',avgViews:'14.8K',niche:'IA generativa para creativos y marketers, enfoque visual y accesible. Mayor engagement del nicho — estudia sus hooks.',profileUrl:'https://www.tiktok.com/@techconpaula',topVideos:[{t:'Cómo uso Midjourney + Claude para crear campañas completas en 1h',v:'198K'},{t:'La IA reemplazará al diseñador — mi opinión honesta',v:'134K'},{t:'5 herramientas de IA imprescindibles para content creators',v:'92K'}]},
+  {handle:'@automatiza_tu_vida',platform:'TikTok',av:'AV',color:'#a855f7',followers:'22.3K',eng:'7.5%',avgViews:'9.6K',niche:'Automatizaciones no-code con IA: Zapier, Make, n8n. Complementario a tu contenido, no competencia directa.',profileUrl:'https://www.tiktok.com/@automatiza_tu_vida',topVideos:[{t:'Automaticé mis DMs de Instagram con Make + Claude',v:'112K'},{t:'El flujo de Make que genera y publica contenido solo',v:'87K'},{t:'Cómo conectar ChatGPT con cualquier app sin código',v:'63K'}]},
+  {handle:'@marketingconia',platform:'TikTok',av:'MC',color:'#e1306c',followers:'31.2K',eng:'6.4%',avgViews:'12.1K',niche:'Marketing digital + IA para marcas y agencias. Audiencia más B2B. Fíjate en cómo estructura sus CTAs.',profileUrl:'https://www.tiktok.com/@marketingconia',topVideos:[{t:'El sistema de contenido con IA que uso para 5 clientes',v:'167K'},{t:'ChatGPT para copywriting — errores que todos cometen',v:'104K'},{t:'Cómo auditar tu estrategia de contenido con Claude',v:'71K'}]},
+];
+const COMPS_IG=[
+  {handle:'@javadex',platform:'Instagram',av:'JV',color:'#e8ff47',followers:'18.3K',eng:'6.4%',avgViews:'9.2K',niche:'Automatizaciones con IA en carrusel y Reels. Sus carruseles técnicos tienen muy alto save rate — referente en IG para este nicho.',profileUrl:'https://www.instagram.com/javadex/',topVideos:[{t:'n8n + Claude en 60 segundos — automatización completa [Reel]',v:'92K'},{t:'3 pasos para tu primer workflow de IA sin código [Carrusel]',v:'67K'},{t:'Claude API explicada para no-developers [Carrusel]',v:'41K'}]},
+  {handle:'@techconpaula',platform:'Instagram',av:'TP',color:'#ff4757',followers:'29.1K',eng:'8.7%',avgViews:'12.6K',niche:'IA creativa + marketing visual. Domina el formato Reel corto en IG. Alta interacción en comentarios — buena para estudiar engagement.',profileUrl:'https://www.instagram.com/techconpaula/',topVideos:[{t:'Midjourney + Claude para campañas en 1h [Reel]',v:'156K'},{t:'5 herramientas IA para creadores en 2025 [Reel]',v:'98K'},{t:'La IA en diseño — mi opinión real [Reel]',v:'74K'}]},
+  {handle:'@marketingconia',platform:'Instagram',av:'MC',color:'#e1306c',followers:'24.7K',eng:'5.9%',avgViews:'10.4K',niche:'Marketing con IA para agencias y marcas. Sus carruseles tienen los mejores saves del nicho en IG — referente de formato largo.',profileUrl:'https://www.instagram.com/marketingconia/',topVideos:[{t:'Sistema de contenido con IA para 5 clientes [Carrusel]',v:'134K'},{t:'Audita tu estrategia con Claude — paso a paso [Carrusel]',v:'89K'},{t:'ChatGPT para copy: los 3 errores más comunes [Reel]',v:'62K'}]},
+  {handle:'@iafacil.es',platform:'Instagram',av:'IF',color:'#47ffe8',followers:'21.4K',eng:'7.1%',avgViews:'8.8K',niche:'Prompts y herramientas IA en formato accesible. Muy buen mix Reel + Carrusel. Su audiencia no-técnica en IG es la más amplia del nicho.',profileUrl:'https://www.instagram.com/iafacil.es/',topVideos:[{t:'El prompt que lo cambia todo para tu negocio [Carrusel]',v:'118K'},{t:'Cómo crear tu GPT en 5 min [Reel]',v:'76K'},{t:'10 prompts de marketing para esta semana [Carrusel]',v:'54K'}]},
+  {handle:'@crea.con.ia',platform:'Instagram',av:'CI',color:'#a855f7',followers:'16.8K',eng:'8.2%',avgViews:'7.4K',niche:'IA aplicada a la creación visual y audiovisual. Perfil puro de IG, sin TikTok. Buena referencia de crecimiento orgánico en plataforma.',profileUrl:'https://www.instagram.com/crea.con.ia/',topVideos:[{t:'Creé un vídeo con IA en 10 min — proceso completo [Reel]',v:'84K'},{t:'Canva + ChatGPT para diseño en masa [Carrusel]',v:'61K'},{t:'Sora ya está aquí — lo que significa para creadores [Reel]',v:'49K'}]},
+  {handle:'@automatizacion.ia',platform:'Instagram',av:'AT',color:'#ff9f47',followers:'14.2K',eng:'9.4%',avgViews:'6.8K',niche:'Automatizaciones IA para emprendedores. Perfil enfocado en IG con casos de uso muy prácticos. Muy alto engagement para su tamaño.',profileUrl:'https://www.instagram.com/automatizacion.ia/',topVideos:[{t:'Automaticé mi negocio con Make — sin código [Carrusel]',v:'72K'},{t:'Zapier + IA: el workflow que me ahorra 5h/semana [Reel]',v:'58K'},{t:'n8n vs Make — ¿cuál usar? [Carrusel]',v:'43K'}]},
 ];
 
 const TREND_TT=[
-  {title:"Automaticé 30 días de contenido en 2h con este workflow de Claude",handle:"@javadex",dur:"45s",views:"38.1K",likes:1240,saves:412,comments:189,shares:234,tag:"content automation",videoUrl:"https://www.tiktok.com/@javadex",why:"Hook directo + resultado concreto (30 días en 2h). El número específico genera credibilidad y el antes/después mantiene retención."},
-  {title:"How to turn your boring slides into a premium deck in 2 min using AI",handle:"@adrien.ninet",dur:"33s",views:"47.4K",likes:998,saves:521,comments:143,shares:312,tag:"AI pitch deck",videoUrl:"https://www.tiktok.com/@adrien.ninet",why:"Hook de transformación visual en <2 min. La promesa de velocidad + el antes/después visual dispara el watch time y los shares."},
-  {title:"3 prompts de Claude que uso CADA DÍA para mi negocio — gratis",handle:"@promptsmania",dur:"38s",views:"32.7K",likes:876,saves:634,comments:98,shares:187,tag:"claude prompts",videoUrl:"https://www.tiktok.com/@promptsmania",why:"Listas de 3 funcionan mejor que 5 o 10. 'CADA DÍA' implica utilidad real. La palabra 'gratis' elimina fricción de guardar."},
-  {title:"El error que comete el 90% de creadores al usar ChatGPT",handle:"@iafacil.es",dur:"41s",views:"28.4K",likes:654,saves:289,comments:211,shares:145,tag:"chatgpt tips",videoUrl:"https://www.tiktok.com/@iafacil.es",why:"El '90%' activa miedo a perderse algo (FOMO). Genera debate en comentarios: los que se identifican y los que no."},
-  {title:"Automaticé mis respuestas de Instagram con Make + AI en 20 min",handle:"@automatiza_tu_vida",dur:"1m 2s",views:"22.3K",likes:543,saves:378,comments:76,shares:112,tag:"make automation",videoUrl:"https://www.tiktok.com/@automatiza_tu_vida",why:"Tiempo concreto (20 min) + herramienta específica (Make) + plataforma conocida (Instagram). Tutorial accionable = alto save rate."},
+  {title:"Automaticé 30 días de contenido en 2h con este workflow de Claude",handle:"@javadex",dur:"45s",views:"38.1K",likes:1240,saves:412,comments:189,shares:234,tag:"content automation",videoUrl:"https://www.tiktok.com/@javadex",why:"El hook funciona porque cuantifica el ahorro de forma extrema: '30 días en 2h'. Eso rompe la expectativa del espectador en el frame 1. El resultado visible antes del proceso mantiene el watch time completo. El alto número de guardados (412) indica que la audiencia quiere replicarlo, no solo verlo — señal de contenido de alto valor percibido. Para ti: aplica la misma fórmula con tu flujo real de creación de contenido con Claude."},
+  {title:"How to turn your boring slides into a premium deck in 2 min using AI",handle:"@adrien.ninet",dur:"33s",views:"47.4K",likes:998,saves:521,comments:143,shares:312,tag:"AI pitch deck",videoUrl:"https://www.tiktok.com/@adrien.ninet",why:"Dos elementos clave: el adjetivo negativo ('boring') que crea identificación inmediata, y el tiempo límite ('2 min') que elimina la excusa de 'no tengo tiempo'. El antes/después visual es el formato con mayor retención en TikTok para herramientas de productividad. 312 shares indican que la audiencia lo comparte como recomendación activa. Para ti: 'Convierte tu brief de cliente en un plan de contenido completo en 3 minutos con Claude.'"},
+  {title:"3 prompts de Claude que uso CADA DÍA para mi negocio — gratis",handle:"@promptsmania",dur:"38s",views:"32.7K",likes:876,saves:634,comments:98,shares:187,tag:"claude prompts",videoUrl:"https://www.tiktok.com/@promptsmania",why:"El número 3 es óptimo: suficiente para sentir valor, pequeño para no abrumar. 'CADA DÍA' implica utilidad probada en el tiempo real, no teoría. 'Gratis' elimina la fricción de guardar para más tarde. El save rate (634 guardados sobre 32.7K views = 1.9%) es excepcionalmente alto — la audiencia guarda para usar, no para ver de nuevo. Para ti: replica este formato con tus prompts reales de producción de contenido."},
+  {title:"El error que comete el 90% de creadores al usar ChatGPT",handle:"@iafacil.es",dur:"41s",views:"28.4K",likes:654,saves:289,comments:211,shares:145,tag:"chatgpt tips",videoUrl:"https://www.tiktok.com/@iafacil.es",why:"El porcentaje alto ('90%') activa el sesgo de FOMO: todos quieren saber si están en ese 90%. La palabra 'error' implica que el espectador está haciendo algo mal sin saberlo — curiosidad intrínseca. Con 211 comentarios es el vídeo con mayor debate relativo de la lista, lo que indica que el tema genera opiniones polarizadas. Para ti: '3 errores que cometen los creadores al usar IA para generar ideas (y cómo yo los evito).'"},
+  {title:"Automaticé mis respuestas de Instagram con Make + AI en 20 min",handle:"@automatiza_tu_vida",dur:"1m 2s",views:"22.3K",likes:543,saves:378,comments:76,shares:112,tag:"make automation",videoUrl:"https://www.tiktok.com/@automatiza_tu_vida",why:"Tres especificidades que generan confianza: plataforma concreta (Instagram), herramienta concreta (Make) y tiempo concreto (20 min). El save rate de 1.7% indica que la audiencia quiere implementarlo. Es más largo que el promedio (1m 2s) pero mantiene views altos porque el tutorial es accionable. Para ti: 'Automaticé mis respuestas de DMs con n8n + Claude — configuración en vivo en 15 minutos.'"},
 ];
 const TREND_IG=[
-  {title:"Create a presentation using AI in less than 5 minutes — step by step",handle:"@gamma.app",dur:"15s",views:"40.4K",likes:418,saves:312,comments:67,shares:198,tag:"#pitchdeck #aipresenta",videoUrl:"https://www.instagram.com/gamma.app/",why:"Tutorial ultra-corto (15s) con resultado premium visible. El 'step by step' promete claridad y el tiempo corto elimina la barrera de ver el vídeo entero."},
-  {title:"Mi stack completo de IA para content creators 2025 (lo que realmente uso)",handle:"@techconpaula",dur:"52s",views:"31.8K",likes:892,saves:567,comments:134,shares:243,tag:"AI stack 2025",videoUrl:"https://www.instagram.com/techconpaula/",why:"'Lo que realmente uso' = autenticidad. La palabra 'stack completo' promete exhaustividad. Alto save rate porque es una guía de referencia."},
-  {title:"El ROI real de usar IA en tu estrategia de contenido",handle:"@marketingconia",dur:"48s",views:"24.1K",likes:634,saves:289,comments:98,shares:156,tag:"marketing IA",videoUrl:"https://www.instagram.com/marketingconia/",why:"ROI es una métrica de negocio. 'Real' = contra las promesas exageradas del mercado. Atrae a una audiencia con poder de decisión."},
-  {title:"Cómo uso Claude para analizar métricas y tomar mejores decisiones",handle:"@javadex",dur:"1m 8s",views:"19.6K",likes:487,saves:398,comments:87,shares:134,tag:"claude analytics",videoUrl:"https://www.instagram.com/javadex/",why:"Combina dos temas de alto interés: IA + analítica. El beneficio es tangible (mejores decisiones). Muy específico = audiencia muy cualificada."},
+  {title:"Create a presentation using AI in less than 5 minutes — step by step",handle:"@gamma.app",dur:"15s",views:"40.4K",likes:418,saves:312,comments:67,shares:198,tag:"#pitchdeck #aipresenta",videoUrl:"https://www.instagram.com/gamma.app/",why:"15 segundos es la duración perfecta para IG: entra completo en el loop automático, lo que multiplica las views por reproducción. El resultado final (presentación premium) se muestra en los primeros 2s antes del proceso — técnica del 'spoiler del output' que retiene al espectador. 198 shares directos indican que se comparte como recomendación de herramienta. Para ti: replica con 'Cómo planifico 1 semana de contenido con Claude en 5 minutos — proceso completo.'"},
+  {title:"Mi stack completo de IA para content creators 2025 (lo que realmente uso)",handle:"@techconpaula",dur:"52s",views:"31.8K",likes:892,saves:567,comments:134,shares:243,tag:"AI stack 2025",videoUrl:"https://www.instagram.com/techconpaula/",why:"'Lo que realmente uso' es una de las frases con mayor CTR en IG porque combina autenticidad con utilidad práctica. La palabra 'completo' promete exhaustividad — el espectador siente que recibirá todo lo que necesita. Con 567 guardados es el más guardado de la lista en IG, lo que confirma que las guías de recursos tienen el mayor save rate en esta audiencia. Para ti: 'Mi stack exacto de herramientas IA para gestionar @iaconpatrick en 2025 — con costes reales.'"},
+  {title:"El ROI real de usar IA en tu estrategia de contenido",handle:"@marketingconia",dur:"48s",views:"24.1K",likes:634,saves:289,comments:98,shares:156,tag:"marketing IA",videoUrl:"https://www.instagram.com/marketingconia/",why:"ROI es una métrica de negocio con alto peso semántico para profesionales. 'Real' funciona como contraste implícito con las promesas exageradas del sector — posiciona al creador como honesto y con experiencia. Atrae a una audiencia decisora (marketers, directores) que convierte mejor en asesorías. Para ti: 'El ROI real de automatizar tu creación de contenido con IA — mis números tras 6 meses.'"},
+  {title:"Cómo uso Claude para analizar métricas y tomar mejores decisiones",handle:"@javadex",dur:"1m 8s",views:"19.6K",likes:487,saves:398,comments:87,shares:134,tag:"claude analytics",videoUrl:"https://www.instagram.com/javadex/",why:"Combina dos temas de alta búsqueda: IA (Claude) + analítica de negocio. El beneficio final ('mejores decisiones') es aspiracional y concreto a la vez. Con 398 guardados sobre 19.6K views tiene el save rate más alto de la lista en IG (2%), lo que confirma que el contenido de 'cómo uso X herramienta para Y resultado de negocio' es el formato con mayor retención de valor percibido en esta audiencia."},
 ];
 
 const IDEAS_BASE=[
@@ -655,8 +679,14 @@ function setAccount(acc){
     document.getElementById('accTT').classList.toggle('active',acc==='tt');
     document.getElementById('accIG').classList.toggle('active',acc==='ig');
   }
-  // sync platformFilter with account
   platformFilter=selectedAccount==='tt'?'tt':selectedAccount==='ig'?'ig':'all';
+  // Sync trending filter with account
+  if(selectedAccount==='ig') trendFilter='ig';
+  else trendFilter='tt';
+  // Sync trending toggle buttons
+  document.querySelectorAll('#page-trending .period-sel .pb').forEach(b=>{
+    b.classList.toggle('active',b.textContent.trim()===(trendFilter==='tt'?'TIKTOK':'INSTAGRAM'));
+  });
   renderAll();
 }
 
@@ -831,36 +861,95 @@ function renderPosts(d){
 }
 
 // ═══ COMPETITORS ═══
-function renderComps(){
-  const filtered=COMPS.filter(c=>{
-    if(selectedAccount==='tt') return c.platform.includes('TikTok');
-    if(selectedAccount==='ig') return c.platform.includes('IG');
-    return true;
-  });
-  document.getElementById('compGrid').innerHTML=filtered.map(c=>{
-    const handle=c.handle.replace('@','');
-    const ttUrl=c.platform.includes('TikTok')?`https://www.tiktok.com/@${handle}`:null;
-    const igUrl=c.platform.includes('IG')?`https://www.instagram.com/${handle}/`:null;
-    return `<div class="comp-card">
-      <div style="display:flex;align-items:center;margin-bottom:10px">
-        <div class="comp-av" style="color:${c.color};border-color:${c.color}44;background:${c.color}11">${c.av}</div>
-        <div style="margin-left:10px"><div class="comp-handle">${c.handle}</div><div class="comp-platform">${c.platform}</div></div>
-      </div>
-      <div class="comp-fol">${c.followers}<span>seguidores</span></div>
-      <div class="comp-stats">
-        <div class="cs"><div class="cs-val" style="color:${c.color}">${c.eng}</div><div class="cs-lbl">ENGAGEMENT</div></div>
-        <div class="cs"><div class="cs-val" style="color:${c.color}">${c.avgViews}</div><div class="cs-lbl">AVG VIEWS</div></div>
-      </div>
-      <div class="comp-niche">${c.niche}</div>
-      <div style="margin-bottom:8px;display:flex;gap:6px">
-        ${ttUrl?`<a href="${ttUrl}" target="_blank" class="creator-link">↗ TikTok</a>`:''}
-        ${igUrl?`<a href="${igUrl}" target="_blank" class="creator-link">↗ Instagram</a>`:''}
-      </div>
-      <div class="ctv-lbl">TOP VIDEOS</div>
-      ${c.topVideos.map(v=>`<div class="ctv-item"><div class="ctv-title">${v.t}</div><div class="ctv-views">${v.v}</div></div>`).join('')}
-    </div>`;
-  }).join('');
+function setCompFilter(f,btn){
+  compFilter=f;
+  document.querySelectorAll('#page-competitors .period-sel .pb').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderComps();
 }
+
+function compCardHtml(c,isSaved=false){
+  const savedKey=c.handle+'|'+c.platform;
+  const alreadySaved=savedCreators.some(s=>s.handle===c.handle&&s.platform===c.platform);
+  return `<div class="comp-card">
+    <div style="display:flex;align-items:center;margin-bottom:10px">
+      <div class="comp-av" style="color:${c.color};border-color:${c.color}44;background:${c.color}11">${c.av}</div>
+      <div style="margin-left:10px"><div class="comp-handle">${c.handle}</div><div class="comp-platform" style="color:${c.platform==='TikTok'?'var(--tiktok)':'var(--ig)'}">${c.platform}</div></div>
+    </div>
+    <div class="comp-fol">${c.followers}<span>seguidores</span></div>
+    <div class="comp-stats">
+      <div class="cs"><div class="cs-val" style="color:${c.color}">${c.eng}</div><div class="cs-lbl">ENGAGEMENT</div></div>
+      <div class="cs"><div class="cs-val" style="color:${c.color}">${c.avgViews}</div><div class="cs-lbl">AVG VIEWS</div></div>
+    </div>
+    <div class="comp-niche">${c.niche}</div>
+    <div style="margin-bottom:8px">
+      <a href="${c.profileUrl}" target="_blank" class="creator-link">↗ Ver perfil ${c.platform}</a>
+    </div>
+    <div class="ctv-lbl">TOP CONTENIDO</div>
+    ${c.topVideos.map(v=>`<div class="ctv-item"><div class="ctv-title">${v.t}</div><div class="ctv-views">${v.v}</div></div>`).join('')}
+    ${isSaved
+      ?`<button class="rm-btn" style="margin-top:10px;width:100%" onclick="removeCreator('${c.handle}','${c.platform}')">✕ QUITAR DE MIS CREADORES</button>`
+      :`<div style="display:flex;gap:6px;margin-top:10px">
+          <button class="btn-s" style="flex:1;font-size:9px;padding:5px" onclick="likeCreator('${c.handle}','${c.platform}')" ${alreadySaved?'disabled style="opacity:.4"':''}>👍 ${alreadySaved?'AÑADIDO':'ME INTERESA'}</button>
+          <button class="btn-s" style="flex:1;font-size:9px;padding:5px" onclick="dislikeCreator('${c.handle}','${c.platform}')">👎 NO</button>
+        </div>`
+    }
+  </div>`;
+}
+
+function renderComps(){
+  let list=[];
+  if(compFilter==='tt') list=COMPS_TT;
+  else if(compFilter==='ig') list=COMPS_IG;
+  else list=[...COMPS_TT,...COMPS_IG];
+  // Hide already-saved creators from the main grid
+  const savedKeys=savedCreators.map(s=>s.handle+'|'+s.platform);
+  const main=list.filter(c=>!savedKeys.includes(c.handle+'|'+c.platform));
+  document.getElementById('compGrid').innerHTML=main.length
+    ?main.map(c=>compCardHtml(c,false)).join('')
+    :`<div class="empty" style="grid-column:1/-1">Todos los creadores de esta plataforma están en tu lista de interesantes.</div>`;
+  renderSavedCreators();
+}
+
+function renderSavedCreators(){
+  const sec=document.getElementById('savedCreatorsSection');
+  const grid=document.getElementById('savedCompGrid');
+  if(!savedCreators.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  // Filter by compFilter
+  let visible=savedCreators;
+  if(compFilter==='tt') visible=savedCreators.filter(c=>c.platform==='TikTok');
+  else if(compFilter==='ig') visible=savedCreators.filter(c=>c.platform==='Instagram');
+  grid.innerHTML=visible.length
+    ?visible.map(c=>compCardHtml(c,true)).join('')
+    :`<div class="empty" style="grid-column:1/-1">Ningún creador guardado para esta plataforma.</div>`;
+}
+
+function likeCreator(handle,platform){
+  const list=platform==='TikTok'?COMPS_TT:COMPS_IG;
+  const c=list.find(x=>x.handle===handle);
+  if(!c)return;
+  if(!savedCreators.some(s=>s.handle===handle&&s.platform===platform)){
+    savedCreators.push({...c});
+    localStorage.setItem('iac_saved_creators',JSON.stringify(savedCreators));
+    showNotif('👍 AÑADIDO','Creador guardado en tu lista de referentes.');
+    renderComps();
+  }
+}
+
+function dislikeCreator(handle,platform){
+  savedCreators=savedCreators.filter(s=>!(s.handle===handle&&s.platform===platform));
+  localStorage.setItem('iac_saved_creators',JSON.stringify(savedCreators));
+  renderComps();
+}
+
+function removeCreator(handle,platform){
+  savedCreators=savedCreators.filter(s=>!(s.handle===handle&&s.platform===platform));
+  localStorage.setItem('iac_saved_creators',JSON.stringify(savedCreators));
+  showNotif('ELIMINADO','Creador removido de tu lista.');
+  renderComps();
+}
+
 function syncComp(){
   if(!serverOk){showNotif('SERVIDOR OFFLINE','Arranca el servidor con: node server.js');return;}
   if(!cfg.apifyToken){showNotif('SIN API KEY','Configura tu Apify token en Configurar.');return;}
@@ -893,8 +982,9 @@ function openTrendingModal(idx,p){
       <div class="mc r"><div class="mc-lbl">CMTS</div><div class="mc-val" style="font-size:20px">${fn(t.comments||0)}</div></div>
     </div>
     ${t.why?`<div class="exec-tip"><div class="exec-label">POR QUÉ FUNCIONA</div><div class="exec-text">${t.why}</div></div>`:''}
-    <div style="margin-top:16px;display:flex;gap:8px">
+    <div style="margin-top:16px;display:flex;gap:8px;align-items:center">
       <a href="${t.videoUrl}" target="_blank" rel="noopener" class="btn-p" style="text-decoration:none;display:inline-block">↗ VER VÍDEO</a>
+      ${!realData?`<span style="font-size:10px;color:var(--text3)">(datos demo: abre el perfil — con sync real abre el vídeo directo)</span>`:''}
     </div>`;
   openModal(t.title, html);
 }
@@ -1013,16 +1103,35 @@ function renderSaved(){
   if(!savedIdeas.length){grid.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
   grid.innerHTML=savedIdeas.map((i,idx)=>`
-    <div class="idea-card">
+    <div class="idea-card" onclick="openSavedDetail(${idx})" style="cursor:pointer">
       <div class="idea-score">${i.score}</div>
       <div class="idea-title">${i.title}</div>
       <div class="idea-desc">${i.desc}</div>
       <div class="idea-tags">${i.tags.map(t=>`<span class="idea-tag">${t}</span>`).join('')}</div>
       <div class="idea-footer">
-        <button class="rm-btn" onclick="removeSaved(${idx})">✕ ELIMINAR</button>
-        <span style="font-size:9px;color:var(--text3)">${new Date(i.savedAt).toLocaleDateString('es-ES')}</span>
+        <button class="rm-btn" onclick="event.stopPropagation();removeSaved(${idx})">✕ ELIMINAR</button>
+        <span style="font-size:9px;color:var(--text3)">${new Date(i.savedAt).toLocaleDateString('es-ES')} · Click para expandir →</span>
       </div>
     </div>`).join('');
+}
+
+function openSavedDetail(idx){
+  const idea=savedIdeas[idx];
+  const tipKey=idea.tags&&idea.tags[0]||'How-to';
+  const tips=(IDEA_TIPS[tipKey]||IDEA_TIPS['How-to']);
+  let html=`<div style="margin-bottom:18px">
+    <div class="idea-score">${idea.score}</div>
+    <div class="idea-title" style="font-size:16px;margin:8px 0;line-height:1.3">${idea.title}</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">${idea.desc}</div>
+    <div class="idea-tags">${idea.tags.map(t=>`<span class="idea-tag">${t}</span>`).join('')}</div>
+    <div style="font-size:10px;color:var(--text3);margin-top:8px">Guardada el ${new Date(idea.savedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </div>
+  <div class="st">CÓMO EJECUTARLO</div>
+  ${tips.map(t=>`<div class="exec-tip"><div class="exec-label">${t.label}</div><div class="exec-text" style="white-space:pre-line">${t.text}</div></div>`).join('')}
+  <div style="margin-top:16px">
+    <button class="btn-s" style="color:var(--accent2);border-color:var(--accent2)" onclick="removeSaved(${idx});closeModal()">✕ ELIMINAR DE GUARDADO</button>
+  </div>`;
+  openModal(idea.title,html);
 }
 
 async function generateIdeas(){
@@ -1071,6 +1180,67 @@ Genera 6 ideas en JSON. Responde SOLO con el JSON sin texto adicional:
   }catch(e){
     document.getElementById('ideasGrid').innerHTML=`<div class="empty">✕ Error: ${e.message}<br>Verifica que el servidor está corriendo y la API key es correcta.</div>`;
   }finally{btn.disabled=false;btn.textContent='✦ GENERAR NUEVAS';}
+}
+
+async function generateOverviewSummary(){
+  const key=cfg.anthropicKey||document.getElementById('anthropicKey').value.trim();
+  const btn=document.getElementById('summaryBtn');
+  const st=document.getElementById('summaryStatus');
+  const content=document.getElementById('summaryContent');
+  const d=realData||D;
+  if(!key){
+    // Show a static analysis from demo data
+    const ttBest=d.tiktok.topPosts[0];
+    const igBest=d.instagram.topPosts[0];
+    content.innerHTML=`
+      <div style="margin-bottom:12px">
+        <div style="font-size:9px;letter-spacing:.14em;color:var(--accent);font-weight:700;margin-bottom:6px">✦ QUÉ ESTÁ FUNCIONANDO</div>
+        <p>El formato <b>How-to</b> domina en TikTok con ${fn(d.tiktok.hooks[0]?.views||0)} avg views y un ${d.tiktok.hooks[0]?.rate||0}% like rate. Tu mejor post (<em>"${ttBest?.title?.slice(0,60)}..."</em>) con ${fn(ttBest?.views||0)} views confirma que el contenido práctico y accionable sobre IA resuena más con tu audiencia. En Instagram los Reels tienen un engagement del ${d.instagram.engagement}% — por encima de la media del sector (3-4%).</p>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:9px;letter-spacing:.14em;color:var(--accent2);font-weight:700;margin-bottom:6px">✕ QUÉ NO ESTÁ FUNCIONANDO</div>
+        <p>El formato <b>Carrusel e Foto</b> tiene un rendimiento significativamente inferior en ambas plataformas. En Instagram el engagement de Posts estáticos es 0%, lo que indica que tu audiencia responde exclusivamente al formato vídeo. Los temas de opinión pura tienen views más bajos en TikTok aunque mayor engagement — buen complemento pero no motor de alcance.</p>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:9px;letter-spacing:.14em;color:var(--accent3);font-weight:700;margin-bottom:6px">→ OPORTUNIDADES PARA ESTA SEMANA</div>
+        <p><b>1.</b> Duplica los How-to: son tu mejor formato con el mayor delta entre likes y views. <b>2.</b> Experimenta con Storytelling (${fn(d.tiktok.hooks[1]?.views||0)} avg views) — el segundo hook más fuerte y con margen de crecimiento. <b>3.</b> En Instagram enfoca el 100% del esfuerzo en Reels, abandona los Posts estáticos por completo. <b>4.</b> El gap de followers TT vs IG (${fn(d.tiktok.followers)} vs ${fn(d.instagram.followers)}) sugiere reutilizar el contenido TikTok de mayor rendimiento como Reels de IG sin editar.</p>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:8px">Análisis basado en datos demo. Configura tu API de Anthropic y pulsa Generar Análisis para un análisis personalizado con Claude.</div>`;
+    return;
+  }
+  if(!serverOk){showNotif('SERVIDOR OFFLINE','Arranca el servidor con: node server.js');return;}
+  btn.disabled=true;btn.textContent='ANALIZANDO...';st.textContent='Claude analizando tus métricas...';st.className='cfg-status loading';
+  try{
+    const top=[...d.tiktok.topPosts,...d.instagram.topPosts].slice(0,6);
+    const hooks=d.tiktok.hooks;
+    const prompt=`Eres estratega de contenido experto en IA y marketing digital en español. Analiza los datos de @iaconpatrick y genera un resumen ejecutivo en 3 secciones.
+
+DATOS:
+- TikTok: ${fn(d.tiktok.followers)} followers, ${fn(d.tiktok.views)} vistas totales, ${d.tiktok.engagement}% engagement
+- Instagram: ${fn(d.instagram.followers)} followers, ${fn(d.instagram.views)} vistas totales, ${d.instagram.engagement}% engagement
+- Mejor hook: ${hooks[0]?.type||'How-to'} (${fn(hooks[0]?.views||0)} avg views, ${hooks[0]?.rate||0}% like rate)
+- Top posts: ${top.map(p=>`"${p.title?.slice(0,60)}" (${fn(p.views)} views, ${p.eng}% eng)`).join(' | ')}
+- Período: ${currentPeriod==='7d'?'últimos 7 días':currentPeriod==='30d'?'últimos 30 días':'últimos 90 días'}
+
+Responde SOLO con este JSON (sin texto extra):
+{
+  "funcionando": "2-3 frases sobre qué formatos y temas están generando mejores resultados y por qué",
+  "mejorar": "2-3 frases sobre qué no está funcionando y qué debería cambiar",
+  "oportunidades": "3 oportunidades concretas y accionables para esta semana numeradas como 1. 2. 3."
+}`;
+    const r=await apiFetch('/api/anthropic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:cfg.anthropicModel||'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]})});
+    if(!r.ok)throw new Error('API error '+r.status);
+    const data=await r.json();
+    const text=data.content.map(c=>c.text||'').join('');
+    const s=JSON.parse(text.replace(/```json|```/g,'').trim());
+    content.innerHTML=`
+      <div style="margin-bottom:12px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent);font-weight:700;margin-bottom:6px">✦ QUÉ ESTÁ FUNCIONANDO</div><p>${s.funcionando}</p></div>
+      <div style="margin-bottom:12px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent2);font-weight:700;margin-bottom:6px">✕ QUÉ MEJORAR</div><p>${s.mejorar}</p></div>
+      <div><div style="font-size:9px;letter-spacing:.14em;color:var(--accent3);font-weight:700;margin-bottom:6px">→ OPORTUNIDADES ESTA SEMANA</div><p style="white-space:pre-line">${s.oportunidades}</p></div>`;
+    st.textContent='✓ Análisis generado';st.className='cfg-status ok';
+  }catch(e){
+    st.textContent='✕ '+e.message;st.className='cfg-status err';
+  }finally{btn.disabled=false;btn.textContent='✦ GENERAR ANÁLISIS';}
 }
 
 async function generateScript(){
@@ -1310,6 +1480,7 @@ function loadCfg(){
     savedIdeas=JSON.parse(localStorage.getItem('iac_saved_ideas')||'[]');
     likedTags=JSON.parse(localStorage.getItem('iac_liked_tags')||'[]');
     dislikedTags=JSON.parse(localStorage.getItem('iac_disliked_tags')||'[]');
+    savedCreators=JSON.parse(localStorage.getItem('iac_saved_creators')||'[]');
   }catch(e){}
 }
 
