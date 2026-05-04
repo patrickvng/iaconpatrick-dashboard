@@ -565,10 +565,23 @@ const IDEA_TIPS={
 };
 
 // ═══ INIT ═══
-window.addEventListener('DOMContentLoaded',()=>{
+window.addEventListener('DOMContentLoaded',async()=>{
   updateClock();setInterval(updateClock,1000);
   loadCfg();
   checkServer(true);
+  // Cargar cache del servidor si existe (datos del último auto-sync)
+  try{
+    const r=await fetch('/api/cache');
+    const cached=await r.json();
+    if(cached&&cached.ttRaw){
+      realData=processData(cached.ttRaw,cached.igRaw,cached.trendRaw);
+      document.getElementById('dsBadge').textContent='DATOS REALES';
+      document.getElementById('dsBadge').style.color='var(--success)';
+      document.getElementById('sbDataMode').textContent='REAL';document.getElementById('sbDataMode').style.color='var(--success)';
+      document.getElementById('sbLastSync').textContent=cached.syncedAt?new Date(cached.syncedAt).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'Auto-sync';
+      document.getElementById('sbApify').textContent='✓ Cache';document.getElementById('sbApify').style.color='var(--success)';
+    }
+  }catch(e){}
   renderAll();
 });
 
@@ -1119,7 +1132,9 @@ function saveConfig(){
   cfg.anthropicKey=document.getElementById('anthropicKey').value;
   cfg.anthropicModel=document.getElementById('anthropicModel').value;
   localStorage.setItem('iac_dash_v2',JSON.stringify(cfg));
-  showNotif('CONFIG GUARDADA','Ajustes guardados.');
+  // Guardar también en servidor para el auto-sync semanal
+  fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)}).catch(()=>{});
+  showNotif('CONFIG GUARDADA','Ajustes guardados. El servidor hará sync automático cada semana.');
 }
 function loadCfg(){
   try{

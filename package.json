@@ -1,0 +1,12 @@
+{
+  "name": "iaconpatrick-dashboard",
+  "version": "2.0.0",
+  "description": "Dashboard de analytics para @iaconpatrick",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
