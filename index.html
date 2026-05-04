@@ -222,14 +222,14 @@ body.light::before{display:none}
     <div class="mq-item"><span>✦</span>TOTAL VIEWS: 64.7K</div>
     <div class="mq-item"><span>✦</span>ENGAGEMENT: 7.4%</div>
     <div class="mq-item"><span>✦</span>TT FOLLOWERS: 651 (+61)</div>
-    <div class="mq-item"><span>✦</span>IG FOLLOWERS: 813 (+24)</div>
+    <div class="mq-item"><span>✦</span>IG FOLLOWERS: 8 (+2)</div>
     <div class="mq-item"><span>✦</span>MEJOR HOOK: HOW-TO → 11.1K VIEWS</div>
     <div class="mq-item"><span>✦</span>SISTEMA // IA CON PATRICK</div>
     <div class="mq-item"><span>✦</span>AUTOMATE YOUR FUTURE</div>
     <div class="mq-item"><span>✦</span>TOTAL VIEWS: 64.7K</div>
     <div class="mq-item"><span>✦</span>ENGAGEMENT: 7.4%</div>
     <div class="mq-item"><span>✦</span>TT FOLLOWERS: 651 (+61)</div>
-    <div class="mq-item"><span>✦</span>IG FOLLOWERS: 813 (+24)</div>
+    <div class="mq-item"><span>✦</span>IG FOLLOWERS: 8 (+2)</div>
     <div class="mq-item"><span>✦</span>MEJOR HOOK: HOW-TO → 11.1K VIEWS</div>
     <div class="mq-item"><span>✦</span>SISTEMA // IA CON PATRICK</div>
     <div class="mq-item"><span>✦</span>AUTOMATE YOUR FUTURE</div>
@@ -258,7 +258,7 @@ body.light::before{display:none}
     <div class="acc-card" id="accIG" onclick="setAccount('ig')">
       <div class="acc-top"><div class="acc-name">iaconpatrick</div><div class="acc-badge b-ig">INSTAGRAM</div></div>
       <div class="acc-handle">@iaconpatrick</div>
-      <div class="acc-stat"><b id="sbIGFol">813</b> seguidores</div>
+      <div class="acc-stat"><b id="sbIGFol">8</b> seguidores</div>
     </div>
     <div style="padding:6px 10px 0"><button class="btn-s" style="width:100%;font-size:9px;padding:5px" onclick="setAccount('all')">◈ VER TODAS</button></div>
   </div>
@@ -344,7 +344,7 @@ body.light::before{display:none}
     <button class="btn-p" onclick="syncComp()">↻ SYNC CREADORES</button>
   </div>
   <div class="cfg-block" style="background:rgba(71,255,232,.03);border-color:rgba(71,255,232,.15);margin-bottom:18px" data-label="// INFO">
-    <div class="cfg-info">Apify extrae los últimos posts de estos creadores. Ve a Configurar → añade handles adicionales → pulsa SYNC CREADORES para actualizar con datos reales.</div>
+    <div class="cfg-info">Los datos de creadores se actualizan <b>automáticamente cada semana</b> desde Railway.<br>Para añadir más creadores ve a <b>Configurar</b> y edita los handles de TikTok / Instagram. El próximo sync automático los incluirá.</div>
   </div>
   <div class="st">TOP CREADORES EN TU NICHO · IA + MARKETING ESPAÑOL</div>
   <div class="comp-grid" id="compGrid"></div>
@@ -371,6 +371,20 @@ body.light::before{display:none}
   </div>
   <div class="st">IDEAS PARA ESTA SEMANA</div>
   <div class="ideas-grid" id="ideasGrid"></div>
+
+  <div class="st" style="margin-top:24px">MIS IDEAS — GENERA UN GUIÓN COMPLETO</div>
+  <div class="cfg-block" data-label="// MIS IDEAS">
+    <div class="cfg-info" style="margin-bottom:12px">Escribe tu propia idea o borrador y Claude te devuelve el guión completo: hook, estructura, caption y tags.</div>
+    <div class="cfg-field" style="margin-bottom:10px">
+      <div class="cfg-lbl">TU IDEA (describe el concepto, el ángulo, o un borrador de guión)</div>
+      <textarea class="cfg-inp" id="myIdeaInput" rows="4" placeholder="Ej: Quiero hacer un vídeo mostrando cómo uso Claude para planificar toda mi semana de contenido en 20 minutos..." style="resize:vertical;line-height:1.5"></textarea>
+    </div>
+    <div class="cfg-acts">
+      <button class="btn-p" id="scriptBtn" onclick="generateScript()">✦ GENERAR GUIÓN</button>
+      <div class="cfg-status" id="scriptStatus"></div>
+    </div>
+    <div id="scriptResult" style="display:none;margin-top:14px"></div>
+  </div>
 </div>
 
 <!-- GUARDADO -->
@@ -470,7 +484,7 @@ let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPost
 let realData=null,platformFilter='all',trendFilter='tt';
 let vChart=null,eChart=null,serverOk=false;
 let selectedAccount='all',currentPeriod='7d',isDark=true;
-let currentIdeas=[],currentHooks=[],savedIdeas=[];
+let currentIdeas=[],currentHooks=[],savedIdeas=[],likedTags=[],dislikedTags=[];
 
 // ═══ DEMO DATA ═══
 const D={
@@ -485,7 +499,7 @@ const D={
     ],
     hooks:[{type:'How-to',views:11100,videos:3,rate:6},{type:'Storytelling',views:8400,videos:4,rate:5},{type:'Tutorial',views:7200,videos:5,rate:4},{type:'Opinión',views:5200,videos:3,rate:7}],
     mix:{Video:18,Carrusel:7,Foto:5}},
-  instagram:{followers:813,followersDelta:24,views:28400,viewsDelta:8.1,engagement:4.2,shares:189,posts:30,
+  instagram:{followers:8,followersDelta:2,views:28400,viewsDelta:8.1,engagement:4.2,shares:189,posts:30,
     viewsByDay:[1200,2100,1900,3100,2800,3400,4100,3800,4600,3900,4200,5100,4800,5400],
     topPosts:[
       {rank:1,title:"New campaign for @sportyandrich — Photographer BTS",platform:'ig',type:'Reel',views:458,likes:61,comments:21,shares:12,eng:8.4,url:'https://www.instagram.com/iaconpatrick/'},
@@ -508,17 +522,17 @@ const COMPS=[
 ];
 
 const TREND_TT=[
-  {title:"Automaticé 30 días de contenido en 2h con este workflow de Claude",handle:"@javadex",dur:"45s",views:"38.1K",likes:1240,tag:"content automation"},
-  {title:"How to turn your boring slides into a premium deck in 2 min using AI",handle:"@adrien.ninet",dur:"33s",views:"47.4K",likes:998,tag:"AI pitch deck"},
-  {title:"3 prompts de Claude que uso CADA DÍA para mi negocio — gratis",handle:"@promptsmania",dur:"38s",views:"32.7K",likes:876,tag:"claude prompts"},
-  {title:"El error que comete el 90% de creadores al usar ChatGPT",handle:"@iafacil.es",dur:"41s",views:"28.4K",likes:654,tag:"chatgpt tips"},
-  {title:"Automaticé mis respuestas de Instagram con Make + AI en 20 min",handle:"@automatiza_tu_vida",dur:"1m 2s",views:"22.3K",likes:543,tag:"make automation"},
+  {title:"Automaticé 30 días de contenido en 2h con este workflow de Claude",handle:"@javadex",dur:"45s",views:"38.1K",likes:1240,saves:412,comments:189,shares:234,tag:"content automation",videoUrl:"https://www.tiktok.com/@javadex",why:"Hook directo + resultado concreto (30 días en 2h). El número específico genera credibilidad y el antes/después mantiene retención."},
+  {title:"How to turn your boring slides into a premium deck in 2 min using AI",handle:"@adrien.ninet",dur:"33s",views:"47.4K",likes:998,saves:521,comments:143,shares:312,tag:"AI pitch deck",videoUrl:"https://www.tiktok.com/@adrien.ninet",why:"Hook de transformación visual en <2 min. La promesa de velocidad + el antes/después visual dispara el watch time y los shares."},
+  {title:"3 prompts de Claude que uso CADA DÍA para mi negocio — gratis",handle:"@promptsmania",dur:"38s",views:"32.7K",likes:876,saves:634,comments:98,shares:187,tag:"claude prompts",videoUrl:"https://www.tiktok.com/@promptsmania",why:"Listas de 3 funcionan mejor que 5 o 10. 'CADA DÍA' implica utilidad real. La palabra 'gratis' elimina fricción de guardar."},
+  {title:"El error que comete el 90% de creadores al usar ChatGPT",handle:"@iafacil.es",dur:"41s",views:"28.4K",likes:654,saves:289,comments:211,shares:145,tag:"chatgpt tips",videoUrl:"https://www.tiktok.com/@iafacil.es",why:"El '90%' activa miedo a perderse algo (FOMO). Genera debate en comentarios: los que se identifican y los que no."},
+  {title:"Automaticé mis respuestas de Instagram con Make + AI en 20 min",handle:"@automatiza_tu_vida",dur:"1m 2s",views:"22.3K",likes:543,saves:378,comments:76,shares:112,tag:"make automation",videoUrl:"https://www.tiktok.com/@automatiza_tu_vida",why:"Tiempo concreto (20 min) + herramienta específica (Make) + plataforma conocida (Instagram). Tutorial accionable = alto save rate."},
 ];
 const TREND_IG=[
-  {title:"Create a presentation using AI in less than 5 minutes — step by step",handle:"@gamma.app",dur:"15s",views:"40.4K",likes:418,tag:"#pitchdeck #aipresenta"},
-  {title:"Mi stack completo de IA para content creators 2025 (lo que realmente uso)",handle:"@techconpaula",dur:"52s",views:"31.8K",likes:892,tag:"AI stack 2025"},
-  {title:"El ROI real de usar IA en tu estrategia de contenido",handle:"@marketingconia",dur:"48s",views:"24.1K",likes:634,tag:"marketing IA"},
-  {title:"Cómo uso Claude para analizar métricas y tomar mejores decisiones",handle:"@javadex",dur:"1m 8s",views:"19.6K",likes:487,tag:"claude analytics"},
+  {title:"Create a presentation using AI in less than 5 minutes — step by step",handle:"@gamma.app",dur:"15s",views:"40.4K",likes:418,saves:312,comments:67,shares:198,tag:"#pitchdeck #aipresenta",videoUrl:"https://www.instagram.com/gamma.app/",why:"Tutorial ultra-corto (15s) con resultado premium visible. El 'step by step' promete claridad y el tiempo corto elimina la barrera de ver el vídeo entero."},
+  {title:"Mi stack completo de IA para content creators 2025 (lo que realmente uso)",handle:"@techconpaula",dur:"52s",views:"31.8K",likes:892,saves:567,comments:134,shares:243,tag:"AI stack 2025",videoUrl:"https://www.instagram.com/techconpaula/",why:"'Lo que realmente uso' = autenticidad. La palabra 'stack completo' promete exhaustividad. Alto save rate porque es una guía de referencia."},
+  {title:"El ROI real de usar IA en tu estrategia de contenido",handle:"@marketingconia",dur:"48s",views:"24.1K",likes:634,saves:289,comments:98,shares:156,tag:"marketing IA",videoUrl:"https://www.instagram.com/marketingconia/",why:"ROI es una métrica de negocio. 'Real' = contra las promesas exageradas del mercado. Atrae a una audiencia con poder de decisión."},
+  {title:"Cómo uso Claude para analizar métricas y tomar mejores decisiones",handle:"@javadex",dur:"1m 8s",views:"19.6K",likes:487,saves:398,comments:87,shares:134,tag:"claude analytics",videoUrl:"https://www.instagram.com/javadex/",why:"Combina dos temas de alto interés: IA + analítica. El beneficio es tangible (mejores decisiones). Muy específico = audiencia muy cualificada."},
 ];
 
 const IDEAS_BASE=[
@@ -726,6 +740,8 @@ function renderMetrics(d){
     ];
   }
   document.getElementById('metricsGrid').innerHTML=items.map(i=>`<div class="mc ${i.c}"><div class="mc-lbl">${i.lbl}</div><div class="mc-val">${i.val}</div><div class="mc-delta ${i.up?'up':'dn'}">${i.up?'▲':'▼'} ${i.delta} vs anterior</div></div>`).join('');
+  document.getElementById('sbTTFol').textContent=fn(d.tiktok.followers);
+  document.getElementById('sbIGFol').textContent=fn(d.instagram.followers);
 }
 function renderViewsChart(d){
   const ctx=document.getElementById('viewsChart').getContext('2d');
@@ -734,9 +750,10 @@ function renderViewsChart(d){
   const labels=getLast(Math.min(pLen,14));
   const ttData=extend(d.tiktok.viewsByDay,Math.min(pLen,14)).slice(-labels.length);
   const igData=extend(d.instagram.viewsByDay,Math.min(pLen,14)).slice(-labels.length);
-  const datasets=[];
-  if(selectedAccount!=='ig') datasets.push({label:'TikTok',data:ttData,borderColor:'#e8ff47',backgroundColor:'rgba(232,255,71,.04)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#e8ff47',tension:.4,fill:true});
-  if(selectedAccount!=='tt') datasets.push({label:'Instagram',data:igData,borderColor:'#e1306c',backgroundColor:'rgba(225,48,108,.04)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#e1306c',tension:.4,fill:true,borderDash:[4,3]});
+  const datasets=[
+    {label:'TikTok',data:ttData,borderColor:'#e8ff47',backgroundColor:'rgba(232,255,71,.04)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#e8ff47',tension:.4,fill:true},
+    {label:'Instagram',data:igData,borderColor:'#e1306c',backgroundColor:'rgba(225,48,108,.04)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#e1306c',tension:.4,fill:true,borderDash:[4,3]},
+  ];
   const c=cc();
   vChart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
     x:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9},maxTicksLimit:7},grid:{color:c.grid},border:{color:c.border}},
@@ -815,7 +832,12 @@ function renderPosts(d){
 
 // ═══ COMPETITORS ═══
 function renderComps(){
-  document.getElementById('compGrid').innerHTML=COMPS.map(c=>{
+  const filtered=COMPS.filter(c=>{
+    if(selectedAccount==='tt') return c.platform.includes('TikTok');
+    if(selectedAccount==='ig') return c.platform.includes('IG');
+    return true;
+  });
+  document.getElementById('compGrid').innerHTML=filtered.map(c=>{
     const handle=c.handle.replace('@','');
     const ttUrl=c.platform.includes('TikTok')?`https://www.tiktok.com/@${handle}`:null;
     const igUrl=c.platform.includes('IG')?`https://www.instagram.com/${handle}/`:null;
@@ -848,14 +870,33 @@ function syncComp(){
 // ═══ TRENDING ═══
 function renderTrending(p){
   const items=p==='tt'?TREND_TT:TREND_IG;
-  document.getElementById('trendingList').innerHTML=items.map(t=>{
-    const handle=t.handle.replace('@','');
-    const url=p==='tt'?`https://www.tiktok.com/@${handle}`:`https://www.instagram.com/${handle}/`;
-    return `<div class="trend-item" onclick="window.open('${url}','_blank')" style="cursor:pointer">
-      <div><div class="trend-title">${t.title}</div><div class="trend-meta"><span class="trend-handle">${t.handle}</span> · ${t.dur} <span style="font-size:9px;color:var(--accent3)">↗ ver perfil</span></div><div class="trend-tag">${t.tag}</div></div>
+  document.getElementById('trendingList').innerHTML=items.map((t,idx)=>`
+    <div class="trend-item" onclick="openTrendingModal(${idx},'${p}')">
+      <div><div class="trend-title">${t.title}</div><div class="trend-meta"><span class="trend-handle">${t.handle}</span> · ${t.dur} <span style="font-size:9px;color:var(--accent3)">↗ ver stats</span></div><div class="trend-tag">${t.tag}</div></div>
       <div class="trend-stats"><div class="trend-views">${t.views}</div><div class="trend-likes">♥ ${t.likes}</div></div>
+    </div>`).join('');
+}
+
+function openTrendingModal(idx,p){
+  const items=p==='tt'?TREND_TT:TREND_IG;
+  const t=items[idx];
+  const html=`
+    <div style="margin-bottom:16px">
+      <div style="font-size:9px;letter-spacing:.14em;color:var(--accent3);font-weight:700;margin-bottom:6px">${p==='tt'?'TIKTOK':'INSTAGRAM'} · ${t.dur}</div>
+      <div style="font-size:15px;font-weight:700;line-height:1.35;margin-bottom:6px">${t.title}</div>
+      <div style="font-size:11px;color:var(--text3)">${t.handle} · <span style="color:var(--accent)">${t.tag}</span></div>
+    </div>
+    <div class="mgrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+      <div class="mc g"><div class="mc-lbl">VIEWS</div><div class="mc-val" style="font-size:20px">${t.views}</div></div>
+      <div class="mc y"><div class="mc-lbl">LIKES</div><div class="mc-val" style="font-size:20px">${fn(t.likes)}</div></div>
+      <div class="mc b"><div class="mc-lbl">GUARDADOS</div><div class="mc-val" style="font-size:20px">${fn(t.saves||0)}</div></div>
+      <div class="mc r"><div class="mc-lbl">CMTS</div><div class="mc-val" style="font-size:20px">${fn(t.comments||0)}</div></div>
+    </div>
+    ${t.why?`<div class="exec-tip"><div class="exec-label">POR QUÉ FUNCIONA</div><div class="exec-text">${t.why}</div></div>`:''}
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <a href="${t.videoUrl}" target="_blank" rel="noopener" class="btn-p" style="text-decoration:none;display:inline-block">↗ VER VÍDEO</a>
     </div>`;
-  }).join('');
+  openModal(t.title, html);
 }
 
 // ═══ IDEAS ═══
@@ -889,8 +930,10 @@ function openIdeaDetail(idx){
   </div>
   <div class="st">CÓMO EJECUTARLO</div>
   ${tips.map(t=>`<div class="exec-tip"><div class="exec-label">${t.label}</div><div class="exec-text" style="white-space:pre-line">${t.text}</div></div>`).join('')}
-  <div style="margin-top:16px">
+  <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
     <button class="btn-p" id="saveModalBtn" onclick="saveIdeaFromModal(${idx})">${saved?'✓ YA GUARDADA':'+ GUARDAR IDEA'}</button>
+    <button class="btn-s" onclick="likeIdea(${idx})" title="Marcar como interesante — influye en próximas ideas">👍 ME GUSTA</button>
+    <button class="btn-s" onclick="dislikeIdea(${idx})" title="No me interesa — se reemplaza por otra idea">👎 NO ME INTERESA</button>
   </div>`;
   openModal(idea.title,html);
 }
@@ -909,6 +952,44 @@ function saveIdeaFromModal(idx){
   saveIdea(idx);
   const btn=document.getElementById('saveModalBtn');
   if(btn){btn.textContent='✓ YA GUARDADA';btn.disabled=true;}
+}
+
+function likeIdea(idx){
+  const idea=currentIdeas[idx];
+  idea.tags.forEach(t=>{if(!likedTags.includes(t))likedTags.push(t);});
+  dislikedTags=dislikedTags.filter(t=>!idea.tags.includes(t));
+  localStorage.setItem('iac_liked_tags',JSON.stringify(likedTags));
+  localStorage.setItem('iac_disliked_tags',JSON.stringify(dislikedTags));
+  showNotif('👍 ME GUSTA','Tus preferencias se aplicarán en la próxima generación de ideas.');
+  closeModal();
+}
+
+// Pool de ideas de reserva para reemplazar las descartadas
+const IDEAS_POOL=[
+  {score:"SCORE: 7.1/10",title:"Comparé 5 herramientas de IA para crear contenido — ranking honesto",desc:"Review imparcial con casos de uso reales. Posicionamiento de autoridad en el nicho.",tags:["Opinión","comparativa","herramientas"]},
+  {score:"SCORE: 7.4/10",title:"Mi rutina de creación de contenido con IA — de idea a publicado en 45 min",desc:"Behind the scenes real. Muestra el proceso completo, humaniza la automatización.",tags:["Behind scenes","workflow","productividad"]},
+  {score:"SCORE: 6.9/10",title:"Probé los prompts virales de TikTok — esto es lo que realmente funciona",desc:"Formato de test + resultado. Genera curiosidad y contrasta expectativas vs realidad.",tags:["Test","prompts","viral"]},
+  {score:"SCORE: 7.7/10",title:"Cómo uso n8n + Claude para gestionar mis redes sin tocar el teléfono",desc:"Demo técnica accesible. Alto valor para creadores que quieren escalar.",tags:["Tutorial","n8n","automatización"]},
+  {score:"SCORE: 6.8/10",title:"La estrategia de contenido que uso para mis clientes de asesoría",desc:"Credibilidad + detrás del negocio. Atrae leads de asesoría al mostrar el método.",tags:["Estrategia","asesoría","B2B"]},
+];
+
+function dislikeIdea(idx){
+  const idea=currentIdeas[idx];
+  idea.tags.forEach(t=>{if(!dislikedTags.includes(t))dislikedTags.push(t);});
+  likedTags=likedTags.filter(t=>!idea.tags.includes(t));
+  localStorage.setItem('iac_liked_tags',JSON.stringify(likedTags));
+  localStorage.setItem('iac_disliked_tags',JSON.stringify(dislikedTags));
+  // Reemplazar idea con una del pool que no haya sido vista
+  const usedTitles=currentIdeas.map(i=>i.title);
+  const replacement=IDEAS_POOL.find(p=>!usedTitles.includes(p.title)&&!p.tags.some(t=>dislikedTags.includes(t)));
+  if(replacement){
+    currentIdeas.splice(idx,1,replacement);
+  }else{
+    currentIdeas.splice(idx,1);
+  }
+  closeModal();
+  renderIdeas(currentIdeas);
+  showNotif('👎 DESCARTADA','Idea reemplazada. Claude aprenderá tus preferencias en la próxima generación.');
 }
 
 function removeSaved(idx){
@@ -954,6 +1035,7 @@ async function generateIdeas(){
   try{
     const d=realData||D;
     const top=[...d.tiktok.topPosts,...d.instagram.topPosts].slice(0,5);
+    const prefPart=likedTags.length||dislikedTags.length?`\nPREFERENCIAS DEL CREADOR:\n${likedTags.length?`- Le gustan ideas sobre: ${likedTags.join(', ')}`:''}\n${dislikedTags.length?`- No le interesan ideas sobre: ${dislikedTags.join(', ')}`:''}\n`:'';
     const prompt=`Eres estratega experto en contenido para redes sociales, IA y marketing digital en español.
 
 Analiza estos datos de @iaconpatrick y genera 6 ideas de contenido para TikTok/Instagram:
@@ -964,7 +1046,7 @@ ${top.map(p=>`- "${p.title}" (${fn(p.views)} views, ${p.eng}% eng, tipo: ${p.typ
 NICHO: IA aplicada al marketing de contenidos, asesorías 1:1, automatizaciones, prompts para creadores.
 MEJOR HOOK: How-to (11.1K avg views, 6% like rate)
 AUDIENCIA: creadores, marcas personales, marketers hispanohablantes.
-
+${prefPart}
 Genera 6 ideas en JSON. Responde SOLO con el JSON sin texto adicional:
 [{"score":"SCORE: X.X/10","title":"título del vídeo","desc":"ángulo + hook + por qué funcionará (máx 200 chars)","tags":["tag1","tag2","tag3"]}]`;
 
@@ -989,6 +1071,75 @@ Genera 6 ideas en JSON. Responde SOLO con el JSON sin texto adicional:
   }catch(e){
     document.getElementById('ideasGrid').innerHTML=`<div class="empty">✕ Error: ${e.message}<br>Verifica que el servidor está corriendo y la API key es correcta.</div>`;
   }finally{btn.disabled=false;btn.textContent='✦ GENERAR NUEVAS';}
+}
+
+async function generateScript(){
+  const key=cfg.anthropicKey||document.getElementById('anthropicKey').value.trim();
+  const idea=document.getElementById('myIdeaInput').value.trim();
+  const btn=document.getElementById('scriptBtn');
+  const st=document.getElementById('scriptStatus');
+  const result=document.getElementById('scriptResult');
+  if(!idea){st.textContent='✕ Escribe tu idea primero';st.className='cfg-status err';return;}
+  if(!key){showNotif('SIN API KEY','Configura tu Anthropic API key en Configurar.');return;}
+  if(!serverOk){showNotif('SERVIDOR OFFLINE','Arranca el servidor con: node server.js');return;}
+  btn.disabled=true;btn.textContent='GENERANDO...';st.textContent='Claude está escribiendo tu guión...';st.className='cfg-status loading';result.style.display='none';
+  try{
+    const prompt=`Eres guionista experto en contenido viral para TikTok e Instagram en español.
+
+El creador @iaconpatrick hace contenido sobre IA aplicada al marketing y la automatización.
+Audiencia: creadores, marketers, emprendedores hispanohablantes.
+
+Basándote en esta idea del creador, genera un guión completo listo para grabar:
+
+IDEA: "${idea}"
+
+Responde SOLO con este JSON (sin texto extra):
+{
+  "titulo": "título final del vídeo (máx 80 chars)",
+  "hook": "los primeros 3-5 segundos exactos, palabra por palabra",
+  "estructura": ["paso 1 con detalle", "paso 2 con detalle", "paso 3 con detalle", "cierre/CTA"],
+  "caption": "caption completo para publicar con emojis (máx 200 chars)",
+  "tags": ["#tag1","#tag2","#tag3","#tag4","#tag5"],
+  "duracion": "duración recomendada",
+  "formato": "tipo de vídeo recomendado"
+}`;
+    const r=await apiFetch('/api/anthropic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:cfg.anthropicModel||'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});
+    if(!r.ok)throw new Error('API error '+r.status);
+    const data=await r.json();
+    const text=data.content.map(c=>c.text||'').join('');
+    const s=JSON.parse(text.replace(/```json|```/g,'').trim());
+    result.style.display='block';
+    result.innerHTML=`
+      <div class="exec-tip"><div class="exec-label">TÍTULO</div><div class="exec-text" style="font-size:14px;font-weight:700;color:var(--text)">${s.titulo}</div></div>
+      <div class="exec-tip"><div class="exec-label">HOOK (primeros 3-5s)</div><div class="exec-text" style="color:var(--accent)">"${s.hook}"</div></div>
+      <div class="exec-tip"><div class="exec-label">ESTRUCTURA</div><div class="exec-text"><ol style="padding-left:16px;line-height:2">${s.estructura.map(e=>`<li>${e}</li>`).join('')}</ol></div></div>
+      <div class="exec-tip"><div class="exec-label">CAPTION</div><div class="exec-text">${s.caption}</div></div>
+      <div class="exec-tip"><div class="exec-label">TAGS</div><div class="exec-text" style="color:var(--accent3)">${s.tags.join(' ')}</div></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <div class="exec-tip" style="flex:1;margin:0"><div class="exec-label">DURACIÓN</div><div class="exec-text">${s.duracion}</div></div>
+        <div class="exec-tip" style="flex:1;margin:0"><div class="exec-label">FORMATO</div><div class="exec-text">${s.formato}</div></div>
+      </div>
+      <div style="margin-top:12px">
+        <button class="btn-p" onclick="saveScriptAsIdea()">+ GUARDAR EN IDEAS</button>
+      </div>`;
+    window._lastScript=s;
+    st.textContent='✓ Guión generado';st.className='cfg-status ok';
+    showNotif('GUIÓN LISTO','¡Claude escribió tu guión completo!');
+  }catch(e){
+    st.textContent='✕ '+e.message;st.className='cfg-status err';
+  }finally{btn.disabled=false;btn.textContent='✦ GENERAR GUIÓN';}
+}
+
+function saveScriptAsIdea(){
+  const s=window._lastScript;
+  if(!s)return;
+  const idea={score:'MIS IDEAS',title:s.titulo,desc:`Hook: "${s.hook}" · ${s.formato} · ${s.duracion}`,tags:s.tags.slice(0,3).map(t=>t.replace('#','')),savedAt:new Date().toISOString()};
+  if(!savedIdeas.some(i=>i.title===idea.title)){
+    savedIdeas.push(idea);
+    localStorage.setItem('iac_saved_ideas',JSON.stringify(savedIdeas));
+    renderSaved();
+    showNotif('GUARDADA','Guión guardado en la sección Guardado.');
+  }else{showNotif('YA GUARDADA','Este guión ya está en tu lista.');}
 }
 
 // ═══ REAL APIFY SYNC (vía servidor proxy) ═══
@@ -1070,10 +1221,10 @@ function processData(ttRaw,igRaw,trendRaw){
   const igHandle=cfg.igHandle.replace('@','');
   const ttTop=ttSorted.slice(0,10).map((p,i)=>({rank:i+1,title:(p.text||'').slice(0,120)||'Sin título',platform:'tt',type:detectType(p.text||''),views:p.playCount||0,likes:p.diggCount||0,comments:p.commentCount||0,shares:p.shareCount||0,eng:ttProf.fans?(((p.diggCount||0)+(p.commentCount||0))/(ttProf.fans||1)*100).toFixed(1):0,url:p.webVideoUrl||`https://www.tiktok.com/@${ttHandle}`}));
   const igTop=igSorted.slice(0,10).map((p,i)=>({rank:i+1,title:(p.caption||'').slice(0,120)||'Sin título',platform:'ig',type:p.type||'Reel',views:p.videoViewCount||p.likesCount||0,likes:p.likesCount||0,comments:p.commentsCount||0,shares:0,eng:0,url:p.url||`https://www.instagram.com/${igHandle}/`}));
-  const trendItems=trendPosts.slice(0,8).map(p=>({title:(p.text||'').slice(0,100),handle:'@'+(p.authorMeta?.name||'unknown'),dur:p.videoMeta?.duration?Math.round(p.videoMeta.duration)+'s':'—',views:fn(p.playCount||0),likes:p.diggCount||0,tag:(p.hashtags||[]).slice(0,2).map(h=>'#'+h.name).join(' ')||'#ia'}));
+  const trendItems=trendPosts.slice(0,8).map(p=>({title:(p.text||'').slice(0,100),handle:'@'+(p.authorMeta?.name||'unknown'),dur:p.videoMeta?.duration?Math.round(p.videoMeta.duration)+'s':'—',views:fn(p.playCount||0),likes:p.diggCount||0,saves:p.collectCount||0,comments:p.commentCount||0,shares:p.shareCount||0,tag:(p.hashtags||[]).slice(0,2).map(h=>'#'+h.name).join(' ')||'#ia',videoUrl:p.webVideoUrl||`https://www.tiktok.com/@${p.authorMeta?.name||''}`,why:''}));
   return{
     tiktok:{followers:ttProf.fans||D.tiktok.followers,followersDelta:0,views:ttSorted.reduce((s,p)=>s+(p.playCount||0),0)||D.tiktok.views,viewsDelta:0,engagement:D.tiktok.engagement,shares:ttSorted.reduce((s,p)=>s+(p.shareCount||0),0)||D.tiktok.shares,posts:ttPosts.length||D.tiktok.posts,viewsByDay:D.tiktok.viewsByDay,topPosts:ttTop.length>0?ttTop:D.tiktok.topPosts,hooks:D.tiktok.hooks,mix:D.tiktok.mix},
-    instagram:{followers:igSorted[0]?.ownerfollowersCount||D.instagram.followers,followersDelta:0,views:igSorted.reduce((s,p)=>s+(p.videoViewCount||p.likesCount||0),0)||D.instagram.views,viewsDelta:0,engagement:D.instagram.engagement,shares:D.instagram.shares,posts:igPosts.length||D.instagram.posts,viewsByDay:D.instagram.viewsByDay,topPosts:igTop.length>0?igTop:D.instagram.topPosts,hooks:D.instagram.hooks,mix:D.instagram.mix},
+    instagram:{followers:(()=>{const p=igSorted[0];if(!p)return D.instagram.followers;return p.ownerFollowersCount||p.ownerfollowersCount||p.followersCount||p.owner?.followersCount||D.instagram.followers;})(),followersDelta:0,views:igSorted.reduce((s,p)=>s+(p.videoViewCount||p.likesCount||0),0)||D.instagram.views,viewsDelta:0,engagement:D.instagram.engagement,shares:D.instagram.shares,posts:igPosts.length||D.instagram.posts,viewsByDay:D.instagram.viewsByDay,topPosts:igTop.length>0?igTop:D.instagram.topPosts,hooks:D.instagram.hooks,mix:D.instagram.mix},
     trending:{tt:trendItems.length>0?trendItems:TREND_TT,ig:TREND_IG},
   };
 }
@@ -1157,6 +1308,8 @@ function loadCfg(){
     const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel'};
     Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&cfg[k])el.value=cfg[k];});
     savedIdeas=JSON.parse(localStorage.getItem('iac_saved_ideas')||'[]');
+    likedTags=JSON.parse(localStorage.getItem('iac_liked_tags')||'[]');
+    dislikedTags=JSON.parse(localStorage.getItem('iac_disliked_tags')||'[]');
   }catch(e){}
 }
 
