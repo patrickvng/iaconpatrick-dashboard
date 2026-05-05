@@ -208,11 +208,169 @@ body.light::before{display:none}
 .date-popup label:first-child{margin-top:0}
 .date-popup input[type=date]{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:6px 8px;width:100%;outline:none;-webkit-appearance:none}
 .date-popup input[type=date]:focus{border-color:var(--accent)}
+/* ─── ONBOARDING ─────────────────────────────────────── */
+.ob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.ob-overlay.show{display:flex}
+.ob-box{background:var(--bg);border:1px solid var(--border2);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;position:relative;scrollbar-width:none}
+.ob-box::-webkit-scrollbar{display:none}
+.ob-progress{display:flex;height:3px;background:var(--bg3)}
+.ob-progress-bar{height:3px;background:var(--accent);transition:width .4s ease}
+.ob-step{display:none;padding:36px 32px 28px}
+.ob-step.active{display:block}
+.ob-badge{font-size:9px;letter-spacing:.18em;color:var(--accent);font-weight:700;margin-bottom:14px}
+.ob-title{font-size:22px;font-weight:700;letter-spacing:-.01em;color:var(--text);line-height:1.2;margin-bottom:10px}
+.ob-sub{font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:24px}
+.ob-features{list-style:none;padding:0;margin:0 0 28px;display:flex;flex-direction:column;gap:10px}
+.ob-features li{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--text2);line-height:1.5}
+.ob-features li span.ob-icon{color:var(--accent);font-size:14px;margin-top:1px;flex-shrink:0}
+.ob-field{margin-bottom:16px}
+.ob-field .cfg-lbl{margin-bottom:5px}
+.ob-actions{display:flex;align-items:center;justify-content:space-between;margin-top:24px;gap:12px}
+.ob-skip{background:none;border:none;color:var(--text3);font-family:var(--mono);font-size:10px;letter-spacing:.08em;cursor:pointer;padding:0;transition:color .15s}
+.ob-skip:hover{color:var(--text)}
+.ob-nav{display:flex;gap:8px;align-items:center}
+.ob-dots{display:flex;gap:5px}
+.ob-dot{width:6px;height:6px;border-radius:50%;background:var(--bg4);transition:background .3s}
+.ob-dot.active{background:var(--accent)}
+.ob-provider-sel{display:flex;margin-bottom:16px}
+.ob-provider-sel .pb{flex:1}
+.ob-done-checks{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.ob-check{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text2)}
+.ob-check .ob-check-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.ob-check .ok{background:rgba(71,255,138,.15);color:var(--success)}
+.ob-check .skip{background:var(--bg3);color:var(--text3)}
 /* ─── PRINT ──────────────────────────────────────────── */
-@media print{.topbar,.sidebar,.mq-wrap,.sync-btn,.theme-btn,.period-sel,.cfg-acts,.dl-btn,.modal-ov,.notif,.lo-overlay,.srv-banner,.idea-filter,.news-acts,.tb-r,.ph button{display:none!important}.layout{display:block!important;grid-template-columns:1fr}.content{padding:8px}.page{display:block!important;page-break-before:always}.page.active{page-break-before:avoid}}
+@media print{.topbar,.sidebar,.mq-wrap,.sync-btn,.theme-btn,.period-sel,.cfg-acts,.dl-btn,.modal-ov,.notif,.lo-overlay,.srv-banner,.idea-filter,.news-acts,.tb-r,.ph button,.ob-overlay{display:none!important}.layout{display:block!important;grid-template-columns:1fr}.content{padding:8px}.page{display:block!important;page-break-before:always}.page.active{page-break-before:avoid}}
 </style>
 </head>
 <body class="light">
+
+<!-- ═══ ONBOARDING ═══ -->
+<div class="ob-overlay" id="obOverlay">
+  <div class="ob-box">
+    <div class="ob-progress"><div class="ob-progress-bar" id="obBar" style="width:20%"></div></div>
+
+    <!-- PASO 1: Bienvenida -->
+    <div class="ob-step active" id="obStep1">
+      <div class="ob-badge">◆ IACONPATRICK · DASHBOARD</div>
+      <div class="ob-title">Bienvenido a tu<br>Analytics Dashboard</div>
+      <div class="ob-sub">En 3 minutos tendrás tu dashboard configurado y listo para analizar tu contenido con IA.</div>
+      <ul class="ob-features">
+        <li><span class="ob-icon">◈</span><div><b>Métricas reales</b> de TikTok e Instagram en un solo lugar — sincroniza con un clic</div></li>
+        <li><span class="ob-icon">✦</span><div><b>Ideas con IA</b> personalizadas para tu nicho, basadas en tus datos de rendimiento</div></li>
+        <li><span class="ob-icon">▦</span><div><b>Guiones listos para grabar</b> — hook, estructura, caption y hashtags generados automáticamente</div></li>
+        <li><span class="ob-icon">↑</span><div><b>Trending en tu nicho</b> — vídeos virales y noticias de IA para inspirarte cada semana</div></li>
+      </ul>
+      <div class="ob-actions">
+        <button class="ob-skip" onclick="skipOnboarding()">Saltar y explorar →</button>
+        <div class="ob-nav">
+          <div class="ob-dots">
+            <div class="ob-dot active" id="obDot1"></div>
+            <div class="ob-dot" id="obDot2"></div>
+            <div class="ob-dot" id="obDot3"></div>
+            <div class="ob-dot" id="obDot4"></div>
+          </div>
+          <button class="btn-p" onclick="obNext(2)">EMPEZAR →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 2: Tu marca -->
+    <div class="ob-step" id="obStep2">
+      <div class="ob-badge">PASO 1 DE 3 · TU MARCA</div>
+      <div class="ob-title">Cuéntale a la IA<br>quién eres</div>
+      <div class="ob-sub">La IA usará esta información para generar ideas y guiones adaptados a tu voz y tu audiencia.</div>
+      <div class="ob-field">
+        <div class="cfg-lbl">TU NOMBRE / MARCA</div>
+        <input type="text" class="cfg-inp" id="ob_brandName" placeholder="Ej: Patrick · IA con Patrick · @iaconpatrick" style="margin-top:5px">
+      </div>
+      <div class="ob-field">
+        <div class="cfg-lbl">NICHO PRINCIPAL</div>
+        <input type="text" class="cfg-inp" id="ob_brandNiche" placeholder="Ej: IA aplicada al marketing de contenidos para creadores" style="margin-top:5px">
+      </div>
+      <div class="ob-field">
+        <div class="cfg-lbl">AUDIENCIA</div>
+        <input type="text" class="cfg-inp" id="ob_brandAudience" placeholder="Ej: Creadores y emprendedores hispanohablantes 25-40" style="margin-top:5px">
+      </div>
+      <div class="ob-actions">
+        <button class="ob-skip" onclick="obBack(1)">← Volver</button>
+        <div class="ob-nav">
+          <div class="ob-dots">
+            <div class="ob-dot" id="obDot1b"></div>
+            <div class="ob-dot active" id="obDot2b"></div>
+            <div class="ob-dot" id="obDot3b"></div>
+            <div class="ob-dot" id="obDot4b"></div>
+          </div>
+          <button class="btn-p" onclick="obSaveBrand()">SIGUIENTE →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 3: Tus cuentas -->
+    <div class="ob-step" id="obStep3">
+      <div class="ob-badge">PASO 2 DE 3 · TUS CUENTAS</div>
+      <div class="ob-title">Conecta tus<br>redes sociales</div>
+      <div class="ob-sub">Pon tus handles para que el dashboard sepa qué cuentas analizar. Para datos reales necesitarás una cuenta gratuita en <b>apify.com</b> — lo puedes configurar después.</div>
+      <div class="ob-field">
+        <div class="cfg-lbl">TU HANDLE DE TIKTOK</div>
+        <input type="text" class="cfg-inp" id="ob_ttHandle" placeholder="@tucuenta" style="margin-top:5px">
+      </div>
+      <div class="ob-field">
+        <div class="cfg-lbl">TU HANDLE DE INSTAGRAM</div>
+        <input type="text" class="cfg-inp" id="ob_igHandle" placeholder="@tucuenta" style="margin-top:5px">
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:12px 14px;font-size:11px;color:var(--text3);line-height:1.6;margin-top:4px">
+        <b style="color:var(--text2)">¿Cómo consigo datos reales?</b><br>
+        1. Crea cuenta gratis en <b>apify.com</b> (dan $5/mes)<br>
+        2. Ve a CONFIGURAR → pega tu API Token<br>
+        3. Pulsa ↻ SYNC en la barra superior
+      </div>
+      <div class="ob-actions">
+        <button class="ob-skip" onclick="obBack(2)">← Volver</button>
+        <div class="ob-nav">
+          <div class="ob-dots">
+            <div class="ob-dot" id="obDot1c"></div>
+            <div class="ob-dot" id="obDot2c"></div>
+            <div class="ob-dot active" id="obDot3c"></div>
+            <div class="ob-dot" id="obDot4c"></div>
+          </div>
+          <button class="btn-p" onclick="obSaveAccounts()">SIGUIENTE →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 4: IA -->
+    <div class="ob-step" id="obStep4">
+      <div class="ob-badge">PASO 3 DE 3 · IA GENERATIVA</div>
+      <div class="ob-title">Elige tu<br>proveedor de IA</div>
+      <div class="ob-sub">La IA genera ideas, guiones y análisis de tu contenido. Elige el proveedor que ya usas y pega tu API key.</div>
+      <div class="ob-provider-sel period-sel" style="margin-bottom:18px">
+        <button class="pb active" id="obProvClaude" onclick="obSetProvider('claude',this)">◆ CLAUDE</button>
+        <button class="pb" id="obProvOpenai" onclick="obSetProvider('openai',this)" style="border-left:1px solid var(--border)">◈ CHATGPT</button>
+        <button class="pb" id="obProvGemini" onclick="obSetProvider('gemini',this)" style="border-left:1px solid var(--border)">✦ GEMINI</button>
+      </div>
+      <div id="obProvInfo" style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.6"></div>
+      <div class="ob-field">
+        <div class="cfg-lbl">API KEY</div>
+        <input type="password" class="cfg-inp" id="ob_apiKey" placeholder="" style="margin-top:5px">
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:-8px;margin-bottom:4px">Puedes saltarte este paso y configurarlo después en CONFIGURAR.</div>
+      <div class="ob-actions">
+        <button class="ob-skip" onclick="obBack(3)">← Volver</button>
+        <div class="ob-nav">
+          <div class="ob-dots">
+            <div class="ob-dot" id="obDot1d"></div>
+            <div class="ob-dot" id="obDot2d"></div>
+            <div class="ob-dot" id="obDot3d"></div>
+            <div class="ob-dot active" id="obDot4d"></div>
+          </div>
+          <button class="btn-p" onclick="obFinish()">FINALIZAR →</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <div class="modal-ov" id="modalOv" onclick="closeModal(event)">
   <div class="modal-box">
@@ -943,6 +1101,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
     }catch(e){}
   }
   renderAll();
+  maybeShowOnboarding();
 });
 
 function renderAll(){
@@ -2368,6 +2527,103 @@ function downloadPage(){
 // ═══ UTILS ═══
 function fn(n){n=Math.round(n);if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return String(n);}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ═══ ONBOARDING ═══
+const OB_PROVIDER_INFO={
+  claude:{info:'<b>→</b> console.anthropic.com → API Keys → Create Key',placeholder:'sk-ant-api03-xxxxxxxxxxxx'},
+  openai:{info:'<b>→</b> platform.openai.com → API keys → Create new secret key',placeholder:'sk-proj-xxxxxxxxxxxx'},
+  gemini:{info:'<b>→</b> aistudio.google.com → Get API key → Create API key',placeholder:'AIzaSyxxxxxxxxxxxxxxxxxx'},
+};
+let obProvider='claude';
+
+function obSetProvider(p, btn){
+  obProvider=p;
+  ['Claude','Openai','Gemini'].forEach(n=>{
+    const b=document.getElementById('obProv'+n);
+    if(b)b.classList.toggle('active',n.toLowerCase()===p);
+  });
+  const info=OB_PROVIDER_INFO[p];
+  document.getElementById('obProvInfo').innerHTML=info.info;
+  document.getElementById('ob_apiKey').placeholder=info.placeholder;
+}
+
+function obGoToStep(n){
+  for(let i=1;i<=4;i++){
+    document.getElementById('obStep'+i).classList.toggle('active',i===n);
+  }
+  document.getElementById('obBar').style.width=(n*25)+'%';
+  // Sync dots — all dot groups
+  ['','b','c','d'].forEach((s,idx)=>{
+    for(let i=1;i<=4;i++){
+      const d=document.getElementById('obDot'+i+s);
+      if(d)d.classList.toggle('active',i===n);
+    }
+  });
+}
+
+function obNext(step){ obGoToStep(step); }
+function obBack(step){ obGoToStep(step); }
+
+function obSaveBrand(){
+  const name=document.getElementById('ob_brandName').value.trim();
+  const niche=document.getElementById('ob_brandNiche').value.trim();
+  const audience=document.getElementById('ob_brandAudience').value.trim();
+  if(name)cfg.brandName=name;
+  if(niche)cfg.brandNiche=niche;
+  if(audience)cfg.brandAudience=audience;
+  // Sync to MI MARCA fields if visible
+  ['brandName','brandNiche','brandAudience'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&cfg[id])el.value=cfg[id];
+  });
+  updateSidebarAccounts();
+  obGoToStep(3);
+}
+
+function obSaveAccounts(){
+  const tt=document.getElementById('ob_ttHandle').value.trim();
+  const ig=document.getElementById('ob_igHandle').value.trim();
+  if(tt){cfg.ttHandle=tt;const el=document.getElementById('ttHandle');if(el)el.value=tt;}
+  if(ig){cfg.igHandle=ig;const el=document.getElementById('igHandle');if(el)el.value=ig;}
+  updateSidebarAccounts();
+  // Init provider info for step 4
+  obSetProvider('claude', document.getElementById('obProvClaude'));
+  obGoToStep(4);
+}
+
+function obFinish(){
+  cfg.aiProvider=obProvider;
+  const key=document.getElementById('ob_apiKey').value.trim();
+  if(key){
+    if(obProvider==='claude')cfg.anthropicKey=key;
+    if(obProvider==='openai')cfg.openaiKey=key;
+    if(obProvider==='gemini')cfg.geminiKey=key;
+    // Sync to config fields
+    const map={claude:'anthropicKey',openai:'openaiKey',gemini:'geminiKey'};
+    const el=document.getElementById(map[obProvider]);
+    if(el)el.value=key;
+  }
+  setAIProvider(obProvider, document.getElementById('provBtn'+obProvider.charAt(0).toUpperCase()+obProvider.slice(1)));
+  localStorage.setItem('iac_dash_v2',JSON.stringify(cfg));
+  fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)}).catch(()=>{});
+  localStorage.setItem('iac_setup_done','1');
+  document.getElementById('obOverlay').classList.remove('show');
+  updateSidebarAccounts();
+  renderAll();
+  showNotif('¡TODO LISTO!','Dashboard configurado. Pulsa ↻ SYNC para traer tus datos reales.');
+}
+
+function skipOnboarding(){
+  localStorage.setItem('iac_setup_done','1');
+  document.getElementById('obOverlay').classList.remove('show');
+}
+
+function maybeShowOnboarding(){
+  if(!localStorage.getItem('iac_setup_done')){
+    document.getElementById('obOverlay').classList.add('show');
+    obSetProvider('claude', document.getElementById('obProvClaude'));
+  }
+}
 </script>
 </body>
 </html>
