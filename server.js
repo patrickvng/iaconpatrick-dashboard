@@ -22,6 +22,7 @@ const MIME = {
   '.json': 'application/json',
   '.png':  'image/png',
   '.ico':  'image/x-icon',
+  '.pdf':  'application/pdf',
 };
 
 // ─── SESIONES (persistidas en disco) ─────────────────────────

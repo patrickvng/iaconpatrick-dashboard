@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guía de Uso — Dashboard Analytics IA · iaconpatrick</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --black:#070706;
+    --bg:#0f0f0d;
+    --bg2:#1a1a18;
+    --bg3:#252523;
+    --accent:#e8ff47;
+    --accent2:#ff4757;
+    --accent3:#47ffe8;
+    --text:#f0f0ec;
+    --text2:#b0afa8;
+    --text3:#7a7a72;
+    --mono:'JetBrains Mono',monospace;
+    --sans:'Inter',sans-serif;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+
+  body{
+    background:#fff;
+    color:#111;
+    font-family:var(--sans);
+    font-size:11pt;
+    line-height:1.65;
+  }
+
+  /* ── PAGE SETUP ── */
+  .page{
+    width:210mm;
+    min-height:297mm;
+    margin:0 auto;
+    padding:18mm 18mm 14mm;
+    page-break-after:always;
+    position:relative;
+    overflow:hidden;
+  }
+  .page:last-child{page-break-after:auto}
+
+  /* ── COVER ── */
+  .cover{
+    background:var(--black);
+    color:var(--text);
+    padding:0;
+    display:flex;
+    flex-direction:column;
+  }
+  .cover-top{
+    background:var(--accent);
+    padding:14mm 18mm 12mm;
+  }
+  .cover-badge{
+    font-family:var(--mono);
+    font-size:8pt;
+    letter-spacing:.22em;
+    color:#000;
+    font-weight:700;
+    margin-bottom:18px;
+  }
+  .cover-title{
+    font-family:var(--mono);
+    font-size:28pt;
+    font-weight:700;
+    color:#000;
+    line-height:1.1;
+    letter-spacing:-.02em;
+  }
+  .cover-sub{
+    font-family:var(--mono);
+    font-size:10pt;
+    color:rgba(0,0,0,.6);
+    margin-top:10px;
+    letter-spacing:.04em;
+  }
+  .cover-body{
+    flex:1;
+    padding:14mm 18mm;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .cover-features{
+    list-style:none;
+    margin-top:10mm;
+  }
+  .cover-features li{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    padding:14px 0;
+    border-bottom:1px solid rgba(255,255,255,.07);
+    font-family:var(--mono);
+  }
+  .cover-features li:last-child{border-bottom:none}
+  .cf-icon{color:var(--accent);font-size:12pt;flex-shrink:0;margin-top:2px}
+  .cf-title{color:var(--text);font-size:10pt;font-weight:700;letter-spacing:.04em;margin-bottom:3px}
+  .cf-desc{color:var(--text3);font-size:9pt}
+  .cover-footer{
+    border-top:1px solid rgba(255,255,255,.1);
+    padding-top:16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+  }
+  .cover-author{font-family:var(--mono);font-size:9pt;color:var(--text3)}
+  .cover-author strong{color:var(--accent);display:block;font-size:11pt;margin-bottom:3px}
+  .cover-version{font-family:var(--mono);font-size:8pt;color:var(--text3);text-align:right}
+
+  /* ── INDEX PAGE ── */
+  .index-page{background:#fafaf8}
+  .index-title{
+    font-family:var(--mono);
+    font-size:8pt;
+    letter-spacing:.2em;
+    color:var(--text3);
+    font-weight:700;
+    margin-bottom:24px;
+    padding-bottom:10px;
+    border-bottom:2px solid #111;
+  }
+  .index-list{list-style:none}
+  .index-list li{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:9px 0;
+    border-bottom:1px solid #e8e8e4;
+    font-size:10.5pt;
+  }
+  .index-list li.section{
+    padding-top:20px;
+    font-family:var(--mono);
+    font-size:8pt;
+    letter-spacing:.16em;
+    color:var(--text3);
+    border-bottom:none;
+    font-weight:700;
+  }
+  .index-list .il-num{
+    font-family:var(--mono);
+    font-size:9pt;
+    color:#bbb;
+  }
+  .index-list .il-title{flex:1;padding:0 12px}
+  .index-list .il-page{
+    font-family:var(--mono);
+    font-size:9pt;
+    color:#999;
+  }
+
+  /* ── CONTENT PAGES ── */
+  .content-page{background:#fff}
+
+  .pg-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10mm;
+    padding-bottom:8px;
+    border-bottom:1px solid #e0e0da;
+  }
+  .pg-header-left{
+    font-family:var(--mono);
+    font-size:7.5pt;
+    letter-spacing:.18em;
+    color:#bbb;
+    font-weight:700;
+  }
+  .pg-header-right{
+    font-family:var(--mono);
+    font-size:7.5pt;
+    color:#bbb;
+  }
+
+  .section-label{
+    display:inline-block;
+    font-family:var(--mono);
+    font-size:7.5pt;
+    letter-spacing:.2em;
+    font-weight:700;
+    color:var(--black);
+    background:var(--accent);
+    padding:3px 9px;
+    margin-bottom:12px;
+  }
+  .section-title{
+    font-size:20pt;
+    font-weight:800;
+    color:#111;
+    line-height:1.15;
+    margin-bottom:10px;
+    letter-spacing:-.02em;
+  }
+  .section-intro{
+    font-size:11pt;
+    color:#555;
+    line-height:1.7;
+    margin-bottom:24px;
+    padding-left:14px;
+    border-left:3px solid var(--accent);
+  }
+
+  h3{
+    font-size:12pt;
+    font-weight:700;
+    color:#111;
+    margin:22px 0 10px;
+    font-family:var(--mono);
+    letter-spacing:.04em;
+  }
+  h3::before{content:'// ';color:#bbb}
+
+  p{margin-bottom:12px;color:#333}
+
+  /* ── STEPS ── */
+  .steps{list-style:none;margin:16px 0 24px}
+  .step{
+    display:flex;
+    gap:16px;
+    margin-bottom:18px;
+    align-items:flex-start;
+  }
+  .step-num{
+    width:28px;height:28px;
+    background:var(--black);
+    color:var(--accent);
+    font-family:var(--mono);
+    font-size:10pt;
+    font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    margin-top:1px;
+  }
+  .step-body{}
+  .step-title{font-weight:700;color:#111;margin-bottom:4px;font-size:11pt}
+  .step-desc{color:#444;font-size:10.5pt;line-height:1.65}
+
+  /* ── CALLOUTS ── */
+  .callout{
+    padding:13px 16px;
+    margin:16px 0;
+    font-size:10pt;
+    line-height:1.65;
+  }
+  .callout.tip{background:#fffde7;border-left:3px solid #f9d00a}
+  .callout.warn{background:#fff3f3;border-left:3px solid #ff4757}
+  .callout.info{background:#f0fffe;border-left:3px solid #47ffe8}
+  .callout.success{background:#f0fff4;border-left:3px solid #2ed573}
+  .callout strong{display:block;margin-bottom:4px;font-size:9pt;letter-spacing:.1em;font-family:var(--mono)}
+  .callout.tip strong{color:#8a6d00}
+  .callout.warn strong{color:#c0001a}
+  .callout.info strong{color:#007a72}
+  .callout.success strong{color:#1a7a40}
+
+  /* ── CODE ── */
+  .code{
+    background:#f4f4f0;
+    border:1px solid #e0e0da;
+    font-family:var(--mono);
+    font-size:9.5pt;
+    padding:12px 14px;
+    margin:10px 0 16px;
+    color:#222;
+    white-space:pre-wrap;
+    line-height:1.55;
+  }
+  code{
+    font-family:var(--mono);
+    background:#f0f0eb;
+    padding:1px 5px;
+    font-size:9.5pt;
+    color:#333;
+  }
+
+  /* ── CREDENTIALS BOX ── */
+  .creds{
+    background:var(--black);
+    padding:16px 20px;
+    margin:14px 0;
+    display:flex;
+    gap:32px;
+  }
+  .cred-item{}
+  .cred-label{font-family:var(--mono);font-size:7.5pt;letter-spacing:.16em;color:var(--text3);margin-bottom:4px}
+  .cred-value{font-family:var(--mono);font-size:13pt;font-weight:700;color:var(--accent)}
+
+  /* ── TABLE ── */
+  table{width:100%;border-collapse:collapse;margin:14px 0 22px;font-size:10pt}
+  th{
+    background:var(--black);color:var(--accent);
+    font-family:var(--mono);font-size:8pt;letter-spacing:.14em;
+    padding:9px 12px;text-align:left;
+  }
+  td{padding:9px 12px;border-bottom:1px solid #e8e8e4;color:#333;vertical-align:top}
+  tr:nth-child(even) td{background:#fafaf7}
+
+  /* ── ERROR CARDS ── */
+  .error-card{
+    border:1px solid #ffd0d5;
+    background:#fff8f8;
+    margin-bottom:18px;
+    overflow:hidden;
+  }
+  .error-header{
+    background:#ff4757;
+    padding:9px 14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .error-icon{color:#fff;font-size:11pt}
+  .error-title{font-family:var(--mono);font-size:9pt;font-weight:700;color:#fff;letter-spacing:.06em}
+  .error-body{padding:14px 16px}
+  .error-cause{font-size:9.5pt;color:#666;margin-bottom:10px}
+  .error-solution{font-size:10pt;color:#222;line-height:1.65}
+  .error-solution strong{color:#c0001a}
+
+  /* ── CHECKLIST ── */
+  .checklist{list-style:none;margin:12px 0 20px}
+  .checklist li{
+    padding:8px 0;
+    border-bottom:1px solid #f0f0ea;
+    font-size:10.5pt;
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    color:#333;
+  }
+  .checklist li::before{
+    content:'□';
+    font-size:13pt;
+    color:#bbb;
+    flex-shrink:0;
+    margin-top:-1px;
+  }
+
+  /* ── FOOTER ── */
+  .pg-footer{
+    position:absolute;
+    bottom:12mm;left:18mm;right:18mm;
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--mono);
+    font-size:7.5pt;
+    color:#ccc;
+    border-top:1px solid #eee;
+    padding-top:8px;
+  }
+
+  /* ── DIVIDER ── */
+  .divider{height:1px;background:#e8e8e4;margin:20px 0}
+
+  /* ── HIGHLIGHT ── */
+  .hl{color:var(--black);font-weight:700}
+  .accent{color:#8a6d00;font-weight:700}
+
+  /* ── PRINT ── */
+  @media print{
+    body{background:#fff}
+    .page{margin:0;box-shadow:none}
+    @page{size:A4;margin:0}
+  }
+  @media screen{
+    body{background:#e8e8e4;padding:20px 0}
+    .page{box-shadow:0 4px 24px rgba(0,0,0,.15);margin-bottom:20px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PORTADA                                 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page cover">
+  <div class="cover-top">
+    <div class="cover-badge">◆ IACONPATRICK · GUÍA OFICIAL</div>
+    <div class="cover-title">Dashboard<br>Analytics IA</div>
+    <div class="cover-sub">Guía completa de configuración y uso · v2.0</div>
+  </div>
+  <div class="cover-body">
+    <ul class="cover-features">
+      <li>
+        <span class="cf-icon">◈</span>
+        <div>
+          <div class="cf-title">ANÁLISIS DE TUS CUENTAS</div>
+          <div class="cf-desc">TikTok + Instagram en un solo lugar — métricas reales sincronizadas con un clic</div>
+        </div>
+      </li>
+      <li>
+        <span class="cf-icon">✦</span>
+        <div>
+          <div class="cf-title">IDEAS CON IA PERSONALIZADAS</div>
+          <div class="cf-desc">Basadas en tus datos reales de rendimiento — no ideas genéricas</div>
+        </div>
+      </li>
+      <li>
+        <span class="cf-icon">▦</span>
+        <div>
+          <div class="cf-title">GUIONES LISTOS PARA GRABAR</div>
+          <div class="cf-desc">Hook, estructura, caption y hashtags generados en segundos</div>
+        </div>
+      </li>
+      <li>
+        <span class="cf-icon">↑</span>
+        <div>
+          <div class="cf-title">TRENDING EN TU NICHO</div>
+          <div class="cf-desc">Vídeos virales de la competencia y noticias de IA cada semana</div>
+        </div>
+      </li>
+    </ul>
+    <div class="cover-footer">
+      <div class="cover-author">
+        <strong>PATRICK · IACONPATRICK</strong>
+        Consultor IA & Marketing Digital<br>
+        iaconpatrick.com
+      </div>
+      <div class="cover-version">
+        © 2026 Patrick Venegas<br>
+        Todos los derechos reservados<br>
+        Producto registrado
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- ÍNDICE                                  -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page index-page">
+  <div style="margin-bottom:8mm">
+    <div class="section-label">ÍNDICE</div>
+    <div class="section-title">Contenido de<br>esta guía</div>
+  </div>
+  <ul class="index-list">
+    <li class="section">CONFIGURACIÓN INICIAL</li>
+    <li><span class="il-num">01</span><span class="il-title">Requisitos previos</span><span class="il-page">3</span></li>
+    <li><span class="il-num">02</span><span class="il-title">Arrancar el dashboard por primera vez</span><span class="il-page">3</span></li>
+    <li><span class="il-num">03</span><span class="il-title">Configurar tu marca</span><span class="il-page">4</span></li>
+    <li><span class="il-num">04</span><span class="il-title">Conectar TikTok e Instagram (Apify)</span><span class="il-page">5</span></li>
+    <li><span class="il-num">05</span><span class="il-title">Conectar tu IA (Claude / ChatGPT / Gemini)</span><span class="il-page">6</span></li>
+    <li><span class="il-num">06</span><span class="il-title">Hacer el primer sync de datos</span><span class="il-page">7</span></li>
+    <li class="section">USO DEL DASHBOARD</li>
+    <li><span class="il-num">07</span><span class="il-title">Overview — tus métricas de un vistazo</span><span class="il-page">8</span></li>
+    <li><span class="il-num">08</span><span class="il-title">Ideas IA — genera ideas personalizadas</span><span class="il-page">8</span></li>
+    <li><span class="il-num">09</span><span class="il-title">Generar guiones</span><span class="il-page">9</span></li>
+    <li><span class="il-num">10</span><span class="il-title">Trending y Creadores</span><span class="il-page">9</span></li>
+    <li class="section">SOLUCIÓN DE ERRORES</li>
+    <li><span class="il-num">11</span><span class="il-title">Errores frecuentes y cómo solucionarlos</span><span class="il-page">10</span></li>
+    <li class="section">REFERENCIA RÁPIDA</li>
+    <li><span class="il-num">12</span><span class="il-title">Credenciales y datos de acceso</span><span class="il-page">12</span></li>
+    <li><span class="il-num">13</span><span class="il-title">Preguntas frecuentes</span><span class="il-page">12</span></li>
+  </ul>
+  <div class="pg-footer">
+    <span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span>
+    <span>ÍNDICE</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PÁG 3: REQUISITOS + ARRANQUE            -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page content-page">
+  <div class="pg-header">
+    <span class="pg-header-left">◆ DASHBOARD ANALYTICS IA · IACONPATRICK</span>
+    <span class="pg-header-right">CONFIGURACIÓN INICIAL</span>
+  </div>
+
+  <div class="section-label">01 · REQUISITOS PREVIOS</div>
+  <div class="section-title">Antes de empezar</div>
+  <div class="section-intro">Antes de abrir el dashboard asegúrate de que tu ordenador cumple estos requisitos. Son todos gratuitos.</div>
+
+  <table>
+    <tr><th>Requisito</th><th>Dónde conseguirlo</th><th>Obligatorio</th></tr>
+    <tr><td><strong>Mac o Windows</strong><br><span style="color:#888;font-size:9.5pt">Mac 10.15+ · Windows 10/11</span></td><td>—</td><td>✓ Sí</td></tr>
+    <tr><td><strong>Node.js</strong><br><span style="color:#888;font-size:9.5pt">El motor que hace correr el dashboard</span></td><td>nodejs.org → botón verde LTS</td><td>✓ Sí</td></tr>
+    <tr><td><strong>Conexión a internet</strong><br><span style="color:#888;font-size:9.5pt">Solo al hacer sync o generar con IA</span></td><td>—</td><td>✓ Sí</td></tr>
+    <tr><td><strong>Cuenta en Apify</strong><br><span style="color:#888;font-size:9.5pt">Para traer datos reales de TikTok/IG</span></td><td>apify.com (gratis)</td><td>Para datos reales</td></tr>
+    <tr><td><strong>API key de IA</strong><br><span style="color:#888;font-size:9.5pt">Claude, ChatGPT o Gemini</span></td><td>Ver página 6</td><td>Para generar ideas</td></tr>
+  </table>
+
+  <div class="callout tip">
+    <strong>💡 CONSEJO</strong>
+    Si no tienes Node.js, el propio script de arranque te avisará y te abrirá nodejs.org automáticamente. No tienes que buscarlo tú.
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-label">02 · ARRANCAR EL DASHBOARD</div>
+  <div class="section-title">Primer arranque</div>
+  <div class="section-intro">El dashboard se abre con doble clic. No necesitas tocar ninguna terminal ni escribir ningún comando.</div>
+
+  <ul class="steps">
+    <li class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Descarga y descomprime el ZIP</div>
+        <div class="step-desc">Haz doble clic en el archivo ZIP descargado. Se creará una carpeta llamada <code>dashboard</code>. Guárdala donde quieras — Escritorio, Documentos, etc.</div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Abre el dashboard</div>
+        <div class="step-desc">
+          <strong>Mac:</strong> doble clic en <code>iniciar.command</code><br>
+          <strong>Windows:</strong> doble clic en <code>iniciar.bat</code><br><br>
+          La primera vez instala las dependencias automáticamente (~30 segundos). El navegador se abre solo en <code>localhost:3000</code>.
+        </div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Introduce tus credenciales</div>
+        <div class="step-desc">Verás una pantalla de login. Introduce:</div>
+        <div class="creds">
+          <div class="cred-item"><div class="cred-label">USUARIO</div><div class="cred-value">admin</div></div>
+          <div class="cred-item"><div class="cred-label">CONTRASEÑA</div><div class="cred-value">dashboard2026</div></div>
+        </div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">Sigue el asistente de configuración</div>
+        <div class="step-desc">Al entrar por primera vez aparece una pantalla de bienvenida que te guía paso a paso. Puedes completarla ahora o saltarla y hacerlo manualmente desde los menús.</div>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout warn">
+    <strong>⚠ MAC — AVISO DE SEGURIDAD</strong>
+    Si al hacer doble clic en <code>iniciar.command</code> aparece "No se puede abrir porque es de un desarrollador no identificado", haz esto:<br>
+    1. Clic derecho sobre el archivo (no doble clic)<br>
+    2. Selecciona "Abrir"<br>
+    3. En el aviso que aparece, pulsa "Abrir"<br>
+    Solo pasa la primera vez. A partir de ahí funciona con doble clic normal.
+  </div>
+
+  <div class="callout info">
+    <strong>ℹ IMPORTANTE — MANTÉN LA VENTANA ABIERTA</strong>
+    La ventana negra que se abre (Terminal en Mac, CMD en Windows) es el servidor del dashboard. Mientras la mantengas abierta el dashboard funciona. Si la cierras, el dashboard se apaga. Puedes minimizarla, pero no cerrarla.
+  </div>
+
+  <div class="pg-footer">
+    <span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span>
+    <span>3</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PÁG 4: MI MARCA + APIFY                 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page content-page">
+  <div class="pg-header">
+    <span class="pg-header-left">◆ DASHBOARD ANALYTICS IA · IACONPATRICK</span>
+    <span class="pg-header-right">CONFIGURACIÓN</span>
+  </div>
+
+  <div class="section-label">03 · TU MARCA</div>
+  <div class="section-title">Cuéntale a la IA<br>quién eres</div>
+  <div class="section-intro">Este paso es el más importante para conseguir ideas y guiones de calidad. La IA usará esta información en cada generación. Cuanto más detallado, mejor.</div>
+
+  <p>Ve al menú de la izquierda → <strong>MI MARCA</strong>. Rellena estos campos:</p>
+
+  <table>
+    <tr><th>Campo</th><th>Qué poner</th><th>Ejemplo</th></tr>
+    <tr><td><strong>Nombre / Marca</strong></td><td>Tu nombre o nombre de marca</td><td>Patrick · IA con Patrick</td></tr>
+    <tr><td><strong>Nicho principal</strong></td><td>De qué trata tu contenido</td><td>IA aplicada al marketing para creadores</td></tr>
+    <tr><td><strong>Bio / Sobre ti</strong></td><td>Quién eres, qué haces, a quién ayudas</td><td>Consultor IA. Ayudo a creadores a crecer con IA.</td></tr>
+    <tr><td><strong>Audiencia</strong></td><td>A quién va dirigido tu contenido</td><td>Creadores y emprendedores 25-40, hispanohablantes</td></tr>
+    <tr><td><strong>Objetivo</strong></td><td>Qué quieres conseguir con el contenido</td><td>Generar leads para asesorías 1:1</td></tr>
+    <tr><td><strong>Evitar</strong></td><td>Temas o formatos que no quieres</td><td>No hablo de política ni menciono precios</td></tr>
+    <tr><td><strong>Voz de marca</strong></td><td>Cómo hablas, qué tono usas</td><td>Directo, sin florituras, frases cortas</td></tr>
+  </table>
+
+  <div class="callout tip">
+    <strong>💡 CONSEJO — VOZ DE MARCA</strong>
+    Si tienes un documento de branding en PDF o TXT, puedes subirlo directamente pulsando "↑ SUBIR PDF / TXT". El dashboard extrae el texto automáticamente y lo usa como referencia de tono.
+  </div>
+
+  <p>Pulsa <strong>GUARDAR MARCA</strong> cuando termines.</p>
+
+  <div class="divider"></div>
+
+  <div class="section-label">04 · CONECTAR TUS REDES SOCIALES</div>
+  <div class="section-title">Configurar Apify<br>para datos reales</div>
+  <div class="section-intro">Apify es el servicio que extrae los datos de tus cuentas públicas de TikTok e Instagram. Tienen un plan gratuito de $5/mes — suficiente para sincronizar ~30 veces al mes.</div>
+
+  <ul class="steps">
+    <li class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Crear cuenta en Apify</div>
+        <div class="step-desc">Ve a <strong>apify.com</strong> → pulsa "Sign up" → crea tu cuenta gratuita. No necesitas tarjeta de crédito para empezar.</div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Conseguir tu API Token</div>
+        <div class="step-desc">Una vez dentro de Apify: menú lateral → <strong>Settings</strong> → <strong>Integrations</strong> → copia el <strong>Personal API token</strong> (empieza por <code>apify_api_</code>).</div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Pegar el token en el dashboard</div>
+        <div class="step-desc">En el dashboard: <strong>CONFIGURAR</strong> → sección <strong>APIFY</strong> → pega el token en el campo "APIFY API TOKEN" → pon tus handles de TikTok e Instagram → pulsa <strong>PROBAR CONEXIÓN</strong>. Debe aparecer un mensaje verde.</div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">Guardar</div>
+        <div class="step-desc">Pulsa <strong>GUARDAR</strong>. Ya está listo para sincronizar.</div>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout info">
+    <strong>ℹ ¿LOS DATOS SON PÚBLICOS?</strong>
+    Sí. Apify solo extrae información que cualquier persona puede ver al visitar tu perfil — vídeos, likes, comentarios, views. No accede a ningún dato privado ni necesita tu contraseña.
+  </div>
+
+  <div class="pg-footer">
+    <span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span>
+    <span>4</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PÁG 5: IA + SYNC                        -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page content-page">
+  <div class="pg-header">
+    <span class="pg-header-left">◆ DASHBOARD ANALYTICS IA · IACONPATRICK</span>
+    <span class="pg-header-right">CONFIGURACIÓN</span>
+  </div>
+
+  <div class="section-label">05 · CONECTAR TU IA</div>
+  <div class="section-title">Elegir proveedor<br>y API key</div>
+  <div class="section-intro">El dashboard es compatible con tres proveedores de IA. Elige el que ya uses o el que prefieras. Solo necesitas uno.</div>
+
+  <table>
+    <tr><th>Proveedor</th><th>Dónde conseguir la API key</th><th>Coste aprox.</th></tr>
+    <tr>
+      <td><strong>◆ Claude</strong><br><span style="color:#888;font-size:9.5pt">Recomendado · Anthropic</span></td>
+      <td>console.anthropic.com → API Keys → Create Key<br><span style="color:#888;font-size:9pt">La clave empieza por <code>sk-ant-</code></span></td>
+      <td>~€0,01 por generación</td>
+    </tr>
+    <tr>
+      <td><strong>◈ ChatGPT</strong><br><span style="color:#888;font-size:9.5pt">OpenAI · GPT-4o</span></td>
+      <td>platform.openai.com → API keys → Create new secret key<br><span style="color:#888;font-size:9pt">La clave empieza por <code>sk-proj-</code></span></td>
+      <td>~€0,01 por generación</td>
+    </tr>
+    <tr>
+      <td><strong>✦ Gemini</strong><br><span style="color:#888;font-size:9.5pt">Google · AI Studio</span></td>
+      <td>aistudio.google.com → Get API key → Create API key<br><span style="color:#888;font-size:9pt">La clave empieza por <code>AIzaSy</code></span></td>
+      <td>Tier gratuito disponible</td>
+    </tr>
+  </table>
+
+  <p>Una vez tengas la API key: <strong>CONFIGURAR</strong> → sección <strong>IA GENERATIVA</strong> → elige tu proveedor → pega la key → <strong>PROBAR CONEXIÓN</strong> → <strong>GUARDAR</strong>.</p>
+
+  <div class="callout success">
+    <strong>✓ ¿CÓMO SÉ QUE ESTÁ BIEN CONFIGURADA?</strong>
+    Al pulsar "PROBAR CONEXIÓN" debe aparecer un mensaje verde que diga "✓ Conexión OK". Si aparece en rojo, revisa que copiaste la key completa sin espacios al principio ni al final.
+  </div>
+
+  <div class="callout tip">
+    <strong>💡 ¿QUÉ PROVEEDOR ELEGIR?</strong>
+    Si ya pagas Claude Pro o usas Claude habitualmente, usa Claude — las ideas son muy buenas y el coste por llamada es mínimo. Si tienes saldo en OpenAI, usa ChatGPT. Si quieres empezar gratis, Gemini tiene un tier gratuito generoso.
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-label">06 · PRIMER SYNC</div>
+  <div class="section-title">Traer tus datos reales</div>
+  <div class="section-intro">Una vez configurado Apify y tus handles, estás listo para traer tus datos reales de TikTok e Instagram.</div>
+
+  <ul class="steps">
+    <li class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Pulsa ↻ SYNC en la barra superior</div>
+        <div class="step-desc">Botón en la parte superior derecha del dashboard. Se abre una barra de progreso.</div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Espera 2-5 minutos</div>
+        <div class="step-desc">Apify tarda entre 2 y 5 minutos en extraer todos los datos. Verás mensajes de progreso: "Scrapeando TikTok... Scrapeando Instagram... Procesando datos..."</div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">DEMO DATA cambia a DATOS REALES</div>
+        <div class="step-desc">El badge verde en la barra superior cambia a "DATOS REALES". A partir de aquí todas las métricas, ideas y análisis se basan en tus datos reales.</div>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout info">
+    <strong>ℹ ¿CUÁNDO HACER SYNC?</strong>
+    Una vez a la semana es más que suficiente. Los datos se guardan en tu ordenador — si cierras el dashboard y lo vuelves a abrir, los datos siguen ahí sin necesidad de sincronizar de nuevo.
+  </div>
+
+  <div class="pg-footer">
+    <span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span>
+    <span>5</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PÁG 6: USO DEL DASHBOARD                -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page content-page">
+  <div class="pg-header">
+    <span class="pg-header-left">◆ DASHBOARD ANALYTICS IA · IACONPATRICK</span>
+    <span class="pg-header-right">USO DEL DASHBOARD</span>
+  </div>
+
+  <div class="section-label">07–10 · USO DEL DASHBOARD</div>
+  <div class="section-title">Cómo usar cada<br>sección</div>
+
+  <h3>OVERVIEW</h3>
+  <p>Resumen de todas tus métricas clave — followers, views, engagement, mejor formato, top posts. Pulsa <strong>✦ GENERAR ANÁLISIS</strong> para que la IA te diga qué está funcionando, qué no y qué oportunidades tienes esta semana.</p>
+
+  <h3>MI CONTENIDO</h3>
+  <p>Todos tus posts con sus métricas detalladas. Filtra por plataforma (TikTok / Instagram / Todo) y por tipo de contenido. Haz clic en las tarjetas de métricas para ver los top 3 posts de cada categoría.</p>
+
+  <h3>IDEAS IA</h3>
+  <ul class="steps">
+    <li class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Pulsa ✦ GENERAR NUEVAS</div>
+        <div class="step-desc">La IA analiza tus datos y genera 6 ideas personalizadas con score de viralidad y tipo de contenido recomendado (Video / Carrusel / Imagen).</div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Explora cada idea</div>
+        <div class="step-desc">Haz clic en cualquier idea para ver consejos de ejecución, el hook recomendado y opciones para generar el guión completo o guardarla.</div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Genera el guión</div>
+        <div class="step-desc">Dentro de la idea, pulsa <strong>✦ GENERAR GUIÓN PARA ESTA IDEA</strong>. En segundos tienes hook, estructura, caption y hashtags listos para grabar.</div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">Guarda lo que te guste</div>
+        <div class="step-desc">Pulsa <strong>+ GUARDAR</strong> para guardar la idea con su guión en la sección GUARDADO. Puedes pulsar 👍 o 👎 para que la IA aprenda tus preferencias.</div>
+      </div>
+    </li>
+  </ul>
+
+  <h3>MIS IDEAS (sección en IDEAS IA)</h3>
+  <p>¿Tienes tu propia idea pero no sabes cómo desarrollarla? Escríbela en el campo de texto y pulsa <strong>✦ GENERAR GUIÓN</strong>. La IA escribe el guión completo adaptado a tu voz de marca.</p>
+
+  <h3>TRENDING</h3>
+  <p>Vídeos virales de otros creadores en tu nicho y noticias de IA de la semana. Haz clic en cualquier vídeo para ver el análisis detallado de por qué está funcionando y cómo adaptarlo a tu contenido. Guarda los que te inspiren con <strong>+ SAVE</strong>.</p>
+
+  <h3>CREADORES</h3>
+  <p>Monitoriza a otros creadores de tu nicho. Configura los handles que quieres seguir en <strong>CONFIGURAR → CREADORES A MONITORIZAR</strong>.</p>
+
+  <div class="callout tip">
+    <strong>💡 FLUJO DE TRABAJO RECOMENDADO — CADA SEMANA</strong>
+    Lunes: ↻ SYNC para traer datos frescos → revisar OVERVIEW → generar 6 IDEAS IA → guardar las mejores → usar los guiones para grabar durante la semana. Todo el proceso: ~15 minutos.
+  </div>
+
+  <div class="pg-footer">
+    <span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span>
+    <span>6</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PÁG 7: ERRORES                          -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page content-page">
+  <div class="pg-header">
+    <span class="pg-header-left">◆ DASHBOARD ANALYTICS IA · IACONPATRICK</span>
+    <span class="pg-header-right">SOLUCIÓN DE ERRORES</span>
+  </div>
+
+  <div class="section-label">11 · ERRORES FRECUENTES</div>
+  <div class="section-title">Algo no funciona —<br>aquí la solución</div>
+  <div class="section-intro">Estos son los problemas más comunes y cómo solucionarlos en menos de 2 minutos.</div>
+
+  <div class="error-card">
+    <div class="error-header">
+      <span class="error-icon">✕</span>
+      <span class="error-title">El dashboard no se abre / el navegador no aparece</span>
+    </div>
+    <div class="error-body">
+      <div class="error-cause">Causa más probable: Node.js no está instalado o la ventana negra se cerró.</div>
+      <div class="error-solution">
+        <strong>Solución:</strong><br>
+        1. Comprueba que la ventana negra (Terminal/CMD) sigue abierta<br>
+        2. Si se cerró, vuelve a hacer doble clic en <code>iniciar.command</code> o <code>iniciar.bat</code><br>
+        3. Si aparece "node no se reconoce", instala Node.js en <strong>nodejs.org</strong> y vuelve a intentarlo<br>
+        4. Abre el navegador manualmente y escribe <code>localhost:3000</code>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-header">
+      <span class="error-icon">✕</span>
+      <span class="error-title">Mac: "No se puede abrir porque es de un desarrollador no identificado"</span>
+    </div>
+    <div class="error-body">
+      <div class="error-cause">Causa: macOS bloquea archivos descargados de internet por seguridad.</div>
+      <div class="error-solution">
+        <strong>Solución:</strong><br>
+        1. <strong>Clic derecho</strong> sobre <code>iniciar.command</code> (no doble clic)<br>
+        2. Selecciona <strong>"Abrir"</strong> en el menú<br>
+        3. En el aviso que aparece, pulsa <strong>"Abrir"</strong><br>
+        Solo tienes que hacer esto una vez. A partir de ahí funciona con doble clic normal.
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-header">
+      <span class="error-icon">✕</span>
+      <span class="error-title">SYNC falla — "Error en sync" o se queda cargando</span>
+    </div>
+    <div class="error-body">
+      <div class="error-cause">Causas posibles: token de Apify incorrecto, cuenta sin crédito, o handle mal escrito.</div>
+      <div class="error-solution">
+        <strong>Solución:</strong><br>
+        1. Ve a <strong>CONFIGURAR → APIFY</strong> → pulsa <strong>PROBAR CONEXIÓN</strong><br>
+        2. Si sale rojo: copia el token de nuevo desde apify.com (Settings → Integrations)<br>
+        3. Asegúrate de que los handles tienen el <code>@</code> delante: <code>@tucuenta</code><br>
+        4. Comprueba en apify.com que tienes saldo disponible (mínimo $0,10)
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-header">
+      <span class="error-icon">✕</span>
+      <span class="error-title">La IA no genera ideas — "Sin API key" o error de conexión</span>
+    </div>
+    <div class="error-body">
+      <div class="error-cause">Causa: la API key no está guardada o es incorrecta.</div>
+      <div class="error-solution">
+        <strong>Solución:</strong><br>
+        1. Ve a <strong>CONFIGURAR → IA GENERATIVA</strong><br>
+        2. Asegúrate de haber seleccionado tu proveedor (Claude / ChatGPT / Gemini)<br>
+        3. Pega la API key completa — sin espacios al inicio ni al final<br>
+        4. Pulsa <strong>PROBAR CONEXIÓN</strong> → debe salir verde<br>
+        5. Pulsa <strong>GUARDAR</strong> — este paso es obligatorio
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-header">
+      <span class="error-icon">✕</span>
+      <span class="error-title">Al cerrar y abrir el dashboard los datos han desaparecido</span>
+    </div>
+    <div class="error-body">
+      <div class="error-cause">Causa: limpiaste el caché del navegador o estás usando un navegador distinto al que usaste antes.</div>
+      <div class="error-solution">
+        <strong>Solución:</strong><br>
+        1. Usa siempre el mismo navegador (recomendado: Chrome o Safari)<br>
+        2. No limpies el caché del navegador — los datos se guardan ahí<br>
+        3. Si los perdiste, simplemente vuelve a hacer ↻ SYNC — los datos se restauran
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-header">
+      <span class="error-icon">✕</span>
+      <span class="error-title">La configuración (API keys) se borra al reiniciar</span>
+    </div>
+    <div class="error-body">
+      <div class="error-cause">Causa: no pulsaste GUARDAR después de configurar, o limpiaste el caché del navegador.</div>
+      <div class="error-solution">
+        <strong>Solución:</strong><br>
+        1. Vuelve a <strong>CONFIGURAR</strong>, introduce las keys de nuevo<br>
+        2. Pulsa <strong>GUARDAR</strong> al final — este paso es imprescindible<br>
+        3. A partir de ahí persiste indefinidamente
+      </div>
+    </div>
+  </div>
+
+  <div class="pg-footer">
+    <span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span>
+    <span>7</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PÁG 8: REFERENCIA + FAQ                 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page content-page">
+  <div class="pg-header">
+    <span class="pg-header-left">◆ DASHBOARD ANALYTICS IA · IACONPATRICK</span>
+    <span class="pg-header-right">REFERENCIA RÁPIDA</span>
+  </div>
+
+  <div class="section-label">12 · REFERENCIA RÁPIDA</div>
+  <div class="section-title">Credenciales y<br>datos de acceso</div>
+
+  <div class="creds" style="gap:40px;margin-bottom:20px">
+    <div class="cred-item"><div class="cred-label">URL DEL DASHBOARD</div><div class="cred-value" style="font-size:11pt">localhost:3000</div></div>
+    <div class="cred-item"><div class="cred-label">USUARIO</div><div class="cred-value">admin</div></div>
+    <div class="cred-item"><div class="cred-label">CONTRASEÑA</div><div class="cred-value">dashboard2026</div></div>
+  </div>
+
+  <div class="callout tip">
+    <strong>🔒 CÓMO CAMBIAR LA CONTRASEÑA</strong>
+    Abre el archivo <code>server.js</code> con cualquier editor de texto (Bloc de notas en Windows, TextEdit en Mac). Busca la línea 11 y cambia <code>dashboard2026</code> por la contraseña que quieras. Guarda el archivo y reinicia el dashboard.
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-label">13 · FAQ</div>
+  <div class="section-title">Preguntas frecuentes</div>
+
+  <h3>¿Tengo que pagar algo más aparte del dashboard?</h3>
+  <p>Las APIs de IA (Claude/ChatGPT/Gemini) se cobran por uso, pero el coste es mínimo — generar 6 ideas completas cuesta menos de €0,01. Para los datos de TikTok/Instagram necesitas cuenta en apify.com, que tiene $5/mes gratis.</p>
+
+  <h3>¿Funciona sin internet?</h3>
+  <p>El dashboard en sí abre sin internet. Solo necesitas conexión cuando haces ↻ SYNC (para traer datos) o cuando generas ideas/guiones con IA (para llamar a la API). Todo lo demás funciona offline.</p>
+
+  <h3>¿Puedo usarlo en más de un ordenador?</h3>
+  <p>Sí. Copia la carpeta del dashboard a otro ordenador y sigue el mismo proceso de arranque. Cada ordenador tendrá su propia instalación y sus propios datos guardados localmente.</p>
+
+  <h3>¿Qué pasa si actualizo el dashboard?</h3>
+  <p>Recibirás un email con el nuevo ZIP cuando haya actualizaciones. Tu configuración (API keys, marca) se guarda y se restaura automáticamente al abrir la nueva versión.</p>
+
+  <h3>¿Es seguro pegar mis API keys?</h3>
+  <p>Sí. Todo corre en local en tu ordenador. Las API keys se guardan en tu disco duro y las llamadas van directamente desde tu máquina a los proveedores de IA. Nadie más tiene acceso a ellas.</p>
+
+  <h3>¿Puedo gestionar cuentas de clientes?</h3>
+  <p>Sí. Cambia los handles en CONFIGURAR → APIFY cuando quieras analizar otra cuenta. Los datos del sync anterior se sobreescriben con los nuevos.</p>
+
+  <div class="divider"></div>
+
+  <!-- SOPORTE -->
+  <div style="background:var(--black);padding:20px 24px;margin-top:8px">
+    <div style="font-family:var(--mono);font-size:8pt;letter-spacing:.2em;color:var(--accent);margin-bottom:12px;font-weight:700">◆ SOPORTE · CONTACTO</div>
+    <div style="color:rgba(255,255,255,.7);font-size:10.5pt;line-height:1.7;margin-bottom:16px">
+      ¿Tienes algún problema técnico que no aparece en esta guía?<br>
+      Escríbeme directamente — respondo en menos de 24h en días laborables.
+    </div>
+    <div style="display:flex;gap:32px">
+      <div>
+        <div style="font-family:var(--mono);font-size:7.5pt;letter-spacing:.14em;color:rgba(255,255,255,.35);margin-bottom:4px">INSTAGRAM</div>
+        <div style="font-family:var(--mono);font-size:10pt;color:var(--accent);font-weight:700">@iaconpatrick</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:7.5pt;letter-spacing:.14em;color:rgba(255,255,255,.35);margin-bottom:4px">WEB</div>
+        <div style="font-family:var(--mono);font-size:10pt;color:var(--accent);font-weight:700">iaconpatrick.com</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:7.5pt;letter-spacing:.14em;color:rgba(255,255,255,.35);margin-bottom:4px">TIKTOK</div>
+        <div style="font-family:var(--mono);font-size:10pt;color:var(--accent);font-weight:700">@iaconpatrick</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pg-footer">
+    <span>© 2026 Patrick Venegas · iaconpatrick.com · Todos los derechos reservados</span>
+    <span>8</span>
+  </div>
+</div>
+
+</body>
+</html>
