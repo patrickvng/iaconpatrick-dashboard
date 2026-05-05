@@ -559,6 +559,28 @@ body.light::before{display:none}
     </div>
   </div>
 
+  <div class="st">CONTEXTO DE CLAUDE PROJECT <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:.04em">(OPCIONAL)</span></div>
+  <div class="cfg-block" data-label="// CLAUDE PROJECT" style="border-color:rgba(232,255,71,.15);background:rgba(232,255,71,.02)">
+    <div class="cfg-info">Si usas <b>Claude Projects</b> o tienes un <b>prompt de sistema</b> con tu contexto completo, pégalo aquí.<br>
+    Claude lo usará como base en <b>todas</b> las generaciones de ideas, guiones y análisis — igual que si estuvieras dentro de tu proyecto.<br><br>
+    <span class="hl">Cómo obtenerlo:</span> Claude.ai → tu Proyecto → ··· → <b>Edit project instructions</b> → copia todo el texto.</div>
+    <div class="cfg-field" style="margin-top:14px">
+      <div class="cfg-lbl" style="display:flex;justify-content:space-between;align-items:center">
+        <span>INSTRUCCIONES DE PROYECTO / SYSTEM PROMPT</span>
+        <span id="projectCtxCount" style="color:var(--text3);font-weight:400;font-size:9px"></span>
+      </div>
+      <textarea class="cfg-inp" id="claudeProjectCtx" rows="8"
+        placeholder="Pega aquí tus instrucciones de Claude Project, tu system prompt, o cualquier contexto extendido que quieras que Claude tenga siempre presente al generar contenido para ti..."
+        style="resize:vertical;line-height:1.55;margin-top:6px"
+        oninput="document.getElementById('projectCtxCount').textContent=this.value.length?this.value.length+' caracteres':''"></textarea>
+    </div>
+    <div class="cfg-acts">
+      <button class="btn-p" onclick="saveBrand()">GUARDAR</button>
+      <button class="btn-s" onclick="document.getElementById('claudeProjectCtx').value='';document.getElementById('projectCtxCount').textContent='';cfg.claudeProjectCtx='';saveBrand()">LIMPIAR</button>
+      <div class="cfg-status" id="projectCtxStatus"></div>
+    </div>
+  </div>
+
   <div style="margin-top:6px;display:flex;gap:8px">
     <button class="btn-p" onclick="saveBrand()">GUARDAR MARCA</button>
     <div class="cfg-status" id="brandSaveStatus"></div>
@@ -647,7 +669,7 @@ async function apiFetch(url, opts){
 }
 
 // ═══ STATE ═══
-let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',websiteUrl:'',creatorBio:'',brandTone:'',brandName:'',brandNiche:'',brandAudience:'',brandGoal:'',brandAvoid:''};
+let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',websiteUrl:'',creatorBio:'',brandTone:'',brandName:'',brandNiche:'',brandAudience:'',brandGoal:'',brandAvoid:'',claudeProjectCtx:''};
 let realData=null,platformFilter='all',trendFilter='tt',compFilter='all';
 let vChart=null,eChart=null,serverOk=false;
 let selectedAccount='all',currentPeriod='7d',isDark=true,lang='es';
@@ -1442,7 +1464,7 @@ async function generateIdeaScript(idx){
     ].filter(Boolean).join(' · ')||'IA aplicada al marketing y la automatización. Audiencia: creadores y emprendedores hispanohablantes.';
     const scriptTone=cfg.brandTone?`\nTONO Y VOZ DE MARCA:\n${cfg.brandTone}\nAdapta el guión a esta voz exacta.`:'';
     const contentTypePart=idea.contentType?`\nFORMATO REQUERIDO: ${idea.contentType} — adapta la estructura a este formato.`:'';
-    const prompt=`Eres guionista experto en contenido viral para TikTok e Instagram en español.\n\nCONTEXTO DEL CREADOR: ${scriptCtx}${scriptTone}${contentTypePart}\n\nGenera un guión completo para esta idea:\n\nIDEA: "${idea.title}"\nDESCRIPCIÓN: "${idea.desc}"\nTAGS: ${idea.tags.join(', ')}\n\nResponde SOLO con este JSON:\n{"titulo":"título final del vídeo","hook":"primeros 3-5 segundos exactos","estructura":["paso 1","paso 2","paso 3","cierre/CTA"],"caption":"caption completo con emojis","tags":["#tag1","#tag2","#tag3","#tag4","#tag5"],"duracion":"duración recomendada","formato":"tipo de vídeo"}`;
+    const prompt=`Eres guionista experto en contenido viral para TikTok e Instagram en español.${projectCtxBlock()}\n\nCONTEXTO DEL CREADOR: ${scriptCtx}${scriptTone}${contentTypePart}\n\nGenera un guión completo para esta idea:\n\nIDEA: "${idea.title}"\nDESCRIPCIÓN: "${idea.desc}"\nTAGS: ${idea.tags.join(', ')}\n\nResponde SOLO con este JSON:\n{"titulo":"título final del vídeo","hook":"primeros 3-5 segundos exactos","estructura":["paso 1","paso 2","paso 3","cierre/CTA"],"caption":"caption completo con emojis","tags":["#tag1","#tag2","#tag3","#tag4","#tag5"],"duracion":"duración recomendada","formato":"tipo de vídeo"}`;
     const r=await apiFetch('/api/anthropic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:cfg.anthropicModel||'claude-sonnet-4-20250514',max_tokens:900,messages:[{role:'user',content:prompt}]})});
     if(!r.ok)throw new Error('API error '+r.status);
     const data=await r.json();
@@ -1636,8 +1658,8 @@ async function generateIdeas(){
     ].filter(Boolean).join('\n');
     const bioPart=brandCtx?`\nCONTEXTO DEL CREADOR:\n${brandCtx}\n`:'';
     const tonePart=cfg.brandTone?`\nTONO Y VOZ DE MARCA:\n${cfg.brandTone}\n`:'Aplica un tono directo, sin florituras, orientado a resultados.';
-    const prompt=`Eres estratega experto en contenido para redes sociales, IA y marketing digital en español.
-
+    const projectPart=projectCtxBlock();
+    const prompt=`Eres estratega experto en contenido para redes sociales, IA y marketing digital en español.${projectPart}
 Analiza estos datos de @iaconpatrick y genera 6 ideas de contenido para TikTok/Instagram:
 
 MEJORES POSTS:
@@ -1648,7 +1670,7 @@ MEJOR HOOK: How-to (11.1K avg views, 6% like rate)
 AUDIENCIA: creadores, marcas personales, marketers hispanohablantes.
 ${bioPart}${webContext}${tonePart}${prefPart}
 Genera 6 ideas en JSON. Responde SOLO con el JSON sin texto adicional:
-[{"score":"SCORE: X.X/10","title":"título del vídeo","desc":"ángulo + hook + por qué funcionará (máx 200 chars)","tags":["tag1","tag2","tag3"]}]`;
+[{"score":"SCORE: X.X/10","title":"título del vídeo","desc":"ángulo + hook + por qué funcionará (máx 200 chars)","tags":["tag1","tag2","tag3"],"contentType":"VIDEO|CARRUSEL|IMAGEN"}]`;
 
     // Llamada a través del proxy local
     const r=await apiFetch('/api/anthropic',{
@@ -1704,7 +1726,7 @@ async function generateOverviewSummary(){
   try{
     const top=[...d.tiktok.topPosts,...d.instagram.topPosts].slice(0,6);
     const hooks=d.tiktok.hooks;
-    const prompt=`Eres estratega de contenido experto en IA y marketing digital en español. Analiza los datos de @iaconpatrick y genera un resumen ejecutivo en 3 secciones.
+    const prompt=`Eres estratega de contenido experto en IA y marketing digital en español.${projectCtxBlock()} Analiza los datos de @iaconpatrick y genera un resumen ejecutivo en 3 secciones.
 
 DATOS:
 - TikTok: ${fn(d.tiktok.followers)} followers, ${fn(d.tiktok.views)} vistas totales, ${d.tiktok.engagement}% engagement
@@ -1754,8 +1776,7 @@ async function generateScript(){
       cfg.brandAvoid&&`Evitar: ${cfg.brandAvoid}`,
     ].filter(Boolean).join(' · ')||'IA aplicada al marketing y la automatización. Audiencia: creadores y emprendedores hispanohablantes.';
     const scriptTone=cfg.brandTone?`\nTONO Y VOZ DE MARCA:\n${cfg.brandTone}\nAdapta el guión a esta voz exacta.`:'';
-    const prompt=`Eres guionista experto en contenido viral para TikTok e Instagram en español.
-
+    const prompt=`Eres guionista experto en contenido viral para TikTok e Instagram en español.${projectCtxBlock()}
 CONTEXTO DEL CREADOR: ${scriptCtx}
 ${scriptTone}
 
@@ -2028,7 +2049,7 @@ async function uploadBrandFile(input){
 // ═══ CONFIG ═══
 function saveBrand(){
   // Collect all brand fields
-  ['brandName','brandNiche','creatorBio','websiteUrl','brandTone','brandAudience','brandGoal','brandAvoid'].forEach(id=>{
+  ['brandName','brandNiche','creatorBio','websiteUrl','brandTone','brandAudience','brandGoal','brandAvoid','claudeProjectCtx'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) cfg[id]=el.value;
   });
@@ -2066,7 +2087,11 @@ function loadCfg(){
   try{
     const s=JSON.parse(localStorage.getItem('iac_dash_v2')||'{}');
     Object.assign(cfg,s);
-    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel',websiteUrl:'websiteUrl',creatorBio:'creatorBio',brandTone:'brandTone',brandName:'brandName',brandNiche:'brandNiche',brandAudience:'brandAudience',brandGoal:'brandGoal',brandAvoid:'brandAvoid'};
+    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel',websiteUrl:'websiteUrl',creatorBio:'creatorBio',brandTone:'brandTone',brandName:'brandName',brandNiche:'brandNiche',brandAudience:'brandAudience',brandGoal:'brandGoal',brandAvoid:'brandAvoid',claudeProjectCtx:'claudeProjectCtx'};
+    // Restore char counter for project context
+    const pCtx=document.getElementById('claudeProjectCtx');
+    const pCount=document.getElementById('projectCtxCount');
+    if(pCtx&&pCount&&cfg.claudeProjectCtx)pCount.textContent=cfg.claudeProjectCtx.length+' caracteres';
     Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&cfg[k])el.value=cfg[k];});
     savedIdeas=JSON.parse(localStorage.getItem('iac_saved_ideas')||'[]');
     likedTags=JSON.parse(localStorage.getItem('iac_liked_tags')||'[]');
@@ -2074,6 +2099,12 @@ function loadCfg(){
     savedCreators=JSON.parse(localStorage.getItem('iac_saved_creators')||'[]');
     savedNews=JSON.parse(localStorage.getItem('iac_saved_news')||'[]');
   }catch(e){}
+}
+
+// ═══ CLAUDE PROJECT CONTEXT HELPER ═══
+function projectCtxBlock(){
+  if(!cfg.claudeProjectCtx||!cfg.claudeProjectCtx.trim())return'';
+  return`\n\n--- CONTEXTO DE PROYECTO DEL CREADOR (máxima prioridad) ---\n${cfg.claudeProjectCtx.trim()}\n--- FIN CONTEXTO DE PROYECTO ---\n`;
 }
 
 // ═══ LOADING ═══
