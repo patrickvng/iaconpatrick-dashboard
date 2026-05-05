@@ -177,6 +177,40 @@ body.light::before{display:none}
 .saved-empty{color:var(--text3);font-size:12px;text-align:center;padding:48px;line-height:1.8}
 .rm-btn{background:none;border:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:9px;padding:3px 8px;cursor:pointer;transition:all .14s}
 .rm-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+/* ─── CONTENT TYPE TAGS ──────────────────────────────── */
+.ctype-video{display:inline-block;font-size:9px;padding:2px 8px;background:rgba(232,255,71,.12);color:var(--accent);border:1px solid rgba(232,255,71,.3);font-weight:700;letter-spacing:.08em}
+.ctype-carrusel{display:inline-block;font-size:9px;padding:2px 8px;background:rgba(71,255,232,.12);color:var(--accent3);border:1px solid rgba(71,255,232,.3);font-weight:700;letter-spacing:.08em}
+.ctype-imagen{display:inline-block;font-size:9px;padding:2px 8px;background:rgba(255,159,71,.12);color:var(--accent4);border:1px solid rgba(255,159,71,.3);font-weight:700;letter-spacing:.08em}
+/* ─── METRIC CARD CLICKABLE ─────────────────────────── */
+.mc.clickable{cursor:pointer;transition:all .15s}.mc.clickable:hover{border-color:var(--accent);transform:translateY(-2px)}
+/* ─── IDEA TYPE FILTER ──────────────────────────────── */
+.idea-filter{display:flex;gap:0;border:1px solid var(--border);margin-bottom:14px;align-self:flex-start}
+.ifb{background:none;border:none;border-right:1px solid var(--border);color:var(--text3);font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:6px 14px;cursor:pointer;transition:all .1s}
+.ifb:last-child{border-right:none}.ifb:hover{color:var(--text);background:var(--bg3)}.ifb.active{background:var(--accent);color:#0a0a08;font-weight:700}
+/* ─── NEWS SECTION ──────────────────────────────────── */
+.news-item{background:var(--bg2);border:1px solid var(--border);padding:14px 16px;margin-bottom:8px;transition:border-color .14s}
+.news-item:hover{border-color:var(--border2)}
+.news-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;cursor:pointer}
+.news-title{font-size:12px;font-weight:600;line-height:1.4;flex:1}
+.news-meta{font-size:9px;color:var(--text3);white-space:nowrap;margin-top:2px}
+.news-tag{display:inline-block;font-size:9px;padding:2px 7px;background:rgba(255,71,87,.07);color:var(--accent2);border:1px solid rgba(255,71,87,.2);margin-top:6px;letter-spacing:.06em}
+.news-body{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.news-body.open{display:block}
+.news-summary{font-size:11px;color:var(--text2);line-height:1.65;margin-bottom:8px}
+.news-acts{display:flex;gap:7px;align-items:center}
+/* ─── DOWNLOAD BTN ───────────────────────────────────── */
+.dl-btn{background:none;border:1px solid var(--border2);color:var(--text3);font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:5px 12px;cursor:pointer;transition:all .15s}
+.dl-btn:hover{border-color:var(--accent3);color:var(--accent3)}
+/* ─── DATE POPUP ─────────────────────────────────────── */
+.date-popup-wrap{position:relative;display:inline-block}
+.date-popup{display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--bg2);border:1px solid var(--border2);padding:14px;z-index:300;min-width:260px;box-shadow:0 6px 30px rgba(0,0,0,.6)}
+.date-popup.show{display:block}
+.date-popup label{font-size:9px;letter-spacing:.12em;color:var(--text3);font-weight:700;display:block;margin-bottom:4px;margin-top:8px}
+.date-popup label:first-child{margin-top:0}
+.date-popup input[type=date]{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 9px;width:100%;outline:none}
+.date-popup input[type=date]:focus{border-color:var(--accent)}
+/* ─── PRINT ──────────────────────────────────────────── */
+@media print{.topbar,.sidebar,.mq-wrap,.sync-btn,.theme-btn,.period-sel,.cfg-acts,.dl-btn,.modal-ov,.notif,.lo-overlay,.srv-banner,.idea-filter,.news-acts,.tb-r,.ph button{display:none!important}.layout{display:block!important;grid-template-columns:1fr}.content{padding:8px}.page{display:block!important;page-break-before:always}.page.active{page-break-before:avoid}}
 </style>
 </head>
 <body>
@@ -212,7 +246,9 @@ body.light::before{display:none}
   </div>
   <div class="tb-r">
     <div class="tb-time" id="tbTime"></div>
+    <button class="theme-btn" id="langBtn" onclick="toggleLang()" title="Cambiar idioma / Change language">🌐 ES</button>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀ LIGHT</button>
+    <button class="dl-btn" onclick="downloadPage()" title="Descargar / Download">⬇ PDF</button>
     <button class="sync-btn" id="syncBtn" onclick="triggerSync()">↻ SYNC</button>
   </div>
 </div>
@@ -264,12 +300,23 @@ body.light::before{display:none}
     <div style="padding:6px 10px 0"><button class="btn-s" style="width:100%;font-size:9px;padding:5px" onclick="setAccount('all')">◈ VER TODAS</button></div>
   </div>
   <div class="sb-section">
-    <div class="sb-label">PERÍODO</div>
+    <div class="sb-label" data-i18n="period">PERÍODO</div>
     <div style="padding:0 10px">
       <div class="period-sel">
         <button class="pb active" onclick="setPeriod('7d',this)">7D</button>
         <button class="pb" onclick="setPeriod('30d',this)" style="border-left:1px solid var(--border)">30D</button>
         <button class="pb" onclick="setPeriod('90d',this)" style="border-left:1px solid var(--border)">90D</button>
+        <button class="pb" onclick="setPeriod('custom',this)" style="border-left:1px solid var(--border);font-size:9px" id="customPeriodBtn">📅</button>
+      </div>
+      <div class="date-popup" id="datePicker">
+        <label>FECHA INICIO</label>
+        <input type="date" id="dateStart">
+        <label>FECHA FIN</label>
+        <input type="date" id="dateEnd">
+        <div style="margin-top:12px;display:flex;gap:6px">
+          <button class="btn-p" style="flex:1;font-size:10px;padding:6px" onclick="applyCustomRange()">APLICAR</button>
+          <button class="btn-s" style="font-size:10px;padding:6px" onclick="closeDatePicker()">✕</button>
+        </div>
       </div>
     </div>
   </div>
@@ -286,11 +333,14 @@ body.light::before{display:none}
 <!-- OVERVIEW -->
 <div class="page active" id="page-overview">
   <div class="ph">
-    <div><div class="ph-title">OVERVIEW</div><div class="ph-sub"><b id="ovAccountLabel">Todas las cuentas</b> · <b id="periodLabel">Últimos 7 días</b></div></div>
-    <div class="period-sel">
-      <button class="pb active" id="ovBtnAll" onclick="setAccount('all')">TODAS</button>
-      <button class="pb" id="ovBtnTT" onclick="setAccount('tt')" style="border-left:1px solid var(--border)">TIKTOK</button>
-      <button class="pb" id="ovBtnIG" onclick="setAccount('ig')" style="border-left:1px solid var(--border)">INSTAGRAM</button>
+    <div><div class="ph-title" data-i18n="overview">OVERVIEW</div><div class="ph-sub"><b id="ovAccountLabel">Todas las cuentas</b> · <b id="periodLabel">Últimos 7 días</b></div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="dl-btn" onclick="downloadPage()">⬇ PDF</button>
+      <div class="period-sel">
+        <button class="pb active" id="ovBtnAll" onclick="setAccount('all')">TODAS</button>
+        <button class="pb" id="ovBtnTT" onclick="setAccount('tt')" style="border-left:1px solid var(--border)">TIKTOK</button>
+        <button class="pb" id="ovBtnIG" onclick="setAccount('ig')" style="border-left:1px solid var(--border)">INSTAGRAM</button>
+      </div>
     </div>
   </div>
   <div class="srv-banner" id="srvBanner">
@@ -336,29 +386,33 @@ body.light::before{display:none}
 <!-- MI CONTENIDO -->
 <div class="page" id="page-content">
   <div class="ph">
-    <div><div class="ph-title">MI CONTENIDO</div><div class="ph-sub">Ordenado por rendimiento · <b id="contentPeriod">7 días</b></div></div>
-    <div style="display:flex;gap:6px;align-items:center">
-      <span style="font-size:10px;color:var(--text3)">PLATAFORMA:</span>
+    <div><div class="ph-title" data-i18n="content_title">MI CONTENIDO</div><div class="ph-sub">Ordenado por rendimiento · <b id="contentPeriod">7 días</b></div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="dl-btn" onclick="downloadPage()">⬇ PDF</button>
+      <span style="font-size:10px;color:var(--text3)" data-i18n="platform">PLATAFORMA:</span>
       <div class="period-sel">
-        <button class="pb active" onclick="filterPlatform('all',this)">ALL</button>
+        <button class="pb active" onclick="filterPlatform('all',this)" data-i18n="all">ALL</button>
         <button class="pb" onclick="filterPlatform('tt',this)" style="border-left:1px solid var(--border)">TT</button>
         <button class="pb" onclick="filterPlatform('ig',this)" style="border-left:1px solid var(--border)">IG</button>
       </div>
     </div>
   </div>
-  <div class="mgrid" id="contentMetrics"></div>
-  <div class="st">MEJORES POSTS</div>
+  <div class="mgrid" id="contentMetrics" style="grid-template-columns:repeat(4,1fr)"></div>
+  <div class="st" data-i18n="best_posts">MEJORES POSTS</div>
   <div class="posts-list" id="postsGrid"></div>
 </div>
 
 <!-- CREADORES -->
 <div class="page" id="page-competitors">
   <div class="ph">
-    <div><div class="ph-title">CREADORES SIMILARES</div><div class="ph-sub">Referentes en tu nicho · IA + marketing de contenidos en español</div></div>
-    <div class="period-sel">
-      <button class="pb active" id="compBtnAll" onclick="setCompFilter('all',this)">TODOS</button>
-      <button class="pb" id="compBtnTT" onclick="setCompFilter('tt',this)" style="border-left:1px solid var(--border)">TIKTOK</button>
-      <button class="pb" id="compBtnIG" onclick="setCompFilter('ig',this)" style="border-left:1px solid var(--border)">INSTAGRAM</button>
+    <div><div class="ph-title" data-i18n="nav_competitors">CREADORES SIMILARES</div><div class="ph-sub">Referentes en tu nicho · IA + marketing de contenidos en español</div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="dl-btn" onclick="downloadPage()">⬇ PDF</button>
+      <div class="period-sel">
+        <button class="pb active" id="compBtnAll" onclick="setCompFilter('all',this)">TODOS</button>
+        <button class="pb" id="compBtnTT" onclick="setCompFilter('tt',this)" style="border-left:1px solid var(--border)">TIKTOK</button>
+        <button class="pb" id="compBtnIG" onclick="setCompFilter('ig',this)" style="border-left:1px solid var(--border)">INSTAGRAM</button>
+      </div>
     </div>
   </div>
   <div class="cfg-block" style="background:rgba(71,255,232,.03);border-color:rgba(71,255,232,.15);margin-bottom:18px" data-label="// INFO">
@@ -375,23 +429,40 @@ body.light::before{display:none}
 <!-- TRENDING -->
 <div class="page" id="page-trending">
   <div class="ph">
-    <div><div class="ph-title">TRENDING EN TU NICHO</div><div class="ph-sub">Lo que <b>está funcionando ahora</b> en IA + marketing digital</div></div>
-    <div class="period-sel">
-      <button class="pb active" onclick="filterTrend('tt',this)">TIKTOK</button>
-      <button class="pb" onclick="filterTrend('ig',this)" style="border-left:1px solid var(--border)">INSTAGRAM</button>
+    <div><div class="ph-title" data-i18n="trending_title">TRENDING EN TU NICHO</div><div class="ph-sub">Lo que <b>está funcionando ahora</b> en IA + marketing digital</div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="dl-btn" onclick="downloadPage()">⬇ PDF</button>
+      <div class="period-sel">
+        <button class="pb active" onclick="filterTrend('tt',this)">TIKTOK</button>
+        <button class="pb" onclick="filterTrend('ig',this)" style="border-left:1px solid var(--border)">INSTAGRAM</button>
+      </div>
     </div>
   </div>
-  <div class="st">VIDEOS VIRALES · NICHO IA / MARKETING</div>
+  <div class="st" data-i18n="viral_videos">VIDEOS VIRALES · NICHO IA / MARKETING</div>
   <div class="trend-list" id="trendingList"></div>
+  <div class="st" style="margin-top:22px" data-i18n="news_title">NOTICIAS DE ÚLTIMA HORA · IA + MARKETING</div>
+  <div style="font-size:10px;color:var(--text3);margin-bottom:10px">Actualizado diariamente · Selecciona para ver el resumen IA y guardar</div>
+  <div id="newsList"></div>
 </div>
 
 <!-- IDEAS IA -->
 <div class="page" id="page-ideas">
   <div class="ph">
-    <div><div class="ph-title">IDEAS IA</div><div class="ph-sub">Generadas con Claude · basadas en tu contenido y <b>lo que funciona</b></div></div>
-    <button class="btn-p" id="genBtn" onclick="generateIdeas()">✦ GENERAR NUEVAS</button>
+    <div><div class="ph-title" data-i18n="ideas_title">IDEAS IA</div><div class="ph-sub">Generadas con Claude · basadas en tu contenido y <b>lo que funciona</b></div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="dl-btn" onclick="downloadPage()">⬇ PDF</button>
+      <button class="btn-p" id="genBtn" onclick="generateIdeas()">✦ GENERAR NUEVAS</button>
+    </div>
   </div>
-  <div class="st">IDEAS PARA ESTA SEMANA</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div class="st" style="margin:0;flex:1" data-i18n="ideas_week">IDEAS PARA ESTA SEMANA</div>
+    <div class="idea-filter" id="ideaFilter">
+      <button class="ifb active" onclick="filterIdeas('all',this)" data-i18n="all_types">TODOS</button>
+      <button class="ifb" onclick="filterIdeas('VIDEO',this)">VIDEO</button>
+      <button class="ifb" onclick="filterIdeas('CARRUSEL',this)">CARRUSEL</button>
+      <button class="ifb" onclick="filterIdeas('IMAGEN',this)">IMAGEN</button>
+    </div>
+  </div>
   <div class="ideas-grid" id="ideasGrid"></div>
 
   <div class="st" style="margin-top:24px">MIS IDEAS — GENERA UN GUIÓN COMPLETO</div>
@@ -412,12 +483,19 @@ body.light::before{display:none}
 <!-- GUARDADO -->
 <div class="page" id="page-saved">
   <div class="ph">
-    <div><div class="ph-title">GUARDADO</div><div class="ph-sub">Ideas que quieres ejecutar</div></div>
-    <button class="btn-s" onclick="clearSaved()">LIMPIAR TODO</button>
+    <div><div class="ph-title" data-i18n="saved_title">GUARDADO</div><div class="ph-sub" data-i18n="saved_sub">Ideas y noticias que quieres ejecutar</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="dl-btn" onclick="downloadPage()">⬇ PDF</button>
+      <button class="btn-s" onclick="clearSaved()" data-i18n="clear_all">LIMPIAR TODO</button>
+    </div>
   </div>
-  <div class="st">IDEAS GUARDADAS</div>
+  <div class="st" data-i18n="saved_ideas">IDEAS GUARDADAS</div>
   <div class="ideas-grid" id="savedGrid"></div>
   <div class="saved-empty" id="savedEmpty">Nada guardado aún.<br>Ve a <b>Ideas IA</b> y pulsa <b>+ GUARDAR</b> en las ideas que te gusten.</div>
+  <div id="savedNewsSection" style="display:none">
+    <div class="st" style="margin-top:24px" data-i18n="saved_news">NOTICIAS GUARDADAS</div>
+    <div id="savedNewsGrid"></div>
+  </div>
 </div>
 
 <!-- MI MARCA -->
@@ -566,8 +644,57 @@ async function apiFetch(url, opts){
 let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',websiteUrl:'',creatorBio:'',brandTone:'',brandName:'',brandNiche:'',brandAudience:'',brandGoal:'',brandAvoid:''};
 let realData=null,platformFilter='all',trendFilter='tt',compFilter='all';
 let vChart=null,eChart=null,serverOk=false;
-let selectedAccount='all',currentPeriod='7d',isDark=true;
-let currentIdeas=[],currentHooks=[],savedIdeas=[],likedTags=[],dislikedTags=[],savedCreators=[];
+let selectedAccount='all',currentPeriod='7d',isDark=true,lang='es';
+let currentIdeas=[],currentHooks=[],savedIdeas=[],likedTags=[],dislikedTags=[],savedCreators=[],savedNews=[];
+let ideaTypeFilter='all',customDateStart='',customDateEnd='';
+
+// ═══ TRANSLATIONS ═══
+const TR={
+  es:{
+    period:'PERÍODO',content_title:'MI CONTENIDO',platform:'PLATAFORMA:',all:'ALL',best_posts:'MEJORES POSTS',
+    trending_title:'TRENDING EN TU NICHO',viral_videos:'VIDEOS VIRALES · NICHO IA / MARKETING',
+    news_title:'NOTICIAS DE ÚLTIMA HORA · IA + MARKETING',ideas_title:'IDEAS IA',
+    ideas_week:'IDEAS PARA ESTA SEMANA',all_types:'TODOS',saved_title:'GUARDADO',
+    saved_sub:'Ideas y noticias que quieres ejecutar',saved_ideas:'IDEAS GUARDADAS',
+    saved_news:'NOTICIAS GUARDADAS',clear_all:'LIMPIAR TODO',overview:'OVERVIEW',
+    nav_content:'MI CONTENIDO',nav_competitors:'CREADORES',nav_trending:'TRENDING',
+    nav_ideas:'IDEAS IA',nav_saved:'GUARDADO',nav_brand:'MI MARCA',nav_config:'CONFIGURAR',
+    generate_new:'✦ GENERAR NUEVAS',save_idea:'+ GUARDAR',idea_saved:'✓ GUARDADA',
+    generate_analysis:'✦ GENERAR ANÁLISIS',how_exec:'CÓMO EJECUTARLO',
+    metric_views:'TOTAL VIEWS',metric_eng:'ENGAGEMENT RATE',metric_fol_tt:'FOLLOWERS TIKTOK',
+    metric_fol_ig:'FOLLOWERS INSTAGRAM',metric_posts:'TOTAL POSTS',metric_avg_views:'AVG VIEWS',
+    metric_best:'MEJOR FORMATO',metric_shares:'TOTAL SHARES',metric_likes:'TOTAL LIKES',
+    metric_comments:'TOTAL COMENTARIOS',metric_sent:'ENGAGEMENT RATE',metric_more:'VER MÁS →',
+    sync:'↻ SYNC',save_news:'+ GUARDAR NOTICIA',news_saved:'✓ GUARDADA',read_more:'↗ LEER MÁS',
+    generate_script:'✦ GENERAR GUIÓN PARA ESTA IDEA',
+  },
+  en:{
+    period:'PERIOD',content_title:'MY CONTENT',platform:'PLATFORM:',all:'ALL',best_posts:'TOP POSTS',
+    trending_title:'TRENDING IN YOUR NICHE',viral_videos:'VIRAL VIDEOS · AI / MARKETING NICHE',
+    news_title:'BREAKING NEWS · AI + MARKETING',ideas_title:'AI IDEAS',
+    ideas_week:'IDEAS FOR THIS WEEK',all_types:'ALL',saved_title:'SAVED',
+    saved_sub:'Ideas and news you want to execute',saved_ideas:'SAVED IDEAS',
+    saved_news:'SAVED NEWS',clear_all:'CLEAR ALL',overview:'OVERVIEW',
+    nav_content:'MY CONTENT',nav_competitors:'CREATORS',nav_trending:'TRENDING',
+    nav_ideas:'AI IDEAS',nav_saved:'SAVED',nav_brand:'MY BRAND',nav_config:'SETTINGS',
+    generate_new:'✦ GENERATE NEW',save_idea:'+ SAVE',idea_saved:'✓ SAVED',
+    generate_analysis:'✦ GENERATE ANALYSIS',how_exec:'HOW TO EXECUTE',
+    metric_views:'TOTAL VIEWS',metric_eng:'ENGAGEMENT RATE',metric_fol_tt:'TIKTOK FOLLOWERS',
+    metric_fol_ig:'INSTAGRAM FOLLOWERS',metric_posts:'TOTAL POSTS',metric_avg_views:'AVG VIEWS',
+    metric_best:'BEST FORMAT',metric_shares:'TOTAL SHARES',metric_likes:'TOTAL LIKES',
+    metric_comments:'TOTAL COMMENTS',metric_sent:'ENGAGEMENT RATE',metric_more:'VIEW MORE →',
+    sync:'↻ SYNC',save_news:'+ SAVE NEWS',news_saved:'✓ SAVED',read_more:'↗ READ MORE',
+    generate_script:'✦ GENERATE SCRIPT FOR THIS IDEA',
+  }
+};
+function t(k){return TR[lang]?.[k]||TR.es[k]||k;}
+
+// ═══ NEWS DATA ═══
+const NEWS_ITEMS=[
+  {id:'n1',headline:'OpenAI lanza GPT-5o con capacidades multimodales avanzadas',date:'2026-05-04',tag:'OPENAI',summary:'OpenAI anunció GPT-5o, un modelo con capacidades mejoradas de razonamiento multimodal que supera a los anteriores en comprensión de imagen y audio. Para creadores de contenido de IA: oportunidad perfecta para un vídeo de reacción o análisis comparativo vs Claude. Idea de gancho: "Probé GPT-5o vs Claude Sonnet en 5 tareas de marketing — esto cambió todo para mi contenido."',url:'https://openai.com'},
+  {id:'n2',headline:'TikTok anuncia nuevas herramientas de IA para creadores en su Creator Hub',date:'2026-05-03',tag:'TIKTOK',summary:'TikTok Creator Hub incorpora funciones de IA para optimizar hooks, subtítulos automáticos y timing de publicación según tu audiencia. Alta relevancia para tu nicho: puedes crear contenido explicando estas herramientas a creadores hispanohablantes que aún no las conocen. Formato recomendado: tutorial corto de 45-60s mostrando cada función en vivo.',url:'https://www.tiktok.com/creators'},
+  {id:'n3',headline:'Informe HubSpot: el marketing con IA generó 340% más engagement en Q1 2026',date:'2026-05-02',tag:'INFORME',summary:'Según el último State of Marketing de HubSpot, las marcas que integran IA en su proceso de creación de contenido generan 3.4x más engagement y publican 2.8x más rápido. Dato con alto potencial viral: "Por qué el 90% de marketers ya usa IA para su contenido (y por qué tú también deberías)". Complementa con un breakdown de tu propio flujo de trabajo con IA.',url:'https://hubspot.com'},
+];
 
 // ═══ DEMO DATA ═══
 const D={
@@ -627,12 +754,12 @@ const TREND_IG=[
 ];
 
 const IDEAS_BASE=[
-  {score:"SCORE: 9.2/10",title:"El prompt que le pasé a Claude para analizar mis propios vídeos",desc:"Proceso en tiempo real: transcripción → prompt exacto → análisis que devuelve. Hook: 'Le di mis 10 mejores vídeos a Claude y me dijo exactamente por qué funcionaron'",tags:["How-to","Claude","alto viral"]},
-  {score:"SCORE: 8.7/10",title:"3 workflows de Make que cualquier creador debería tener en 2025",desc:"Tutorial práctico en pantalla. Hook: 'Automaticé X horas de trabajo con esto'",tags:["Tutorial","Make","automatización"]},
-  {score:"SCORE: 8.4/10",title:"Por qué dejé de usar Notion y migré todo mi sistema a IA agéntica",desc:"Storytelling personal + transición + demo del nuevo sistema. Alta retención por cambio radical.",tags:["Storytelling","sistemas","productividad"]},
-  {score:"SCORE: 7.9/10",title:"Stack completo de IA para content creators 2025 — coste real y honesto",desc:"Desglose transparente: cuánto pagas, qué eliminarías, qué es imprescindible.",tags:["Opinión","stack","precio real"]},
-  {score:"SCORE: 7.6/10",title:"Cómo analizo mis métricas de TikTok con IA (detrás de mi dashboard)",desc:"Meta-contenido sobre tu sistema de análisis. Posicionamiento único creador + técnico.",tags:["Behind scenes","datos","Claude"]},
-  {score:"SCORE: 7.3/10",title:"Cloné mi voz con ElevenLabs — resultados reales tras 30 días",desc:"Demo en vivo + comparación + resultados. Genera debate y alto engagement.",tags:["Demo","ElevenLabs","polémico"]},
+  {score:"SCORE: 9.2/10",contentType:"VIDEO",title:"El prompt que le pasé a Claude para analizar mis propios vídeos",desc:"Proceso en tiempo real: transcripción → prompt exacto → análisis que devuelve. Hook: 'Le di mis 10 mejores vídeos a Claude y me dijo exactamente por qué funcionaron'",tags:["How-to","Claude","alto viral"]},
+  {score:"SCORE: 8.7/10",contentType:"CARRUSEL",title:"3 workflows de Make que cualquier creador debería tener en 2025",desc:"Tutorial práctico en pantalla. Hook: 'Automaticé X horas de trabajo con esto'",tags:["Tutorial","Make","automatización"]},
+  {score:"SCORE: 8.4/10",contentType:"VIDEO",title:"Por qué dejé de usar Notion y migré todo mi sistema a IA agéntica",desc:"Storytelling personal + transición + demo del nuevo sistema. Alta retención por cambio radical.",tags:["Storytelling","sistemas","productividad"]},
+  {score:"SCORE: 7.9/10",contentType:"CARRUSEL",title:"Stack completo de IA para content creators 2025 — coste real y honesto",desc:"Desglose transparente: cuánto pagas, qué eliminarías, qué es imprescindible.",tags:["Opinión","stack","precio real"]},
+  {score:"SCORE: 7.6/10",contentType:"VIDEO",title:"Cómo analizo mis métricas de TikTok con IA (detrás de mi dashboard)",desc:"Meta-contenido sobre tu sistema de análisis. Posicionamiento único creador + técnico.",tags:["Behind scenes","datos","Claude"]},
+  {score:"SCORE: 7.3/10",contentType:"IMAGEN",title:"Cloné mi voz con ElevenLabs — resultados reales tras 30 días",desc:"Demo en vivo + comparación + resultados. Genera debate y alto engagement.",tags:["Demo","ElevenLabs","polémico"]},
 ];
 
 // ═══ HOOK SUGGESTIONS ═══
@@ -710,6 +837,7 @@ function renderAll(){
   renderContentMetrics(d);renderPosts(d);
   renderComps();renderTrending(trendFilter);renderIdeas();
   renderSaved();
+  applyTranslations();
 }
 
 function updateClock(){
@@ -800,12 +928,37 @@ function showPage(id,btn){
   if(btn)btn.classList.add('active');
 }
 function setPeriod(p,btn){
+  if(p==='custom'){
+    const picker=document.getElementById('datePicker');
+    if(picker){picker.classList.toggle('show');}
+    return;
+  }
   btn.closest('.period-sel').querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   currentPeriod=p;
   const lbs={'7d':'Últimos 7 días','30d':'Últimos 30 días','90d':'Últimos 90 días'};
   ['periodLabel','contentPeriod'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=lbs[p];});
+  document.getElementById('datePicker')?.classList.remove('show');
   renderAll();
+}
+
+function applyCustomRange(){
+  const s=document.getElementById('dateStart').value;
+  const e=document.getElementById('dateEnd').value;
+  if(!s||!e){showNotif('FECHAS REQUERIDAS','Selecciona fecha de inicio y fin.');return;}
+  if(new Date(s)>new Date(e)){showNotif('FECHA INVÁLIDA','La fecha de inicio debe ser anterior a la de fin.');return;}
+  customDateStart=s;customDateEnd=e;
+  currentPeriod='custom';
+  const fmt=d=>new Date(d).toLocaleDateString('es-ES',{day:'2-digit',month:'short'});
+  const label=`${fmt(s)} – ${fmt(e)}`;
+  ['periodLabel','contentPeriod'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=label;});
+  document.getElementById('customPeriodBtn').textContent=`📅 ${label}`;
+  document.getElementById('datePicker').classList.remove('show');
+  renderAll();
+}
+
+function closeDatePicker(){
+  document.getElementById('datePicker')?.classList.remove('show');
 }
 function filterPlatform(p,btn){
   btn.closest('.period-sel').querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
@@ -822,29 +975,57 @@ function renderMetrics(d){
   let items;
   if(selectedAccount==='tt'){
     items=[
-      {lbl:'VISTAS TIKTOK',val:fn(Math.round(d.tiktok.views*m)),delta:'+'+d.tiktok.viewsDelta+'%',up:true,c:'g'},
-      {lbl:'ENGAGEMENT TT',val:d.tiktok.engagement+'%',delta:'+0.8pp',up:true,c:'y'},
-      {lbl:'FOLLOWERS TT',val:fn(d.tiktok.followers),delta:'+'+d.tiktok.followersDelta,up:true,c:'b'},
-      {lbl:'SHARES TT',val:fn(Math.round(d.tiktok.shares*m)),delta:'—',up:true,c:'r'},
+      {lbl:'VISTAS TIKTOK',val:fn(Math.round(d.tiktok.views*m)),delta:'+'+d.tiktok.viewsDelta+'%',up:true,c:'g',metric:'views_tt'},
+      {lbl:'ENGAGEMENT TT',val:d.tiktok.engagement+'%',delta:'+0.8pp',up:true,c:'y',metric:'eng_tt'},
+      {lbl:'FOLLOWERS TT',val:fn(d.tiktok.followers),delta:'+'+d.tiktok.followersDelta,up:true,c:'b',metric:'fol_tt'},
+      {lbl:'SHARES TT',val:fn(Math.round(d.tiktok.shares*m)),delta:'—',up:true,c:'r',metric:'shares_tt'},
     ];
   }else if(selectedAccount==='ig'){
     items=[
-      {lbl:'VISTAS INSTAGRAM',val:fn(Math.round(d.instagram.views*m)),delta:'+'+d.instagram.viewsDelta+'%',up:true,c:'g'},
-      {lbl:'ENGAGEMENT IG',val:d.instagram.engagement+'%',delta:'+0.4pp',up:true,c:'y'},
-      {lbl:'FOLLOWERS IG',val:fn(d.instagram.followers),delta:'+'+d.instagram.followersDelta,up:true,c:'b'},
-      {lbl:'SHARES IG',val:fn(Math.round(d.instagram.shares*m)),delta:'—',up:true,c:'r'},
+      {lbl:'VISTAS INSTAGRAM',val:fn(Math.round(d.instagram.views*m)),delta:'+'+d.instagram.viewsDelta+'%',up:true,c:'g',metric:'views_ig'},
+      {lbl:'ENGAGEMENT IG',val:d.instagram.engagement+'%',delta:'+0.4pp',up:true,c:'y',metric:'eng_ig'},
+      {lbl:'FOLLOWERS IG',val:fn(d.instagram.followers),delta:'+'+d.instagram.followersDelta,up:true,c:'b',metric:'fol_ig'},
+      {lbl:'SHARES IG',val:fn(Math.round(d.instagram.shares*m)),delta:'—',up:true,c:'r',metric:'shares_ig'},
     ];
   }else{
     items=[
-      {lbl:'TOTAL VIEWS',val:fn(Math.round((d.tiktok.views+d.instagram.views)*m)),delta:'+12.3%',up:true,c:'g'},
-      {lbl:'ENGAGEMENT RATE',val:'7.4%',delta:'+0.8pp',up:true,c:'y'},
-      {lbl:'FOLLOWERS TIKTOK',val:fn(d.tiktok.followers),delta:'+'+d.tiktok.followersDelta,up:true,c:'b'},
-      {lbl:'FOLLOWERS INSTAGRAM',val:fn(d.instagram.followers),delta:'+'+d.instagram.followersDelta,up:true,c:'r'},
+      {lbl:t('metric_views'),val:fn(Math.round((d.tiktok.views+d.instagram.views)*m)),delta:'+12.3%',up:true,c:'g',metric:'views'},
+      {lbl:t('metric_eng'),val:'7.4%',delta:'+0.8pp',up:true,c:'y',metric:'eng'},
+      {lbl:t('metric_fol_tt'),val:fn(d.tiktok.followers),delta:'+'+d.tiktok.followersDelta,up:true,c:'b',metric:'fol_tt'},
+      {lbl:t('metric_fol_ig'),val:fn(d.instagram.followers),delta:'+'+d.instagram.followersDelta,up:true,c:'r',metric:'fol_ig'},
     ];
   }
-  document.getElementById('metricsGrid').innerHTML=items.map(i=>`<div class="mc ${i.c}"><div class="mc-lbl">${i.lbl}</div><div class="mc-val">${i.val}</div><div class="mc-delta ${i.up?'up':'dn'}">${i.up?'▲':'▼'} ${i.delta} vs anterior</div></div>`).join('');
+  document.getElementById('metricsGrid').innerHTML=items.map(i=>`<div class="mc ${i.c} clickable" onclick="openMetricDetail('${i.metric}')"><div class="mc-lbl">${i.lbl}</div><div class="mc-val">${i.val}</div><div class="mc-delta ${i.up?'up':'dn'}">${i.up?'▲':'▼'} ${i.delta} vs anterior</div><div style="font-size:9px;color:var(--accent);margin-top:6px;letter-spacing:.06em">VER TOP 3 →</div></div>`).join('');
   document.getElementById('sbTTFol').textContent=fn(d.tiktok.followers);
   document.getElementById('sbIGFol').textContent=fn(d.instagram.followers);
+}
+
+function openMetricDetail(metric){
+  const d=realData||D;
+  let posts=[...d.tiktok.topPosts,...d.instagram.topPosts];
+  let title='',sortFn=null;
+  if(metric.includes('views')){title='TOP 3 · VISTAS';sortFn=(a,b)=>b.views-a.views;}
+  else if(metric.includes('eng')){title='TOP 3 · ENGAGEMENT';sortFn=(a,b)=>b.eng-a.eng;}
+  else if(metric.includes('fol_tt')){
+    const html=`<div style="font-size:13px;margin-bottom:12px">Cuenta TikTok <b style="color:var(--tiktok)">@${cfg.ttHandle.replace('@','')}</b></div><div class="mc g" style="margin-bottom:8px"><div class="mc-lbl">FOLLOWERS</div><div class="mc-val">${fn(d.tiktok.followers)}</div><div class="mc-delta up">▲ +${d.tiktok.followersDelta} este período</div></div><div style="margin-top:14px"><a href="https://www.tiktok.com/@${cfg.ttHandle.replace('@','')}" target="_blank" class="btn-p" style="text-decoration:none;display:inline-block">↗ VER PERFIL TIKTOK</a></div>`;
+    openModal('FOLLOWERS TIKTOK',html);return;
+  }
+  else if(metric.includes('fol_ig')){
+    const html=`<div style="font-size:13px;margin-bottom:12px">Cuenta Instagram <b style="color:var(--ig)">@${cfg.igHandle.replace('@','')}</b></div><div class="mc b" style="margin-bottom:8px"><div class="mc-lbl">FOLLOWERS</div><div class="mc-val">${fn(d.instagram.followers)}</div><div class="mc-delta up">▲ +${d.instagram.followersDelta} este período</div></div><div style="margin-top:14px"><a href="https://www.instagram.com/${cfg.igHandle.replace('@','')}" target="_blank" class="btn-p" style="text-decoration:none;display:inline-block">↗ VER PERFIL INSTAGRAM</a></div>`;
+    openModal('FOLLOWERS INSTAGRAM',html);return;
+  }
+  else if(metric.includes('shares')){title='TOP 3 · COMPARTIDOS';sortFn=(a,b)=>b.shares-a.shares;}
+  if(metric==='views_tt'||metric==='eng_tt'||metric==='shares_tt') posts=d.tiktok.topPosts;
+  if(metric==='views_ig'||metric==='eng_ig'||metric==='shares_ig') posts=d.instagram.topPosts;
+  const top3=sortFn?[...posts].sort(sortFn).slice(0,3):posts.slice(0,3);
+  const html=top3.map((p,i)=>`<div style="background:var(--bg3);border:1px solid var(--border);padding:12px 14px;margin-bottom:8px">
+    <div style="font-size:12px;font-weight:600;margin-bottom:6px;line-height:1.3">${i+1}. ${p.title}</div>
+    <div style="display:flex;gap:12px;font-size:10px;color:var(--text3)">
+      <span style="color:${p.platform==='tt'?'var(--tiktok)':'var(--ig)'}">${p.platform==='tt'?'TIKTOK':'INSTAGRAM'}</span>
+      <span>${fn(p.views)} views</span><span>${fn(p.likes)} likes</span><span>${p.eng}% eng</span>
+    </div>
+  </div>`).join('')+`<div style="margin-top:12px"><button class="btn-p" onclick="closeModal();showPage('content',document.querySelector('.nav-btn:nth-child(2)'))">VER TODO MI CONTENIDO →</button></div>`;
+  openModal(title,html);
 }
 function renderViewsChart(d){
   const ctx=document.getElementById('viewsChart').getContext('2d');
@@ -908,11 +1089,23 @@ function mkDonut(id,mix,colors){
 
 // ═══ CONTENT ═══
 function renderContentMetrics(d){
+  const m=periodMult();
+  const allPosts=[...d.tiktok.topPosts,...d.instagram.topPosts];
+  const totalLikes=allPosts.reduce((s,p)=>s+p.likes,0);
+  const totalComments=allPosts.reduce((s,p)=>s+p.comments,0);
+  const totalShares=d.tiktok.shares+d.instagram.shares;
+  const totalViews=d.tiktok.views+d.instagram.views;
+  const totalPosts=d.tiktok.posts+d.instagram.posts;
+  const avgEng=allPosts.length?((allPosts.reduce((s,p)=>s+parseFloat(p.eng||0),0)/allPosts.length).toFixed(1)+'%'):'—';
   document.getElementById('contentMetrics').innerHTML=[
-    {lbl:'TOTAL POSTS',val:d.tiktok.posts+d.instagram.posts,c:'g'},
-    {lbl:'AVG VIEWS',val:fn(Math.round((d.tiktok.views+d.instagram.views)/(d.tiktok.posts+d.instagram.posts))),c:'y'},
-    {lbl:'MEJOR FORMATO',val:'HOW-TO',c:'b',sm:true},
-    {lbl:'TOTAL SHARES',val:fn(d.tiktok.shares+d.instagram.shares),c:'r'},
+    {lbl:t('metric_posts'),val:totalPosts,c:'g'},
+    {lbl:t('metric_avg_views'),val:fn(Math.round(totalViews/totalPosts)),c:'y'},
+    {lbl:t('metric_best'),val:'HOW-TO',c:'b',sm:true},
+    {lbl:t('metric_shares'),val:fn(Math.round(totalShares*m)),c:'r'},
+    {lbl:t('metric_likes'),val:fn(totalLikes),c:'g'},
+    {lbl:t('metric_comments'),val:fn(totalComments),c:'y'},
+    {lbl:t('metric_sent'),val:avgEng,c:'b'},
+    {lbl:'TASA SHARES',val:fn(Math.round(totalShares/(totalPosts||1))+'/post'),c:'r',sm:true},
   ].map(m=>`<div class="mc ${m.c}"><div class="mc-lbl">${m.lbl}</div><div class="mc-val" style="${m.sm?'font-size:18px':''}">${m.val}</div></div>`).join('');
 }
 function renderPosts(d){
@@ -1037,6 +1230,49 @@ function renderTrending(p){
       <div><div class="trend-title">${t.title}</div><div class="trend-meta"><span class="trend-handle">${t.handle}</span> · ${t.dur} <span style="font-size:9px;color:var(--accent3)">↗ ver stats</span></div><div class="trend-tag">${t.tag}</div></div>
       <div class="trend-stats"><div class="trend-views">${t.views}</div><div class="trend-likes">♥ ${t.likes}</div></div>
     </div>`).join('');
+  renderNews();
+}
+
+function renderNews(){
+  const nl=document.getElementById('newsList');
+  if(!nl)return;
+  nl.innerHTML=NEWS_ITEMS.map((n,idx)=>{
+    const isSaved=savedNews.some(s=>s.id===n.id);
+    return`<div class="news-item" id="newsItem${idx}">
+      <div class="news-hd" onclick="toggleNews(${idx})">
+        <div>
+          <div class="news-title">${n.headline}</div>
+          <div class="news-tag">${n.tag}</div>
+        </div>
+        <div class="news-meta">${n.date} <span style="color:var(--accent3);margin-left:6px">▼</span></div>
+      </div>
+      <div class="news-body" id="newsBody${idx}">
+        <div class="news-summary">${n.summary}</div>
+        <div class="news-acts">
+          <a href="${n.url}" target="_blank" rel="noopener" class="btn-s" style="font-size:10px;padding:5px 12px;text-decoration:none">${t('read_more')}</a>
+          <button class="btn-p" style="font-size:9px;padding:5px 12px" onclick="saveNewsItem(${idx})" ${isSaved?'disabled style="opacity:.5"':''}>${isSaved?t('news_saved'):t('save_news')}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleNews(idx){
+  const body=document.getElementById('newsBody'+idx);
+  if(!body)return;
+  const isOpen=body.classList.toggle('open');
+  const arrow=document.querySelector(`#newsItem${idx} .news-meta span`);
+  if(arrow)arrow.textContent=isOpen?'▲':'▼';
+}
+
+function saveNewsItem(idx){
+  const n=NEWS_ITEMS[idx];
+  if(savedNews.some(s=>s.id===n.id)){showNotif('YA GUARDADA','Esta noticia ya está guardada.');return;}
+  savedNews.push({...n,savedAt:new Date().toISOString()});
+  localStorage.setItem('iac_saved_news',JSON.stringify(savedNews));
+  showNotif('NOTICIA GUARDADA',n.headline.slice(0,60)+'...');
+  renderNews();
+  renderSaved();
 }
 
 function openTrendingModal(idx,p){
@@ -1063,17 +1299,39 @@ function openTrendingModal(idx,p){
 }
 
 // ═══ IDEAS ═══
+function filterIdeas(type,btn){
+  ideaTypeFilter=type;
+  document.querySelectorAll('.ifb').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderIdeas(currentIdeas);
+}
+
+function ctypeTag(ct){
+  if(!ct)return'';
+  const cls=ct==='VIDEO'?'ctype-video':ct==='CARRUSEL'?'ctype-carrusel':'ctype-imagen';
+  return`<span class="${cls}" style="margin-right:6px">${ct}</span>`;
+}
+
 function renderIdeas(ideas){
   currentIdeas=ideas||IDEAS_BASE;
-  document.getElementById('ideasGrid').innerHTML=currentIdeas.map((i,idx)=>{
+  const filtered=ideaTypeFilter==='all'?currentIdeas:currentIdeas.filter(i=>(i.contentType||'VIDEO')===ideaTypeFilter);
+  if(!filtered.length){
+    document.getElementById('ideasGrid').innerHTML=`<div class="empty" style="grid-column:1/-1">No hay ideas de tipo ${ideaTypeFilter}. Genera nuevas ideas o cambia el filtro.</div>`;
+    return;
+  }
+  document.getElementById('ideasGrid').innerHTML=filtered.map((i,idx)=>{
+    const realIdx=currentIdeas.indexOf(i);
     const saved=savedIdeas.some(s=>s.title===i.title);
-    return `<div class="idea-card" onclick="openIdeaDetail(${idx})">
-      <div class="idea-score">${i.score}</div>
+    return `<div class="idea-card" onclick="openIdeaDetail(${realIdx})">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="idea-score">${i.score}</div>
+        ${ctypeTag(i.contentType||'VIDEO')}
+      </div>
       <div class="idea-title">${i.title}</div>
       <div class="idea-desc">${i.desc}</div>
-      <div class="idea-tags">${i.tags.map(t=>`<span class="idea-tag">${t}</span>`).join('')}</div>
+      <div class="idea-tags">${i.tags.map(tg=>`<span class="idea-tag">${tg}</span>`).join('')}</div>
       <div class="idea-footer">
-        <button class="idea-save-btn${saved?' saved':''}" onclick="event.stopPropagation();saveIdea(${idx})">${saved?'✓ GUARDADA':'+ GUARDAR'}</button>
+        <button class="idea-save-btn${saved?' saved':''}" onclick="event.stopPropagation();saveIdea(${realIdx})">${saved?t('idea_saved'):t('save_idea')}</button>
         <span style="font-size:9px;color:var(--text3)">Click para ver más →</span>
       </div>
     </div>`;
@@ -1086,19 +1344,75 @@ function openIdeaDetail(idx){
   const tipKey=idea.tags[0]||'How-to';
   const tips=(IDEA_TIPS[tipKey]||IDEA_TIPS['How-to']);
   let html=`<div style="margin-bottom:18px">
-    <div class="idea-score">${idea.score}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <div class="idea-score">${idea.score}</div>${ctypeTag(idea.contentType||'VIDEO')}
+    </div>
     <div class="idea-title" style="font-size:16px;margin:8px 0;line-height:1.3">${idea.title}</div>
     <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">${idea.desc}</div>
-    <div class="idea-tags">${idea.tags.map(t=>`<span class="idea-tag">${t}</span>`).join('')}</div>
+    <div class="idea-tags">${idea.tags.map(tg=>`<span class="idea-tag">${tg}</span>`).join('')}</div>
   </div>
-  <div class="st">CÓMO EJECUTARLO</div>
-  ${tips.map(t=>`<div class="exec-tip"><div class="exec-label">${t.label}</div><div class="exec-text" style="white-space:pre-line">${t.text}</div></div>`).join('')}
+  <div class="st">${t('how_exec')}</div>
+  ${tips.map(tp=>`<div class="exec-tip"><div class="exec-label">${tp.label}</div><div class="exec-text" style="white-space:pre-line">${tp.text}</div></div>`).join('')}
   <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
     <button class="btn-p" id="saveModalBtn" onclick="saveIdeaFromModal(${idx})">${saved?'✓ YA GUARDADA':'+ GUARDAR IDEA'}</button>
     <button class="btn-s" onclick="likeIdea(${idx})" title="Marcar como interesante — influye en próximas ideas">👍 ME GUSTA</button>
     <button class="btn-s" onclick="dislikeIdea(${idx})" title="No me interesa — se reemplaza por otra idea">👎 NO ME INTERESA</button>
+  </div>
+  <div class="st" style="margin-top:18px">${t('generate_script')}</div>
+  <div id="ideaScriptArea">
+    <button class="btn-p" style="width:100%" onclick="generateIdeaScript(${idx})">✦ GENERAR GUIÓN PARA ESTA IDEA</button>
+    <div class="cfg-status" id="ideaScriptStatus" style="margin-top:6px"></div>
+    <div id="ideaScriptResult" style="display:none;margin-top:12px"></div>
   </div>`;
   openModal(idea.title,html);
+}
+
+async function generateIdeaScript(idx){
+  const idea=currentIdeas[idx];
+  const key=cfg.anthropicKey||document.getElementById('anthropicKey').value.trim();
+  const st=document.getElementById('ideaScriptStatus');
+  const result=document.getElementById('ideaScriptResult');
+  if(!key){st.textContent='✕ Configura tu API key de Anthropic primero';st.className='cfg-status err';return;}
+  if(!serverOk){st.textContent='✕ Servidor offline — ejecuta node server.js';st.className='cfg-status err';return;}
+  const btn=document.querySelector('#ideaScriptArea .btn-p');
+  if(btn){btn.disabled=true;btn.textContent='GENERANDO...';}
+  st.textContent='Claude está escribiendo tu guión...';st.className='cfg-status loading';
+  result.style.display='none';
+  try{
+    const scriptCtx=[
+      cfg.brandName&&`Marca: ${cfg.brandName}`,
+      cfg.brandNiche&&`Nicho: ${cfg.brandNiche}`,
+      cfg.creatorBio&&`Bio: ${cfg.creatorBio}`,
+      cfg.brandAudience&&`Audiencia: ${cfg.brandAudience}`,
+      cfg.brandGoal&&`Objetivo: ${cfg.brandGoal}`,
+      cfg.brandAvoid&&`Evitar: ${cfg.brandAvoid}`,
+    ].filter(Boolean).join(' · ')||'IA aplicada al marketing y la automatización. Audiencia: creadores y emprendedores hispanohablantes.';
+    const scriptTone=cfg.brandTone?`\nTONO Y VOZ DE MARCA:\n${cfg.brandTone}\nAdapta el guión a esta voz exacta.`:'';
+    const contentTypePart=idea.contentType?`\nFORMATO REQUERIDO: ${idea.contentType} — adapta la estructura a este formato.`:'';
+    const prompt=`Eres guionista experto en contenido viral para TikTok e Instagram en español.\n\nCONTEXTO DEL CREADOR: ${scriptCtx}${scriptTone}${contentTypePart}\n\nGenera un guión completo para esta idea:\n\nIDEA: "${idea.title}"\nDESCRIPCIÓN: "${idea.desc}"\nTAGS: ${idea.tags.join(', ')}\n\nResponde SOLO con este JSON:\n{"titulo":"título final del vídeo","hook":"primeros 3-5 segundos exactos","estructura":["paso 1","paso 2","paso 3","cierre/CTA"],"caption":"caption completo con emojis","tags":["#tag1","#tag2","#tag3","#tag4","#tag5"],"duracion":"duración recomendada","formato":"tipo de vídeo"}`;
+    const r=await apiFetch('/api/anthropic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:cfg.anthropicModel||'claude-sonnet-4-20250514',max_tokens:900,messages:[{role:'user',content:prompt}]})});
+    if(!r.ok)throw new Error('API error '+r.status);
+    const data=await r.json();
+    const text=data.content.map(c=>c.text||'').join('');
+    const s=JSON.parse(text.replace(/```json|```/g,'').trim());
+    result.style.display='block';
+    result.innerHTML=`
+      <div class="exec-tip"><div class="exec-label">TÍTULO</div><div class="exec-text" style="font-size:14px;font-weight:700;color:var(--text)">${s.titulo}</div></div>
+      <div class="exec-tip"><div class="exec-label">HOOK (3-5s)</div><div class="exec-text" style="color:var(--accent)">"${s.hook}"</div></div>
+      <div class="exec-tip"><div class="exec-label">ESTRUCTURA</div><div class="exec-text"><ol style="padding-left:16px;line-height:2">${s.estructura.map(e=>`<li>${e}</li>`).join('')}</ol></div></div>
+      <div class="exec-tip"><div class="exec-label">CAPTION</div><div class="exec-text">${s.caption}</div></div>
+      <div class="exec-tip"><div class="exec-label">TAGS</div><div class="exec-text" style="color:var(--accent3)">${s.tags.join(' ')}</div></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <div class="exec-tip" style="flex:1;margin:0"><div class="exec-label">DURACIÓN</div><div class="exec-text">${s.duracion}</div></div>
+        <div class="exec-tip" style="flex:1;margin:0"><div class="exec-label">FORMATO</div><div class="exec-text">${s.formato}</div></div>
+      </div>`;
+    window._lastScript=s;
+    st.textContent='✓ Guión generado';st.className='cfg-status ok';
+  }catch(e){
+    st.textContent='✕ '+e.message;st.className='cfg-status err';
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='✦ REGENERAR GUIÓN';}
+  }
 }
 
 function saveIdea(idx){
@@ -1129,11 +1443,11 @@ function likeIdea(idx){
 
 // Pool de ideas de reserva para reemplazar las descartadas
 const IDEAS_POOL=[
-  {score:"SCORE: 7.1/10",title:"Comparé 5 herramientas de IA para crear contenido — ranking honesto",desc:"Review imparcial con casos de uso reales. Posicionamiento de autoridad en el nicho.",tags:["Opinión","comparativa","herramientas"]},
-  {score:"SCORE: 7.4/10",title:"Mi rutina de creación de contenido con IA — de idea a publicado en 45 min",desc:"Behind the scenes real. Muestra el proceso completo, humaniza la automatización.",tags:["Behind scenes","workflow","productividad"]},
-  {score:"SCORE: 6.9/10",title:"Probé los prompts virales de TikTok — esto es lo que realmente funciona",desc:"Formato de test + resultado. Genera curiosidad y contrasta expectativas vs realidad.",tags:["Test","prompts","viral"]},
-  {score:"SCORE: 7.7/10",title:"Cómo uso n8n + Claude para gestionar mis redes sin tocar el teléfono",desc:"Demo técnica accesible. Alto valor para creadores que quieren escalar.",tags:["Tutorial","n8n","automatización"]},
-  {score:"SCORE: 6.8/10",title:"La estrategia de contenido que uso para mis clientes de asesoría",desc:"Credibilidad + detrás del negocio. Atrae leads de asesoría al mostrar el método.",tags:["Estrategia","asesoría","B2B"]},
+  {score:"SCORE: 7.1/10",contentType:"CARRUSEL",title:"Comparé 5 herramientas de IA para crear contenido — ranking honesto",desc:"Review imparcial con casos de uso reales. Posicionamiento de autoridad en el nicho.",tags:["Opinión","comparativa","herramientas"]},
+  {score:"SCORE: 7.4/10",contentType:"VIDEO",title:"Mi rutina de creación de contenido con IA — de idea a publicado en 45 min",desc:"Behind the scenes real. Muestra el proceso completo, humaniza la automatización.",tags:["Behind scenes","workflow","productividad"]},
+  {score:"SCORE: 6.9/10",contentType:"VIDEO",title:"Probé los prompts virales de TikTok — esto es lo que realmente funciona",desc:"Formato de test + resultado. Genera curiosidad y contrasta expectativas vs realidad.",tags:["Test","prompts","viral"]},
+  {score:"SCORE: 7.7/10",contentType:"VIDEO",title:"Cómo uso n8n + Claude para gestionar mis redes sin tocar el teléfono",desc:"Demo técnica accesible. Alto valor para creadores que quieren escalar.",tags:["Tutorial","n8n","automatización"]},
+  {score:"SCORE: 6.8/10",contentType:"CARRUSEL",title:"La estrategia de contenido que uso para mis clientes de asesoría",desc:"Credibilidad + detrás del negocio. Atrae leads de asesoría al mostrar el método.",tags:["Estrategia","asesoría","B2B"]},
 ];
 
 function dislikeIdea(idx){
@@ -1173,19 +1487,51 @@ function renderSaved(){
   const grid=document.getElementById('savedGrid');
   const empty=document.getElementById('savedEmpty');
   if(!grid)return;
-  if(!savedIdeas.length){grid.innerHTML='';empty.style.display='block';return;}
-  empty.style.display='none';
-  grid.innerHTML=savedIdeas.map((i,idx)=>`
-    <div class="idea-card" onclick="openSavedDetail(${idx})" style="cursor:pointer">
-      <div class="idea-score">${i.score}</div>
-      <div class="idea-title">${i.title}</div>
-      <div class="idea-desc">${i.desc}</div>
-      <div class="idea-tags">${i.tags.map(t=>`<span class="idea-tag">${t}</span>`).join('')}</div>
-      <div class="idea-footer">
-        <button class="rm-btn" onclick="event.stopPropagation();removeSaved(${idx})">✕ ELIMINAR</button>
-        <span style="font-size:9px;color:var(--text3)">${new Date(i.savedAt).toLocaleDateString('es-ES')} · Click para expandir →</span>
+  if(!savedIdeas.length){grid.innerHTML='';empty.style.display='block';}
+  else{
+    empty.style.display='none';
+    grid.innerHTML=savedIdeas.map((i,idx)=>`
+      <div class="idea-card" onclick="openSavedDetail(${idx})" style="cursor:pointer">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div class="idea-score">${i.score}</div>${ctypeTag(i.contentType||'')}
+        </div>
+        <div class="idea-title">${i.title}</div>
+        <div class="idea-desc">${i.desc}</div>
+        <div class="idea-tags">${(i.tags||[]).map(tg=>`<span class="idea-tag">${tg}</span>`).join('')}</div>
+        <div class="idea-footer">
+          <button class="rm-btn" onclick="event.stopPropagation();removeSaved(${idx})">✕ ELIMINAR</button>
+          <span style="font-size:9px;color:var(--text3)">${new Date(i.savedAt).toLocaleDateString('es-ES')} · Click →</span>
+        </div>
+      </div>`).join('');
+  }
+  // Saved news section
+  const newsSection=document.getElementById('savedNewsSection');
+  const newsGrid=document.getElementById('savedNewsGrid');
+  if(!newsSection||!newsGrid)return;
+  if(!savedNews.length){newsSection.style.display='none';return;}
+  newsSection.style.display='block';
+  newsGrid.innerHTML=savedNews.map((n,idx)=>`
+    <div class="news-item">
+      <div class="news-hd" style="cursor:default">
+        <div><div class="news-title">${n.headline}</div><div class="news-tag">${n.tag}</div></div>
+        <div class="news-meta">${n.date}</div>
+      </div>
+      <div class="news-body open">
+        <div class="news-summary">${n.summary}</div>
+        <div class="news-acts">
+          <a href="${n.url}" target="_blank" class="btn-s" style="font-size:10px;padding:5px 12px;text-decoration:none">${t('read_more')}</a>
+          <button class="rm-btn" onclick="removeSavedNews(${idx})">✕ ELIMINAR</button>
+        </div>
       </div>
     </div>`).join('');
+}
+
+function removeSavedNews(idx){
+  savedNews.splice(idx,1);
+  localStorage.setItem('iac_saved_news',JSON.stringify(savedNews));
+  renderSaved();
+  renderNews();
+  showNotif('ELIMINADA','Noticia removida de guardado.');
 }
 
 function openSavedDetail(idx){
@@ -1675,6 +2021,7 @@ function loadCfg(){
     likedTags=JSON.parse(localStorage.getItem('iac_liked_tags')||'[]');
     dislikedTags=JSON.parse(localStorage.getItem('iac_disliked_tags')||'[]');
     savedCreators=JSON.parse(localStorage.getItem('iac_saved_creators')||'[]');
+    savedNews=JSON.parse(localStorage.getItem('iac_saved_news')||'[]');
   }catch(e){}
 }
 
@@ -1689,6 +2036,56 @@ function showNotif(title,body){
   document.getElementById('nTitle').textContent=title;document.getElementById('nBody').textContent=body;
   document.getElementById('notif').classList.add('show');
   if(nTimer)clearTimeout(nTimer);nTimer=setTimeout(()=>document.getElementById('notif').classList.remove('show'),5000);
+}
+
+// ═══ LANGUAGE TOGGLE ═══
+function toggleLang(){
+  lang=lang==='es'?'en':'es';
+  const btn=document.getElementById('langBtn');
+  if(btn)btn.textContent='🌐 '+lang.toUpperCase();
+  applyTranslations();
+  renderAll();
+}
+
+function applyTranslations(){
+  // Update all elements with data-i18n attribute
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.getAttribute('data-i18n');
+    if(TR[lang]?.[key])el.textContent=TR[lang][key];
+  });
+  // Navigation buttons
+  const navMap=[
+    [1,'OVERVIEW'],[2,t('nav_content')],[3,t('nav_competitors')],
+    [4,t('nav_trending')],[5,t('nav_ideas')],[6,t('nav_saved')],
+    [7,t('nav_brand')],[8,t('nav_config')]
+  ];
+  const navBtns=document.querySelectorAll('.nav-btn');
+  navMap.forEach(([i,label])=>{
+    if(navBtns[i-1]){
+      const icon=navBtns[i-1].querySelector('.ni');
+      const iconHtml=icon?icon.outerHTML:'';
+      navBtns[i-1].innerHTML=iconHtml+label;
+    }
+  });
+  // Sync button
+  const syncBtn=document.getElementById('syncBtn');
+  if(syncBtn&&!syncBtn.disabled)syncBtn.textContent=t('sync');
+  // Generate buttons
+  const genBtn=document.getElementById('genBtn');
+  if(genBtn&&!genBtn.disabled)genBtn.textContent=t('generate_new');
+  const summaryBtn=document.getElementById('summaryBtn');
+  if(summaryBtn&&!summaryBtn.disabled)summaryBtn.textContent=t('generate_analysis');
+}
+
+// ═══ DOWNLOAD / PRINT ═══
+function downloadPage(){
+  // Add a temporary print title
+  const activePage=document.querySelector('.page.active');
+  const titleEl=activePage?.querySelector('.ph-title');
+  const title=titleEl?.textContent||'Dashboard';
+  document.title=`@iaconpatrick · ${title} · ${new Date().toLocaleDateString('es-ES')}`;
+  window.print();
+  setTimeout(()=>{document.title='SYSTEM // @iaconpatrick · Dashboard';},2000);
 }
 
 // ═══ UTILS ═══
