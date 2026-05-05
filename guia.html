@@ -294,14 +294,16 @@
     <li><span class="il-num">06</span><span class="il-title">Primer sync de datos</span><span class="il-page">8</span></li>
     <li class="section">CAPTURAS DEL DASHBOARD</li>
     <li><span class="il-num">—</span><span class="il-title">Vista general y sección de ideas</span><span class="il-page">9</span></li>
-    <li><span class="il-num">—</span><span class="il-title">Configuración y sección de guardado</span><span class="il-page">10</span></li>
+    <li><span class="il-num">—</span><span class="il-title">Configuración de IA (Configurar)</span><span class="il-page">10</span></li>
+    <li class="section">SECCIONES DEL DASHBOARD</li>
+    <li><span class="il-num">—</span><span class="il-title">MI CONTENIDO · CREADORES · TRENDING</span><span class="il-page">11</span></li>
+    <li><span class="il-num">—</span><span class="il-title">IDEAS IA · GUARDADO · MI MARCA</span><span class="il-page">12</span></li>
     <li class="section">USO DEL DASHBOARD</li>
-    <li><span class="il-num">07</span><span class="il-title">Cómo usar cada sección</span><span class="il-page">11</span></li>
-    <li><span class="il-num">08</span><span class="il-title">Generar ideas y guiones</span><span class="il-page">11</span></li>
+    <li><span class="il-num">07</span><span class="il-title">Tabla resumen y flujo semanal</span><span class="il-page">13</span></li>
     <li class="section">SOLUCIÓN DE ERRORES</li>
-    <li><span class="il-num">09</span><span class="il-title">Errores frecuentes y cómo solucionarlos</span><span class="il-page">12</span></li>
+    <li><span class="il-num">08</span><span class="il-title">Errores frecuentes y cómo solucionarlos</span><span class="il-page">14</span></li>
     <li class="section">REFERENCIA RÁPIDA</li>
-    <li><span class="il-num">10</span><span class="il-title">Credenciales, FAQ y soporte</span><span class="il-page">13</span></li>
+    <li><span class="il-num">09</span><span class="il-title">Credenciales, FAQ y soporte</span><span class="il-page">15</span></li>
   </ul>
   <div class="pg-footer"><span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span><span>4</span></div>
 </div>
@@ -434,6 +436,31 @@
     <li class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Pega tu API key</div><div class="step-desc">En el campo "API KEY", pega la clave que copiaste. Asegúrate de que no haya espacios al principio ni al final.</div></div></li>
     <li class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Prueba y guarda</div><div class="step-desc">Pulsa <strong>PROBAR CONEXIÓN</strong> — debe aparecer un mensaje verde. Luego pulsa <strong>GUARDAR</strong>. Este último paso es obligatorio.</div></div></li>
   </ul>
+
+  <!-- SCREENSHOT: Configurar IA -->
+  <div class="screenshot-wrap" style="margin-top:14px">
+    <div style="padding:10px;background:#f5f5f0">
+      <div style="font-size:7pt;font-weight:800;color:#111;margin-bottom:8px;font-family:var(--sans)">CONFIGURAR · IA GENERATIVA</div>
+      <div style="font-size:4.5pt;color:#666;margin-bottom:6px;font-family:var(--sans)">Elige el modelo de IA que usarás para generar ideas, guiones y análisis.</div>
+      <div class="mini-provider-sel">
+        <div class="mini-pb active">◆ CLAUDE</div>
+        <div class="mini-pb">◈ CHATGPT</div>
+        <div class="mini-pb">✦ GEMINI</div>
+      </div>
+      <div class="mini-cfg-block">
+        <div class="mini-cfg-label">ANTHROPIC API KEY</div>
+        <div class="mini-cfg-input"><span>sk-ant-api03-••••••••••••••••••••</span></div>
+        <div class="mini-cfg-label" style="margin-top:4px">MODELO</div>
+        <div class="mini-cfg-input"><span>claude-sonnet-4 (recomendado)</span></div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
+        <div class="mini-btn">PROBAR CONEXIÓN</div>
+        <div class="mini-btn" style="background:#f0f0ea;color:#333">GUARDAR</div>
+        <div style="font-size:4pt;color:#2ed573;font-family:var(--mono)">✓ Conexión OK</div>
+      </div>
+    </div>
+    <div class="screenshot-caption">⚙ CONFIGURAR — Selector de proveedor de IA con campo de API key y botón de prueba</div>
+  </div>
 
   <div class="pg-footer"><span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA · IACONPATRICK</span><span>7</span></div>
 </div>
@@ -605,32 +632,236 @@
 
   <p style="margin-top:10px">Cada tarjeta muestra el <strong>score de viralidad</strong> (0-10), el <strong>tipo de formato</strong> recomendado y los <strong>tags</strong> del contenido. Haz clic en cualquier tarjeta para ver los consejos de ejecución y generar el guión completo.</p>
 
-  <!-- SCREENSHOT 3: Configurar IA -->
-  <div class="screenshot-wrap" style="margin-top:14px">
-    <div style="padding:10px;background:#f5f5f0">
-      <div style="font-size:7pt;font-weight:800;color:#111;margin-bottom:8px;font-family:var(--sans)">CONFIGURAR · IA GENERATIVA</div>
-      <div style="font-size:4.5pt;color:#666;margin-bottom:6px;font-family:var(--sans)">Elige el modelo de IA que usarás para generar ideas, guiones y análisis.</div>
-      <div class="mini-provider-sel">
-        <div class="mini-pb active">◆ CLAUDE</div>
-        <div class="mini-pb">◈ CHATGPT</div>
-        <div class="mini-pb">✦ GEMINI</div>
-      </div>
-      <div class="mini-cfg-block">
-        <div class="mini-cfg-label">ANTHROPIC API KEY</div>
-        <div class="mini-cfg-input"><span>sk-ant-api03-••••••••••••••••••••</span></div>
-        <div class="mini-cfg-label" style="margin-top:4px">MODELO</div>
-        <div class="mini-cfg-input"><span>claude-sonnet-4 (recomendado)</span></div>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
-        <div class="mini-btn">PROBAR CONEXIÓN</div>
-        <div class="mini-btn" style="background:#f0f0ea;color:#333">GUARDAR</div>
-        <div style="font-size:4pt;color:#2ed573;font-family:var(--mono)">✓ Conexión OK</div>
+  <div class="pg-footer"><span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span><span>10</span></div>
+</div>
+
+<!-- ══════════════════════════════════ SECCIONES P1 -->
+<div class="page content-page">
+  <div class="pg-header"><span class="pg-header-left">◆ DASHBOARD ANALYTICS IA · IACONPATRICK</span><span class="pg-header-right">SECCIONES DEL DASHBOARD</span></div>
+
+  <div class="section-label">SECCIONES · PARTE 1</div>
+  <div class="section-title">Qué hace cada<br>sección</div>
+
+  <!-- MI CONTENIDO -->
+  <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #e8e8e4">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--mono);font-size:9pt;font-weight:700;color:#111;margin-bottom:4px">▦ MI CONTENIDO</div>
+      <p style="font-size:9.5pt;color:#444;line-height:1.6;margin:0">Todos tus posts de TikTok e Instagram ordenados por rendimiento. Filtra por plataforma (TT / IG) y período. Haz clic en cualquier post para ver métricas detalladas: views, likes, comentarios, retención y engagement.</p>
+    </div>
+    <div style="width:200px;flex-shrink:0">
+      <div class="screenshot-wrap" style="margin:0">
+        <div style="background:#0f0f0d;padding:6px 8px 4px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <div style="font-size:5.5pt;font-weight:700;color:#f0ede6;letter-spacing:.06em;font-family:var(--mono)">MI CONTENIDO</div>
+            <div style="display:flex;gap:3px">
+              <div style="font-size:3.5pt;padding:2px 5px;background:#e8ff47;color:#000;font-weight:700;font-family:var(--mono)">ALL</div>
+              <div style="font-size:3.5pt;padding:2px 5px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-family:var(--mono)">TT</div>
+              <div style="font-size:3.5pt;padding:2px 5px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-family:var(--mono)">IG</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-bottom:5px">
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:4px;border-top:1px solid #47ff8a"><div style="font-size:3pt;color:#7a7a72;letter-spacing:.1em;margin-bottom:2px">VIEWS</div><div style="font-size:7.5pt;font-weight:700;color:#f0ede6;font-family:var(--mono)">284K</div><div style="font-size:3pt;color:#47ff8a">↑18.4%</div></div>
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:4px;border-top:1px solid #e8ff47"><div style="font-size:3pt;color:#7a7a72;letter-spacing:.1em;margin-bottom:2px">LIKES</div><div style="font-size:7.5pt;font-weight:700;color:#f0ede6;font-family:var(--mono)">18.2K</div><div style="font-size:3pt;color:#47ff8a">↑9.3%</div></div>
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:4px;border-top:1px solid #47ffe8"><div style="font-size:3pt;color:#7a7a72;letter-spacing:.1em;margin-bottom:2px">ENG.</div><div style="font-size:7.5pt;font-weight:700;color:#f0ede6;font-family:var(--mono)">7.2%</div><div style="font-size:3pt;color:#47ff8a">↑0.8%</div></div>
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:4px;border-top:1px solid #ff4757"><div style="font-size:3pt;color:#7a7a72;letter-spacing:.1em;margin-bottom:2px">POSTS</div><div style="font-size:7.5pt;font-weight:700;color:#f0ede6;font-family:var(--mono)">47</div><div style="font-size:3pt;color:#7a7a72">7 días</div></div>
+          </div>
+          <div style="font-size:3pt;color:#7a7a72;letter-spacing:.14em;margin-bottom:3px;font-family:var(--mono)">MEJORES POSTS</div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.07);padding:4px 5px;display:flex;gap:5px;align-items:center">
+              <div style="width:18px;height:12px;background:#252523;border:1px solid rgba(255,255,255,.1);flex-shrink:0"></div>
+              <div style="flex:1;min-width:0"><div style="font-size:3.5pt;color:#f0ede6;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--mono)">Cómo uso IA para planificar...</div><div style="font-size:3pt;color:#fe2c55;margin-top:1px">TIKTOK · VIDEO</div></div>
+              <div style="text-align:right;flex-shrink:0"><div style="font-size:4pt;font-weight:700;color:#e8ff47;font-family:var(--mono)">92K</div><div style="font-size:3pt;color:#7a7a72">views</div></div>
+            </div>
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.07);padding:4px 5px;display:flex;gap:5px;align-items:center">
+              <div style="width:18px;height:12px;background:#252523;border:1px solid rgba(255,255,255,.1);flex-shrink:0"></div>
+              <div style="flex:1;min-width:0"><div style="font-size:3.5pt;color:#f0ede6;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--mono)">Las 3 métricas que importan...</div><div style="font-size:3pt;color:#e1306c;margin-top:1px">INSTAGRAM · CARRUSEL</div></div>
+              <div style="text-align:right;flex-shrink:0"><div style="font-size:4pt;font-weight:700;color:#e8ff47;font-family:var(--mono)">61K</div><div style="font-size:3pt;color:#7a7a72">views</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="screenshot-caption">▦ MI CONTENIDO — métricas y posts ordenados por rendimiento</div>
       </div>
     </div>
-    <div class="screenshot-caption">⚙ CONFIGURAR — Selector de proveedor de IA con campo de API key y botón de prueba</div>
   </div>
 
-  <div class="pg-footer"><span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span><span>10</span></div>
+  <!-- CREADORES -->
+  <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #e8e8e4">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--mono);font-size:9pt;font-weight:700;color:#111;margin-bottom:4px">◎ CREADORES</div>
+      <p style="font-size:9.5pt;color:#444;line-height:1.6;margin:0">Analiza los creadores de tu nicho que hayas añadido en Configurar. Ves sus seguidores, engagement y mejores vídeos. Puedes marcar creadores como "interesantes" para seguirlos de cerca. Los datos se sincronizan cada semana automáticamente.</p>
+    </div>
+    <div style="width:200px;flex-shrink:0">
+      <div class="screenshot-wrap" style="margin:0">
+        <div style="background:#0f0f0d;padding:6px 8px 5px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <div style="font-size:5.5pt;font-weight:700;color:#f0ede6;letter-spacing:.06em;font-family:var(--mono)">CREADORES SIMILARES</div>
+            <div style="display:flex;gap:3px">
+              <div style="font-size:3.5pt;padding:2px 5px;background:#e8ff47;color:#000;font-weight:700;font-family:var(--mono)">TODOS</div>
+              <div style="font-size:3.5pt;padding:2px 5px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-family:var(--mono)">TT</div>
+              <div style="font-size:3.5pt;padding:2px 5px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-family:var(--mono)">IG</div>
+            </div>
+          </div>
+          <div style="font-size:3pt;color:#7a7a72;letter-spacing:.14em;margin-bottom:4px;font-family:var(--mono)">CREADORES EN TU NICHO</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px">
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:5px">
+              <div style="width:16px;height:16px;background:#252523;border-radius:50%;margin:0 auto 3px;border:1px solid rgba(232,255,71,.3)"></div>
+              <div style="font-size:4pt;font-weight:700;color:#e8ff47;text-align:center;font-family:var(--mono)">@creador1</div>
+              <div style="font-size:3pt;color:#fe2c55;text-align:center;margin-top:1px">TIKTOK</div>
+              <div style="font-size:4pt;color:#f0ede6;text-align:center;margin-top:3px;font-weight:700">245K</div>
+              <div style="font-size:3pt;color:#7a7a72;text-align:center">seguidores</div>
+              <div style="font-size:3pt;color:#47ff8a;text-align:center;margin-top:1px">8.4% eng.</div>
+            </div>
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:5px">
+              <div style="width:16px;height:16px;background:#252523;border-radius:50%;margin:0 auto 3px;border:1px solid rgba(71,255,232,.3)"></div>
+              <div style="font-size:4pt;font-weight:700;color:#e8ff47;text-align:center;font-family:var(--mono)">@creador2</div>
+              <div style="font-size:3pt;color:#e1306c;text-align:center;margin-top:1px">INSTAGRAM</div>
+              <div style="font-size:4pt;color:#f0ede6;text-align:center;margin-top:3px;font-weight:700">98K</div>
+              <div style="font-size:3pt;color:#7a7a72;text-align:center">seguidores</div>
+              <div style="font-size:3pt;color:#47ff8a;text-align:center;margin-top:1px">6.1% eng.</div>
+            </div>
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:5px">
+              <div style="width:16px;height:16px;background:#252523;border-radius:50%;margin:0 auto 3px;border:1px solid rgba(232,255,71,.3)"></div>
+              <div style="font-size:4pt;font-weight:700;color:#e8ff47;text-align:center;font-family:var(--mono)">@creador3</div>
+              <div style="font-size:3pt;color:#fe2c55;text-align:center;margin-top:1px">TIKTOK</div>
+              <div style="font-size:4pt;color:#f0ede6;text-align:center;margin-top:3px;font-weight:700">512K</div>
+              <div style="font-size:3pt;color:#7a7a72;text-align:center">seguidores</div>
+              <div style="font-size:3pt;color:#47ff8a;text-align:center;margin-top:1px">5.7% eng.</div>
+            </div>
+          </div>
+        </div>
+        <div class="screenshot-caption">◎ CREADORES — análisis de referentes de tu nicho</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRENDING -->
+  <div style="display:flex;gap:14px;align-items:flex-start">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--mono);font-size:9pt;font-weight:700;color:#111;margin-bottom:4px">↑ TRENDING</div>
+      <p style="font-size:9.5pt;color:#444;line-height:1.6;margin:0">Los vídeos más virales de tu nicho ahora mismo, más las últimas noticias de IA y marketing. Guarda los que te inspiren con un clic. Usa el botón ↺ REFRESCAR para obtener contenido actualizado en cualquier momento.</p>
+    </div>
+    <div style="width:200px;flex-shrink:0">
+      <div class="screenshot-wrap" style="margin:0">
+        <div style="background:#0f0f0d;padding:6px 8px 5px">
+          <div style="font-size:5.5pt;font-weight:700;color:#f0ede6;letter-spacing:.06em;font-family:var(--mono);margin-bottom:4px">TRENDING EN TU NICHO</div>
+          <div style="font-size:3pt;color:#7a7a72;letter-spacing:.12em;margin-bottom:3px;font-family:var(--mono)">VIDEOS VIRALES · NICHO IA / MARKETING</div>
+          <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:5px">
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.07);padding:4px 5px;display:flex;gap:5px;align-items:center">
+              <div style="width:22px;height:14px;background:#252523;border:1px solid rgba(255,255,255,.1);flex-shrink:0;display:flex;align-items:center;justify-content:center"><span style="font-size:5pt;color:rgba(255,255,255,.3)">▶</span></div>
+              <div style="flex:1;min-width:0"><div style="font-size:3.5pt;color:#f0ede6;font-family:var(--mono);line-height:1.4">Prompt engineering para creadores de contenido</div><div style="font-size:3pt;color:#fe2c55;margin-top:1px">@handle · TIKTOK</div></div>
+              <div style="text-align:right;flex-shrink:0"><div style="font-size:4pt;font-weight:700;color:#e8ff47;font-family:var(--mono)">1.2M</div><div style="font-size:3pt;color:#7a7a72">views</div></div>
+            </div>
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.07);padding:4px 5px;display:flex;gap:5px;align-items:center">
+              <div style="width:22px;height:14px;background:#252523;border:1px solid rgba(255,255,255,.1);flex-shrink:0;display:flex;align-items:center;justify-content:center"><span style="font-size:5pt;color:rgba(255,255,255,.3)">▶</span></div>
+              <div style="flex:1;min-width:0"><div style="font-size:3.5pt;color:#f0ede6;font-family:var(--mono);line-height:1.4">Automaticé mi estrategia con IA — resultados</div><div style="font-size:3pt;color:#e1306c;margin-top:1px">@handle · INSTAGRAM</div></div>
+              <div style="text-align:right;flex-shrink:0"><div style="font-size:4pt;font-weight:700;color:#e8ff47;font-family:var(--mono)">847K</div><div style="font-size:3pt;color:#7a7a72">views</div></div>
+            </div>
+          </div>
+          <div style="font-size:3pt;color:#7a7a72;letter-spacing:.12em;margin-bottom:3px;font-family:var(--mono)">NOTICIAS DE ÚLTIMA HORA · IA</div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <div style="background:#1a1a18;border:1px solid rgba(71,255,232,.12);padding:4px 5px"><div style="font-size:3.5pt;color:#f0ede6;font-family:var(--mono);line-height:1.4">Claude 4 ya disponible — cómo afecta a creadores de contenido</div><div style="font-size:3pt;color:#47ffe8;margin-top:1px">hace 2h · anthropic.com</div></div>
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.07);padding:4px 5px"><div style="font-size:3.5pt;color:#f0ede6;font-family:var(--mono);line-height:1.4">TikTok lanza nuevas herramientas para creadores en España</div><div style="font-size:3pt;color:#7a7a72;margin-top:1px">hace 5h · tiktok.com</div></div>
+          </div>
+        </div>
+        <div class="screenshot-caption">↑ TRENDING — vídeos virales y noticias de tu nicho</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pg-footer"><span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span><span>11</span></div>
+</div>
+
+<!-- ══════════════════════════════════ SECCIONES P2 -->
+<div class="page content-page">
+  <div class="pg-header"><span class="pg-header-left">◆ DASHBOARD ANALYTICS IA · IACONPATRICK</span><span class="pg-header-right">SECCIONES DEL DASHBOARD</span></div>
+
+  <div class="section-label">SECCIONES · PARTE 2</div>
+
+  <!-- IDEAS IA -->
+  <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #e8e8e4">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--mono);font-size:9pt;font-weight:700;color:#111;margin-bottom:4px">✦ IDEAS IA</div>
+      <p style="font-size:9.5pt;color:#444;line-height:1.6;margin:0">Pulsa <strong>✦ GENERAR NUEVAS</strong> y la IA analiza tus datos reales para darte 6 ideas personalizadas con score de viralidad (0-10), formato recomendado y tags. Haz clic en una idea para ver los consejos de ejecución y generar el guión completo.</p>
+    </div>
+    <div style="width:200px;flex-shrink:0">
+      <div class="screenshot-wrap" style="margin:0">
+        <div style="background:#0f0f0d;padding:6px 8px 5px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <div style="font-size:5.5pt;font-weight:700;color:#f0ede6;letter-spacing:.06em;font-family:var(--mono)">IDEAS IA</div>
+            <div style="background:#e8ff47;color:#000;font-size:3.5pt;padding:2px 6px;font-weight:700;font-family:var(--mono)">✦ GENERAR NUEVAS</div>
+          </div>
+          <div style="font-size:3pt;color:#7a7a72;letter-spacing:.14em;margin-bottom:4px;font-family:var(--mono)">IDEAS PARA ESTA SEMANA</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px">
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:5px"><div style="font-size:3pt;background:#e8ff47;color:#000;padding:1px 3px;display:inline-block;margin-bottom:2px;font-weight:700">9.2/10</div><div style="font-size:3pt;color:#7a7a72">VIDEO</div><div style="font-size:3.5pt;color:#f0ede6;line-height:1.3;margin:2px 0;font-family:var(--sans)">30 días de contenido en 2 horas</div></div>
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:5px"><div style="font-size:3pt;background:#e8ff47;color:#000;padding:1px 3px;display:inline-block;margin-bottom:2px;font-weight:700">8.7/10</div><div style="font-size:3pt;color:#7a7a72">CARRUSEL</div><div style="font-size:3.5pt;color:#f0ede6;line-height:1.3;margin:2px 0;font-family:var(--sans)">3 métricas que importan en TikTok</div></div>
+            <div style="background:#1a1a18;border:1px solid rgba(232,255,71,.25);padding:5px"><div style="font-size:3pt;background:#e8ff47;color:#000;padding:1px 3px;display:inline-block;margin-bottom:2px;font-weight:700">8.4/10</div><div style="font-size:3pt;color:#7a7a72">VIDEO</div><div style="font-size:3.5pt;color:#f0ede6;line-height:1.3;margin:2px 0;font-family:var(--sans)">Por qué el 80% abandona antes de 1K</div></div>
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:5px"><div style="font-size:3pt;background:#e8ff47;color:#000;padding:1px 3px;display:inline-block;margin-bottom:2px;font-weight:700">7.9/10</div><div style="font-size:3pt;color:#7a7a72">CARRUSEL</div><div style="font-size:3.5pt;color:#f0ede6;line-height:1.3;margin:2px 0;font-family:var(--sans)">Stack completo de herramientas 2025</div></div>
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:5px"><div style="font-size:3pt;background:#e8ff47;color:#000;padding:1px 3px;display:inline-block;margin-bottom:2px;font-weight:700">7.6/10</div><div style="font-size:3pt;color:#7a7a72">VIDEO</div><div style="font-size:3.5pt;color:#f0ede6;line-height:1.3;margin:2px 0;font-family:var(--sans)">Analizo mis métricas con IA en 5min</div></div>
+            <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:5px"><div style="font-size:3pt;background:#e8ff47;color:#000;padding:1px 3px;display:inline-block;margin-bottom:2px;font-weight:700">7.3/10</div><div style="font-size:3pt;color:#7a7a72">IMAGEN</div><div style="font-size:3.5pt;color:#f0ede6;line-height:1.3;margin:2px 0;font-family:var(--sans)">Antes/después: mejoré mi perfil IG</div></div>
+          </div>
+        </div>
+        <div class="screenshot-caption">✦ IDEAS IA — 6 ideas con score de viralidad y formato</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUARDADO -->
+  <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #e8e8e4">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--mono);font-size:9pt;font-weight:700;color:#111;margin-bottom:4px">◉ GUARDADO</div>
+      <p style="font-size:9.5pt;color:#444;line-height:1.6;margin:0">Tu biblioteca personal de ideas y noticias guardadas, con sus guiones. Aquí encuentras todo lo que marcaste con <strong>+ GUARDAR</strong>. Cada idea guardada puede tener su guión completo adjunto. Úsalo como tu lista de rodaje semanal.</p>
+    </div>
+    <div style="width:200px;flex-shrink:0">
+      <div class="screenshot-wrap" style="margin:0">
+        <div style="background:#0f0f0d;padding:6px 8px 5px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <div style="font-size:5.5pt;font-weight:700;color:#f0ede6;letter-spacing:.06em;font-family:var(--mono)">GUARDADO</div>
+            <div style="font-size:3.5pt;padding:2px 6px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-family:var(--mono)">LIMPIAR TODO</div>
+          </div>
+          <div style="font-size:3pt;color:#7a7a72;letter-spacing:.14em;margin-bottom:4px;font-family:var(--mono)">IDEAS GUARDADAS</div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:3px">
+            <div style="background:#1a1a18;border:1px solid rgba(71,255,138,.2);padding:5px;position:relative"><div style="position:absolute;top:3px;right:3px;font-size:4pt;color:#47ff8a">✓</div><div style="font-size:3pt;background:#e8ff47;color:#000;padding:1px 3px;display:inline-block;margin-bottom:2px;font-weight:700">9.2/10</div><div style="font-size:3.5pt;color:#f0ede6;line-height:1.3;margin:2px 0;font-family:var(--sans)">30 días de contenido en 2 horas</div><div style="font-size:3pt;color:#47ff8a;margin-top:2px">✦ Guión guardado</div></div>
+            <div style="background:#1a1a18;border:1px solid rgba(71,255,138,.2);padding:5px;position:relative"><div style="position:absolute;top:3px;right:3px;font-size:4pt;color:#47ff8a">✓</div><div style="font-size:3pt;background:#e8ff47;color:#000;padding:1px 3px;display:inline-block;margin-bottom:2px;font-weight:700">8.7/10</div><div style="font-size:3.5pt;color:#f0ede6;line-height:1.3;margin:2px 0;font-family:var(--sans)">3 métricas que importan en TikTok</div><div style="font-size:3pt;color:#7a7a72;margin-top:2px">Sin guión aún</div></div>
+          </div>
+        </div>
+        <div class="screenshot-caption">◉ GUARDADO — ideas y guiones para ejecutar</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MI MARCA -->
+  <div style="display:flex;gap:14px;align-items:flex-start">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--mono);font-size:9pt;font-weight:700;color:#111;margin-bottom:4px">◆ MI MARCA</div>
+      <p style="font-size:9.5pt;color:#444;line-height:1.6;margin:0">Cuéntale a la IA quién eres. Cuanto más rellenes (nombre, nicho, bio, tono de voz, audiencia), más personalizadas serán las ideas y guiones. También puedes subir tu documento de marca en PDF o TXT. <strong>Guarda siempre los cambios.</strong></p>
+    </div>
+    <div style="width:200px;flex-shrink:0">
+      <div class="screenshot-wrap" style="margin:0">
+        <div style="background:#0f0f0d;padding:6px 8px 5px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <div style="font-size:5.5pt;font-weight:700;color:#f0ede6;letter-spacing:.06em;font-family:var(--mono)">MI MARCA</div>
+            <div style="background:#e8ff47;color:#000;font-size:3.5pt;padding:2px 6px;font-weight:700;font-family:var(--mono)">GUARDAR MARCA</div>
+          </div>
+          <div style="font-size:3pt;color:#7a7a72;letter-spacing:.14em;margin-bottom:3px;font-family:var(--mono)">// QUIÉN ERES</div>
+          <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:5px;margin-bottom:3px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:3px">
+              <div><div style="font-size:3pt;color:#7a7a72;letter-spacing:.1em;margin-bottom:2px">TU NOMBRE / MARCA</div><div style="background:#252523;border:1px solid rgba(255,255,255,.1);height:9px;padding:0 3px;display:flex;align-items:center"><span style="font-size:3pt;color:#b0afa8">Patrick · iaconpatrick</span></div></div>
+              <div><div style="font-size:3pt;color:#7a7a72;letter-spacing:.1em;margin-bottom:2px">NICHO PRINCIPAL</div><div style="background:#252523;border:1px solid rgba(255,255,255,.1);height:9px;padding:0 3px;display:flex;align-items:center"><span style="font-size:3pt;color:#b0afa8">IA + marketing digital</span></div></div>
+            </div>
+            <div><div style="font-size:3pt;color:#7a7a72;letter-spacing:.1em;margin-bottom:2px">BIO / SOBRE TI</div><div style="background:#252523;border:1px solid rgba(255,255,255,.1);height:18px;padding:2px 3px"><span style="font-size:3pt;color:#b0afa8">Consultor de IA y marketing para creadores...</span></div></div>
+          </div>
+          <div style="font-size:3pt;color:#7a7a72;letter-spacing:.14em;margin-bottom:3px;font-family:var(--mono)">// VOZ</div>
+          <div style="background:#1a1a18;border:1px solid rgba(255,255,255,.08);padding:5px">
+            <div style="font-size:3pt;color:#7a7a72;letter-spacing:.1em;margin-bottom:2px">VOZ DE MARCA</div>
+            <div style="background:#252523;border:1px solid rgba(255,255,255,.1);height:22px;padding:2px 3px"><span style="font-size:3pt;color:#b0afa8">Tono directo y sin florituras. Frases cortas...</span></div>
+          </div>
+        </div>
+        <div class="screenshot-caption">◆ MI MARCA — contexto para personalizar la IA</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pg-footer"><span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span><span>12</span></div>
 </div>
 
 <!-- ══════════════════════════════════ USO -->
@@ -662,7 +893,7 @@
 
   <div class="callout tip"><strong>💡 FLUJO SEMANAL RECOMENDADO</strong><strong>Lunes:</strong> ↻ SYNC → OVERVIEW → IDEAS IA → guardar las 2-3 mejores<br><strong>Martes-Domingo:</strong> grabar usando los guiones guardados en GUARDADO<br>Tiempo total de planificación: <strong>15 minutos a la semana.</strong></div>
 
-  <div class="pg-footer"><span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span><span>11</span></div>
+  <div class="pg-footer"><span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span><span>13</span></div>
 </div>
 
 <!-- ══════════════════════════════════ ERRORES -->
@@ -721,7 +952,7 @@
     </div>
   </div>
 
-  <div class="pg-footer"><span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span><span>12</span></div>
+  <div class="pg-footer"><span>◆ IACONPATRICK · DASHBOARD ANALYTICS IA</span><span>14</span></div>
 </div>
 
 <!-- ══════════════════════════════════ REFERENCIA + FAQ -->
@@ -784,7 +1015,7 @@
     </div>
   </div>
 
-  <div class="pg-footer"><span>© 2026 Patrick Venegas · iaconpatrick.com · Todos los derechos reservados · Producto registrado</span><span>13</span></div>
+  <div class="pg-footer"><span>© 2026 Patrick Venegas · iaconpatrick.com · Todos los derechos reservados · Producto registrado</span><span>15</span></div>
 </div>
 
 </body>
