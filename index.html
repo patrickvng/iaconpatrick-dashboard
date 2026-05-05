@@ -631,22 +631,64 @@ body.light::before{display:none}
     <div class="cfg-acts"><button class="btn-s" onclick="saveConfig()">GUARDAR</button></div>
   </div>
 
-  <div class="st">ANTHROPIC — IDEAS CON CLAUDE</div>
-  <div class="cfg-block" data-label="// CLAUDE">
-    <div class="cfg-info"><b>→</b> <span class="hl">console.anthropic.com</span> → API Keys → Create Key</div>
-    <div class="cfg-grid">
-      <div class="cfg-field"><div class="cfg-lbl">ANTHROPIC API KEY</div><input type="password" class="cfg-inp" id="anthropicKey" placeholder="sk-ant-api03-xxxxxxxxxxxx"></div>
-      <div class="cfg-field"><div class="cfg-lbl">MODELO</div>
-        <select class="cfg-inp" id="anthropicModel">
-          <option value="claude-sonnet-4-20250514">claude-sonnet-4 (recomendado)</option>
-          <option value="claude-haiku-4-5-20251001">claude-haiku-4 (más económico)</option>
-        </select>
+  <div class="st">IA GENERATIVA — ELIGE TU PROVEEDOR</div>
+  <div class="cfg-block" data-label="// IA PROVIDER">
+    <div class="cfg-info">Elige el modelo de IA que usarás para generar ideas, guiones y análisis. Puedes cambiar en cualquier momento.</div>
+
+    <div class="period-sel" style="margin:14px 0 18px">
+      <button class="pb active" id="provBtnClaude" onclick="setAIProvider('claude',this)">◆ CLAUDE</button>
+      <button class="pb" id="provBtnOpenai" onclick="setAIProvider('openai',this)" style="border-left:1px solid var(--border)">◈ CHATGPT</button>
+      <button class="pb" id="provBtnGemini" onclick="setAIProvider('gemini',this)" style="border-left:1px solid var(--border)">✦ GEMINI</button>
+    </div>
+
+    <!-- Claude fields -->
+    <div id="provFieldsClaude">
+      <div class="cfg-info" style="margin-bottom:10px"><b>→</b> <span class="hl">console.anthropic.com</span> → API Keys → Create Key</div>
+      <div class="cfg-grid">
+        <div class="cfg-field"><div class="cfg-lbl">ANTHROPIC API KEY</div><input type="password" class="cfg-inp" id="anthropicKey" placeholder="sk-ant-api03-xxxxxxxxxxxx"></div>
+        <div class="cfg-field"><div class="cfg-lbl">MODELO</div>
+          <select class="cfg-inp" id="anthropicModel">
+            <option value="claude-sonnet-4-20250514">claude-sonnet-4 (recomendado)</option>
+            <option value="claude-haiku-4-5-20251001">claude-haiku-4 (más económico)</option>
+          </select>
+        </div>
       </div>
     </div>
-    <div class="cfg-acts">
-      <button class="btn-p" onclick="testAnthropic()">PROBAR</button>
+
+    <!-- ChatGPT fields -->
+    <div id="provFieldsOpenai" style="display:none">
+      <div class="cfg-info" style="margin-bottom:10px"><b>→</b> <span class="hl">platform.openai.com</span> → API keys → Create new secret key</div>
+      <div class="cfg-grid">
+        <div class="cfg-field"><div class="cfg-lbl">OPENAI API KEY</div><input type="password" class="cfg-inp" id="openaiKey" placeholder="sk-proj-xxxxxxxxxxxx"></div>
+        <div class="cfg-field"><div class="cfg-lbl">MODELO</div>
+          <select class="cfg-inp" id="openaiModel">
+            <option value="gpt-4o">GPT-4o (recomendado)</option>
+            <option value="gpt-4o-mini">GPT-4o mini (más económico)</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gemini fields -->
+    <div id="provFieldsGemini" style="display:none">
+      <div class="cfg-info" style="margin-bottom:10px"><b>→</b> <span class="hl">aistudio.google.com</span> → Get API key → Create API key</div>
+      <div class="cfg-grid">
+        <div class="cfg-field"><div class="cfg-lbl">GOOGLE AI API KEY</div><input type="password" class="cfg-inp" id="geminiKey" placeholder="AIzaSyxxxxxxxxxxxxxxxxxx"></div>
+        <div class="cfg-field"><div class="cfg-lbl">MODELO</div>
+          <select class="cfg-inp" id="geminiModel">
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash (recomendado)</option>
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+            <option value="gemini-1.5-flash">Gemini 1.5 Flash (más económico)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="cfg-acts" style="margin-top:14px">
+      <button class="btn-p" onclick="testAI()">PROBAR CONEXIÓN</button>
       <button class="btn-s" onclick="saveConfig()">GUARDAR</button>
-      <div class="cfg-status" id="anthropicStatus">No configurado</div>
+      <div class="cfg-status" id="aiStatus">No configurado</div>
     </div>
   </div>
 </div>
@@ -669,7 +711,7 @@ async function apiFetch(url, opts){
 }
 
 // ═══ STATE ═══
-let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',websiteUrl:'',creatorBio:'',brandTone:'',brandName:'',brandNiche:'',brandAudience:'',brandGoal:'',brandAvoid:'',claudeProjectCtx:''};
+let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',openaiKey:'',openaiModel:'gpt-4o',geminiKey:'',geminiModel:'gemini-2.0-flash',aiProvider:'claude',websiteUrl:'',creatorBio:'',brandTone:'',brandName:'',brandNiche:'',brandAudience:'',brandGoal:'',brandAvoid:'',claudeProjectCtx:''};
 let realData=null,platformFilter='all',trendFilter='tt',compFilter='all';
 let vChart=null,eChart=null,serverOk=false;
 let selectedAccount='all',currentPeriod='7d',isDark=true,lang='es';
@@ -1444,14 +1486,13 @@ function renderScriptResult(container,s){
 
 async function generateIdeaScript(idx){
   const idea=currentIdeas[idx];
-  const key=cfg.anthropicKey||document.getElementById('anthropicKey').value.trim();
   const st=document.getElementById('ideaScriptStatus');
   const result=document.getElementById('ideaScriptResult');
-  if(!key){st.textContent='✕ Configura tu API key de Anthropic primero';st.className='cfg-status err';return;}
+  if(!hasAIKey()){st.textContent='✕ Configura tu API key en Configurar';st.className='cfg-status err';return;}
   if(!serverOk){st.textContent='✕ Servidor offline — ejecuta node server.js';st.className='cfg-status err';return;}
   const btn=document.querySelector('#ideaScriptArea .btn-p');
   if(btn){btn.disabled=true;btn.textContent='GENERANDO...';}
-  st.textContent='Claude está escribiendo tu guión...';st.className='cfg-status loading';
+  st.textContent='IA escribiendo tu guión...';st.className='cfg-status loading';
   result.style.display='none';
   try{
     const scriptCtx=[
@@ -1465,10 +1506,7 @@ async function generateIdeaScript(idx){
     const scriptTone=cfg.brandTone?`\nTONO Y VOZ DE MARCA:\n${cfg.brandTone}\nAdapta el guión a esta voz exacta.`:'';
     const contentTypePart=idea.contentType?`\nFORMATO REQUERIDO: ${idea.contentType} — adapta la estructura a este formato.`:'';
     const prompt=`Eres guionista experto en contenido viral para TikTok e Instagram en español.${projectCtxBlock()}\n\nCONTEXTO DEL CREADOR: ${scriptCtx}${scriptTone}${contentTypePart}\n\nGenera un guión completo para esta idea:\n\nIDEA: "${idea.title}"\nDESCRIPCIÓN: "${idea.desc}"\nTAGS: ${idea.tags.join(', ')}\n\nResponde SOLO con este JSON:\n{"titulo":"título final del vídeo","hook":"primeros 3-5 segundos exactos","estructura":["paso 1","paso 2","paso 3","cierre/CTA"],"caption":"caption completo con emojis","tags":["#tag1","#tag2","#tag3","#tag4","#tag5"],"duracion":"duración recomendada","formato":"tipo de vídeo"}`;
-    const r=await apiFetch('/api/anthropic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:cfg.anthropicModel||'claude-sonnet-4-20250514',max_tokens:900,messages:[{role:'user',content:prompt}]})});
-    if(!r.ok)throw new Error('API error '+r.status);
-    const data=await r.json();
-    const text=data.content.map(c=>c.text||'').join('');
+    const text=await callAI(prompt, 900);
     const s=JSON.parse(text.replace(/```json|```/g,'').trim());
     ideaScripts[idea.title]=s;
     renderScriptResult(result,s);
@@ -1627,12 +1665,11 @@ function openSavedDetail(idx){
 }
 
 async function generateIdeas(){
-  const key=cfg.anthropicKey||document.getElementById('anthropicKey').value.trim();
   const btn=document.getElementById('genBtn');
-  if(!key){showNotif('SIN API KEY','Configura tu Anthropic API key en Configurar.');return;}
+  if(!hasAIKey()){showNotif('SIN API KEY','Configura tu API key en Configurar.');return;}
   if(!serverOk){showNotif('SERVIDOR OFFLINE','Arranca el servidor con: node server.js');return;}
   btn.disabled=true;btn.textContent='GENERANDO...';
-  document.getElementById('ideasGrid').innerHTML='<div class="empty">✦ Claude analizando tu contenido...</div>';
+  document.getElementById('ideasGrid').innerHTML='<div class="empty">✦ IA analizando tu contenido...</div>';
   try{
     const d=realData||D;
     const top=[...d.tiktok.topPosts,...d.instagram.topPosts].slice(0,5);
@@ -1645,7 +1682,7 @@ async function generateIdeas(){
         const wr=await apiFetch(`/api/scrape?url=${encodeURIComponent(cfg.websiteUrl)}`);
         const wd=await wr.json();
         if(wd.text) webContext=`\nCONTENIDO DE LA WEB DEL CREADOR (${cfg.websiteUrl}):\n${wd.text.slice(0,2000)}\n`;
-        document.getElementById('ideasGrid').innerHTML='<div class="empty">✦ Claude generando ideas...</div>';
+        document.getElementById('ideasGrid').innerHTML='<div class="empty">✦ IA generando ideas...</div>';
       }catch(e){ /* web scrape failed, continue without it */ }
     }
     const brandCtx=[
@@ -1672,36 +1709,22 @@ ${bioPart}${webContext}${tonePart}${prefPart}
 Genera 6 ideas en JSON. Responde SOLO con el JSON sin texto adicional:
 [{"score":"SCORE: X.X/10","title":"título del vídeo","desc":"ángulo + hook + por qué funcionará (máx 200 chars)","tags":["tag1","tag2","tag3"],"contentType":"VIDEO|CARRUSEL|IMAGEN"}]`;
 
-    // Llamada a través del proxy local
-    const r=await apiFetch('/api/anthropic',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        _apiKey:key, // el servidor extrae esto y no lo pasa al modelo
-        model:cfg.anthropicModel||'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        messages:[{role:'user',content:prompt}]
-      })
-    });
-    if(!r.ok)throw new Error('API error '+r.status);
-    const result=await r.json();
-    const text=result.content.map(c=>c.text||'').join('');
+    const text=await callAI(prompt, 1000);
     const ideas=JSON.parse(text.replace(/```json|```/g,'').trim());
     currentIdeas=ideas;
     renderIdeas(ideas);
-    showNotif('IDEAS GENERADAS','Claude generó 6 ideas personalizadas para tu nicho.');
+    showNotif('IDEAS GENERADAS','IA generó 6 ideas personalizadas para tu nicho.');
   }catch(e){
     document.getElementById('ideasGrid').innerHTML=`<div class="empty">✕ Error: ${e.message}<br>Verifica que el servidor está corriendo y la API key es correcta.</div>`;
   }finally{btn.disabled=false;btn.textContent='✦ GENERAR NUEVAS';}
 }
 
 async function generateOverviewSummary(){
-  const key=cfg.anthropicKey||document.getElementById('anthropicKey').value.trim();
   const btn=document.getElementById('summaryBtn');
   const st=document.getElementById('summaryStatus');
   const content=document.getElementById('summaryContent');
   const d=realData||D;
-  if(!key){
+  if(!hasAIKey()){
     // Show a static analysis from demo data
     const ttBest=d.tiktok.topPosts[0];
     const igBest=d.instagram.topPosts[0];
@@ -1718,11 +1741,11 @@ async function generateOverviewSummary(){
         <div style="font-size:9px;letter-spacing:.14em;color:var(--accent3);font-weight:700;margin-bottom:6px">→ OPORTUNIDADES PARA ESTA SEMANA</div>
         <p><b>1.</b> Duplica los How-to: son tu mejor formato con el mayor delta entre likes y views. <b>2.</b> Experimenta con Storytelling (${fn(d.tiktok.hooks[1]?.views||0)} avg views) — el segundo hook más fuerte y con margen de crecimiento. <b>3.</b> En Instagram enfoca el 100% del esfuerzo en Reels, abandona los Posts estáticos por completo. <b>4.</b> El gap de followers TT vs IG (${fn(d.tiktok.followers)} vs ${fn(d.instagram.followers)}) sugiere reutilizar el contenido TikTok de mayor rendimiento como Reels de IG sin editar.</p>
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-top:8px">Análisis basado en datos demo. Configura tu API de Anthropic y pulsa Generar Análisis para un análisis personalizado con Claude.</div>`;
+      <div style="font-size:10px;color:var(--text3);margin-top:8px">Análisis basado en datos demo. Configura tu API key en Configurar y pulsa Generar Análisis para un análisis personalizado con IA.</div>`;
     return;
   }
   if(!serverOk){showNotif('SERVIDOR OFFLINE','Arranca el servidor con: node server.js');return;}
-  btn.disabled=true;btn.textContent='ANALIZANDO...';st.textContent='Claude analizando tus métricas...';st.className='cfg-status loading';
+  btn.disabled=true;btn.textContent='ANALIZANDO...';st.textContent='IA analizando tus métricas...';st.className='cfg-status loading';
   try{
     const top=[...d.tiktok.topPosts,...d.instagram.topPosts].slice(0,6);
     const hooks=d.tiktok.hooks;
@@ -1741,10 +1764,7 @@ Responde SOLO con este JSON (sin texto extra):
   "mejorar": "2-3 frases sobre qué no está funcionando y qué debería cambiar",
   "oportunidades": "3 oportunidades concretas y accionables para esta semana numeradas como 1. 2. 3."
 }`;
-    const r=await apiFetch('/api/anthropic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:cfg.anthropicModel||'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]})});
-    if(!r.ok)throw new Error('API error '+r.status);
-    const data=await r.json();
-    const text=data.content.map(c=>c.text||'').join('');
+    const text=await callAI(prompt, 600);
     const s=JSON.parse(text.replace(/```json|```/g,'').trim());
     content.innerHTML=`
       <div style="margin-bottom:12px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent);font-weight:700;margin-bottom:6px">✦ QUÉ ESTÁ FUNCIONANDO</div><p>${s.funcionando}</p></div>
@@ -1757,15 +1777,14 @@ Responde SOLO con este JSON (sin texto extra):
 }
 
 async function generateScript(){
-  const key=cfg.anthropicKey||document.getElementById('anthropicKey').value.trim();
   const idea=document.getElementById('myIdeaInput').value.trim();
   const btn=document.getElementById('scriptBtn');
   const st=document.getElementById('scriptStatus');
   const result=document.getElementById('scriptResult');
   if(!idea){st.textContent='✕ Escribe tu idea primero';st.className='cfg-status err';return;}
-  if(!key){showNotif('SIN API KEY','Configura tu Anthropic API key en Configurar.');return;}
+  if(!hasAIKey()){showNotif('SIN API KEY','Configura tu API key en Configurar.');return;}
   if(!serverOk){showNotif('SERVIDOR OFFLINE','Arranca el servidor con: node server.js');return;}
-  btn.disabled=true;btn.textContent='GENERANDO...';st.textContent='Claude está escribiendo tu guión...';st.className='cfg-status loading';result.style.display='none';
+  btn.disabled=true;btn.textContent='GENERANDO...';st.textContent='IA escribiendo tu guión...';st.className='cfg-status loading';result.style.display='none';
   try{
     const scriptCtx=[
       cfg.brandName&&`Marca: ${cfg.brandName}`,
@@ -1794,10 +1813,7 @@ Responde SOLO con este JSON (sin texto extra):
   "duracion": "duración recomendada",
   "formato": "tipo de vídeo recomendado"
 }`;
-    const r=await apiFetch('/api/anthropic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:cfg.anthropicModel||'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});
-    if(!r.ok)throw new Error('API error '+r.status);
-    const data=await r.json();
-    const text=data.content.map(c=>c.text||'').join('');
+    const text=await callAI(prompt, 800);
     const s=JSON.parse(text.replace(/```json|```/g,'').trim());
     result.style.display='block';
     result.innerHTML=`
@@ -1815,7 +1831,7 @@ Responde SOLO con este JSON (sin texto extra):
       </div>`;
     window._lastScript=s;
     st.textContent='✓ Guión generado';st.className='cfg-status ok';
-    showNotif('GUIÓN LISTO','¡Claude escribió tu guión completo!');
+    showNotif('GUIÓN LISTO','¡Guión completo generado!');
   }catch(e){
     st.textContent='✕ '+e.message;st.className='cfg-status err';
   }finally{btn.disabled=false;btn.textContent='✦ GENERAR GUIÓN';}
@@ -1963,16 +1979,71 @@ async function testApify(){
   }
 }
 
-async function testAnthropic(){
-  const key=document.getElementById('anthropicKey').value.trim();
-  const st=document.getElementById('anthropicStatus');
-  if(!key){st.textContent='✕ Introduce tu API key';st.className='cfg-status err';return;}
+// ═══ AI PROVIDER ═══
+function setAIProvider(p, btn){
+  cfg.aiProvider=p;
+  ['Claude','Openai','Gemini'].forEach(n=>{
+    const b=document.getElementById('provBtn'+n);
+    const f=document.getElementById('provFields'+n);
+    if(b)b.classList.toggle('active',n.toLowerCase()===p);
+    if(f)f.style.display=n.toLowerCase()===p?'block':'none';
+  });
+}
+
+function hasAIKey(){
+  const p=cfg.aiProvider||'claude';
+  if(p==='claude')return!!(cfg.anthropicKey);
+  if(p==='openai')return!!(cfg.openaiKey);
+  if(p==='gemini')return!!(cfg.geminiKey);
+  return false;
+}
+
+async function callAI(prompt, maxTokens=1000){
+  const p=cfg.aiProvider||'claude';
+  if(p==='claude'){
+    const key=cfg.anthropicKey;
+    if(!key)throw new Error('Sin API key de Anthropic. Configura en Configurar.');
+    const r=await apiFetch('/api/anthropic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:cfg.anthropicModel||'claude-sonnet-4-20250514',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})});
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||'API error '+r.status);}
+    const d=await r.json();
+    return d.content.map(c=>c.text||'').join('');
+  }
+  if(p==='openai'){
+    const key=cfg.openaiKey;
+    if(!key)throw new Error('Sin API key de OpenAI. Configura en Configurar.');
+    const r=await apiFetch('/api/openai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:cfg.openaiModel||'gpt-4o',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})});
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||'API error '+r.status);}
+    const d=await r.json();
+    return d.choices[0].message.content;
+  }
+  if(p==='gemini'){
+    const key=cfg.geminiKey;
+    if(!key)throw new Error('Sin API key de Gemini. Configura en Configurar.');
+    const r=await apiFetch('/api/gemini',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,_model:cfg.geminiModel||'gemini-2.0-flash',contents:[{parts:[{text:prompt}]}]})});
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||'API error '+r.status);}
+    const d=await r.json();
+    return d.candidates[0].content.parts[0].text;
+  }
+  throw new Error('Proveedor no reconocido: '+p);
+}
+
+async function testAI(){
+  const st=document.getElementById('aiStatus');
   if(!serverOk){st.textContent='✕ Arranca el servidor primero';st.className='cfg-status err';return;}
+  const p=cfg.aiProvider||'claude';
+  let key='';
+  if(p==='claude'){key=document.getElementById('anthropicKey').value.trim();cfg.anthropicKey=key;}
+  if(p==='openai'){key=document.getElementById('openaiKey')?.value.trim()||'';cfg.openaiKey=key;}
+  if(p==='gemini'){key=document.getElementById('geminiKey')?.value.trim()||'';cfg.geminiKey=key;}
+  if(!key){st.textContent='✕ Introduce tu API key';st.className='cfg-status err';return;}
   st.textContent='Probando...';st.className='cfg-status loading';
   try{
-    const r=await apiFetch('/api/anthropic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_apiKey:key,model:document.getElementById('anthropicModel').value,max_tokens:20,messages:[{role:'user',content:'Responde solo: OK'}]})});
-    if(r.ok){st.textContent='✓ API key válida';st.className='cfg-status ok';cfg.anthropicKey=key;showNotif('ANTHROPIC OK','Ve a Ideas IA y pulsa Generar Nuevas.');}
-    else{const e=await r.json();st.textContent='✕ '+(e.error?.message||r.status);st.className='cfg-status err';}
+    const txt=await callAI('Responde solo con: OK',20);
+    if(txt&&txt.trim()){
+      st.textContent='✓ Conexión OK — '+{claude:'Claude',openai:'ChatGPT',gemini:'Gemini'}[p];
+      st.className='cfg-status ok';
+      showNotif('IA CONECTADA','Ve a Ideas IA y pulsa Generar Nuevas.');
+    }
   }catch(e){st.textContent='✕ '+e.message;st.className='cfg-status err';}
 }
 
@@ -2070,6 +2141,10 @@ function saveConfig(){
   cfg.compIG=document.getElementById('compIG').value;
   cfg.anthropicKey=document.getElementById('anthropicKey').value;
   cfg.anthropicModel=document.getElementById('anthropicModel').value;
+  cfg.openaiKey=document.getElementById('openaiKey')?.value||cfg.openaiKey;
+  cfg.openaiModel=document.getElementById('openaiModel')?.value||cfg.openaiModel;
+  cfg.geminiKey=document.getElementById('geminiKey')?.value||cfg.geminiKey;
+  cfg.geminiModel=document.getElementById('geminiModel')?.value||cfg.geminiModel;
   cfg.websiteUrl=document.getElementById('websiteUrl').value;
   cfg.creatorBio=document.getElementById('creatorBio').value;
   cfg.brandTone=document.getElementById('brandTone').value;
@@ -2087,7 +2162,9 @@ function loadCfg(){
   try{
     const s=JSON.parse(localStorage.getItem('iac_dash_v2')||'{}');
     Object.assign(cfg,s);
-    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel',websiteUrl:'websiteUrl',creatorBio:'creatorBio',brandTone:'brandTone',brandName:'brandName',brandNiche:'brandNiche',brandAudience:'brandAudience',brandGoal:'brandGoal',brandAvoid:'brandAvoid',claudeProjectCtx:'claudeProjectCtx'};
+    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel',openaiKey:'openaiKey',openaiModel:'openaiModel',geminiKey:'geminiKey',geminiModel:'geminiModel',websiteUrl:'websiteUrl',creatorBio:'creatorBio',brandTone:'brandTone',brandName:'brandName',brandNiche:'brandNiche',brandAudience:'brandAudience',brandGoal:'brandGoal',brandAvoid:'brandAvoid',claudeProjectCtx:'claudeProjectCtx'};
+    // Restore AI provider toggle
+    if(cfg.aiProvider) setAIProvider(cfg.aiProvider,document.getElementById('provBtn'+cfg.aiProvider.charAt(0).toUpperCase()+cfg.aiProvider.slice(1)));
     // Restore char counter for project context
     const pCtx=document.getElementById('claudeProjectCtx');
     const pCount=document.getElementById('projectCtxCount');

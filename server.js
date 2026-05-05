@@ -139,6 +139,58 @@ function proxyAnthropic(req, res, body) {
   proxyReq.end();
 }
 
+// ─── OPENAI PROXY ─────────────────────────────────────────────
+function proxyOpenAI(req, res, body) {
+  let parsed;
+  try { parsed = JSON.parse(body); } catch(e) { res.statusCode = 400; res.end(JSON.stringify({ error: 'Invalid JSON' })); return; }
+  const apiKey     = parsed._apiKey;
+  const payload    = { ...parsed };
+  delete payload._apiKey;
+  const payloadStr = JSON.stringify(payload);
+  const options = {
+    hostname: 'api.openai.com', path: '/v1/chat/completions', method: 'POST',
+    headers:  { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`, 'Content-Length': Buffer.byteLength(payloadStr) },
+  };
+  const proxyReq = https.request(options, (proxyRes) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'application/json');
+    res.statusCode = proxyRes.statusCode;
+    let data = '';
+    proxyRes.on('data', c => data += c);
+    proxyRes.on('end',  () => res.end(data));
+  });
+  proxyReq.on('error', e => { res.statusCode = 500; res.end(JSON.stringify({ error: e.message })); });
+  proxyReq.write(payloadStr);
+  proxyReq.end();
+}
+
+// ─── GEMINI PROXY ─────────────────────────────────────────────
+function proxyGemini(req, res, body) {
+  let parsed;
+  try { parsed = JSON.parse(body); } catch(e) { res.statusCode = 400; res.end(JSON.stringify({ error: 'Invalid JSON' })); return; }
+  const apiKey     = parsed._apiKey;
+  const model      = parsed._model || 'gemini-2.0-flash';
+  const payload    = { contents: parsed.contents };
+  const payloadStr = JSON.stringify(payload);
+  const options = {
+    hostname: 'generativelanguage.googleapis.com',
+    path:     `/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    method:   'POST',
+    headers:  { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payloadStr) },
+  };
+  const proxyReq = https.request(options, (proxyRes) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'application/json');
+    res.statusCode = proxyRes.statusCode;
+    let data = '';
+    proxyRes.on('data', c => data += c);
+    proxyRes.on('end',  () => res.end(data));
+  });
+  proxyReq.on('error', e => { res.statusCode = 500; res.end(JSON.stringify({ error: e.message })); });
+  proxyReq.write(payloadStr);
+  proxyReq.end();
+}
+
 // ─── SERVER-SIDE APIFY SYNC ──────────────────────────────────
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -355,6 +407,22 @@ const server = http.createServer((req, res) => {
     let body = '';
     req.on('data', c => body += c);
     req.on('end', () => proxyAnthropic(req, res, body));
+    return;
+  }
+
+  // ── PROXY /api/openai
+  if (pathname === '/api/openai') {
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', () => proxyOpenAI(req, res, body));
+    return;
+  }
+
+  // ── PROXY /api/gemini
+  if (pathname === '/api/gemini') {
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', () => proxyGemini(req, res, body));
     return;
   }
 
