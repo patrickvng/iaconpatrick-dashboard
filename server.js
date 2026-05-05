@@ -8,7 +8,7 @@ const pdfParse  = require('pdf-parse');
 
 const PORT      = process.env.PORT           || 3000;
 const DASH_USER = process.env.DASHBOARD_USER || 'admin';
-const DASH_PASS = process.env.DASHBOARD_PASS || 'iaconpatrick2025';
+const DASH_PASS = process.env.DASHBOARD_PASS || 'dashboard2026';
 const ENV_TOKEN = process.env.APIFY_TOKEN    || '';
 
 const CONFIG_FILE   = path.join(__dirname, 'config.json');
@@ -98,7 +98,7 @@ function proxyApify(req, res, apifyPath, body) {
     hostname: 'api.apify.com',
     path:     apifyPath,
     method:   req.method,
-    headers:  { 'Content-Type': 'application/json', 'User-Agent': 'iaconpatrick-dashboard/2.0' },
+    headers:  { 'Content-Type': 'application/json', 'User-Agent': 'social-analytics-dashboard/2.0' },
   };
   if (body) options.headers['Content-Length'] = Buffer.byteLength(body);
   const proxyReq = https.request(options, (proxyRes) => {
@@ -197,7 +197,7 @@ function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 function httpsGetJSON(reqUrl) {
   return new Promise((resolve, reject) => {
     const u = new URL(reqUrl);
-    https.get({ hostname: u.hostname, path: u.pathname + u.search, headers: { 'User-Agent': 'iaconpatrick-dashboard/2.0' } }, res => {
+    https.get({ hostname: u.hostname, path: u.pathname + u.search, headers: { 'User-Agent': 'social-analytics-dashboard/2.0' } }, res => {
       let data = '';
       res.on('data', c => data += c);
       res.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { reject(e); } });
@@ -209,7 +209,7 @@ function httpsPostJSON(hostname, reqPath, body) {
   return new Promise((resolve, reject) => {
     const bodyStr = JSON.stringify(body);
     const req = https.request(
-      { hostname, path: reqPath, method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr), 'User-Agent': 'iaconpatrick-dashboard/2.0' } },
+      { hostname, path: reqPath, method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr), 'User-Agent': 'social-analytics-dashboard/2.0' } },
       res => { let data = ''; res.on('data', c => data += c); res.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { reject(e); } }); }
     );
     req.on('error', reject); req.write(bodyStr); req.end();
@@ -236,8 +236,8 @@ async function runAutoSync() {
   const cfg   = readConfig();
   const token = ENV_TOKEN || cfg.apifyToken;
   if (!token) { console.log('[AUTO-SYNC] Sin token Apify, saltando.'); return; }
-  const ttHandle = (cfg.ttHandle || 'iaconpatrick').replace('@', '');
-  const igHandle = (cfg.igHandle || 'iaconpatrick').replace('@', '');
+  const ttHandle = (cfg.ttHandle || '').replace('@', '');
+  const igHandle = (cfg.igHandle || '').replace('@', '');
   const kwArr    = (cfg.nicheKw  || 'IA,marketing,automatización').split(',').slice(0, 3).map(k => k.trim());
   const maxPosts = parseInt(cfg.maxPosts) || 30;
   console.log(`[AUTO-SYNC] Iniciando — ${new Date().toISOString()}`);
@@ -438,7 +438,7 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log('\n  ╔══════════════════════════════════════╗');
-  console.log('  ║   @iaconpatrick Dashboard v2.0       ║');
+  console.log('  ║   Social Analytics Dashboard v2.0       ║');
   console.log('  ║   SISTEMA ONLINE                     ║');
   console.log('  ╠══════════════════════════════════════╣');
   console.log(`  ║   URL: http://localhost:${PORT}          ║`);

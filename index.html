@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SYSTEM // @iaconpatrick · Dashboard</title>
+<title>SYSTEM // Dashboard · Analytics</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -240,7 +240,7 @@ body.light::before{display:none}
   <div class="tb-l">
     <div class="sys-tag">SYSTEM <span>// v2.0</span></div>
     <div style="color:var(--text3);font-size:10px">|</div>
-    <div style="font-size:11px;color:var(--text2);letter-spacing:.05em"><span class="dot"></span>@iaconpatrick · DASHBOARD</div>
+    <div style="font-size:11px;color:var(--text2);letter-spacing:.05em"><span class="dot"></span><span id="headerHandle">DASHBOARD</span> · ANALYTICS</div>
     <div id="dsBadge" style="font-size:9px;padding:2px 7px;background:rgba(255,170,71,.1);color:var(--warn);border:1px solid rgba(255,170,71,.2);letter-spacing:.08em">DEMO DATA</div>
   </div>
   <div class="tb-r">
@@ -287,14 +287,14 @@ body.light::before{display:none}
   <div class="sb-section">
     <div class="sb-label">CUENTAS</div>
     <div class="acc-card" id="accTT" onclick="setAccount('tt')">
-      <div class="acc-top"><div class="acc-name">iaconpatrick</div><div class="acc-badge b-tt">TIKTOK</div></div>
-      <div class="acc-handle">@iaconpatrick</div>
-      <div class="acc-stat"><b id="sbTTFol">651</b> seguidores</div>
+      <div class="acc-top"><div class="acc-name" id="sbTTName">TU CUENTA</div><div class="acc-badge b-tt">TIKTOK</div></div>
+      <div class="acc-handle" id="sbTTHandle">@tucuenta</div>
+      <div class="acc-stat"><b id="sbTTFol">—</b> seguidores</div>
     </div>
     <div class="acc-card" id="accIG" onclick="setAccount('ig')">
-      <div class="acc-top"><div class="acc-name">iaconpatrick</div><div class="acc-badge b-ig">INSTAGRAM</div></div>
-      <div class="acc-handle">@iaconpatrick</div>
-      <div class="acc-stat"><b id="sbIGFol">8</b> seguidores</div>
+      <div class="acc-top"><div class="acc-name" id="sbIGName">TU CUENTA</div><div class="acc-badge b-ig">INSTAGRAM</div></div>
+      <div class="acc-handle" id="sbIGHandle">@tucuenta</div>
+      <div class="acc-stat"><b id="sbIGFol">—</b> seguidores</div>
     </div>
   </div>
   <div class="sb-section">
@@ -616,8 +616,8 @@ body.light::before{display:none}
     <div class="cfg-grid">
       <div class="cfg-field"><div class="cfg-lbl">APIFY API TOKEN</div><input type="password" class="cfg-inp" id="apifyToken" placeholder="apify_api_xxxxxxxxxxxx"></div>
       <div class="cfg-field"><div class="cfg-lbl">MAX POSTS POR CUENTA</div><input type="number" class="cfg-inp" id="maxPosts" value="50" min="10" max="200"></div>
-      <div class="cfg-field"><div class="cfg-lbl">TIKTOK HANDLE</div><input type="text" class="cfg-inp" id="ttHandle" value="@iaconpatrick"></div>
-      <div class="cfg-field"><div class="cfg-lbl">INSTAGRAM HANDLE</div><input type="text" class="cfg-inp" id="igHandle" value="@iaconpatrick"></div>
+      <div class="cfg-field"><div class="cfg-lbl">TIKTOK HANDLE</div><input type="text" class="cfg-inp" id="ttHandle" placeholder="@tucuenta"></div>
+      <div class="cfg-field"><div class="cfg-lbl">INSTAGRAM HANDLE</div><input type="text" class="cfg-inp" id="igHandle" placeholder="@tucuenta"></div>
       <div class="cfg-field" style="grid-column:1/-1"><div class="cfg-lbl">KEYWORDS NICHO (para trending)</div><input type="text" class="cfg-inp" id="nicheKw" value="IA,marketing contenidos,automatización,prompt,inteligencia artificial"></div>
     </div>
     <div class="cfg-acts">
@@ -726,7 +726,7 @@ async function apiFetch(url, opts){
 }
 
 // ═══ STATE ═══
-let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',openaiKey:'',openaiModel:'gpt-4o',geminiKey:'',geminiModel:'gemini-2.0-flash',aiProvider:'claude',websiteUrl:'',creatorBio:'',brandTone:'',brandName:'',brandNiche:'',brandAudience:'',brandGoal:'',brandAvoid:'',claudeProjectCtx:''};
+let cfg={apifyToken:'',ttHandle:'',igHandle:'',maxPosts:50,nicheKw:'',compTT:'',compIG:'',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',openaiKey:'',openaiModel:'gpt-4o',geminiKey:'',geminiModel:'gemini-2.0-flash',aiProvider:'claude',websiteUrl:'',creatorBio:'',brandTone:'',brandName:'',brandNiche:'',brandAudience:'',brandGoal:'',brandAvoid:'',claudeProjectCtx:''};
 let realData=null,platformFilter='all',trendFilter='tt',compFilter='all';
 let vChart=null,eChart=null,serverOk=false;
 let selectedAccount='all',currentPeriod='7d',isDark=false,lang='es';
@@ -784,28 +784,28 @@ const NEWS_ITEMS=[
 
 // ═══ DEMO DATA ═══
 const D={
-  tiktok:{followers:651,followersDelta:61,views:64700,viewsDelta:12.3,engagement:7.4,shares:549,posts:30,
-    viewsByDay:[3200,5100,4800,7200,9100,8400,11200,8900,12400,10200,9800,14200,12100,11800],
+  tiktok:{followers:12400,followersDelta:843,views:284700,viewsDelta:18.4,engagement:7.2,shares:2140,posts:42,
+    viewsByDay:[8200,12100,10800,15400,18900,16200,22100,19400,24800,21600,19200,28400,25100,23600],
     topPosts:[
-      {rank:1,title:"Cómo automaticé 80% de mi creación de contenido con Claude",platform:'tt',type:'How-to',views:18400,likes:892,comments:67,shares:145,eng:6.1,url:'https://www.tiktok.com/@iaconpatrick'},
-      {rank:2,title:"El stack de IA que uso para gestionar 2 marcas sin morir",platform:'tt',type:'Tutorial',views:12100,likes:543,comments:41,shares:89,eng:5.6,url:'https://www.tiktok.com/@iaconpatrick'},
-      {rank:3,title:"ChatGPT no es suficiente — esto es lo que realmente necesitas",platform:'tt',type:'Storytelling',views:9800,likes:421,comments:38,shares:72,eng:5.4,url:'https://www.tiktok.com/@iaconpatrick'},
-      {rank:4,title:"Prompt que me ahorró 3h de trabajo esta semana",platform:'tt',type:'How-to',views:7200,likes:334,comments:28,shares:55,eng:5.8,url:'https://www.tiktok.com/@iaconpatrick'},
-      {rank:5,title:"Por qué el 90% de creadores usa mal la IA (y cómo evitarlo)",platform:'tt',type:'Opinión',views:5400,likes:287,comments:44,shares:61,eng:7.2,url:'https://www.tiktok.com/@iaconpatrick'},
+      {rank:1,title:"Planifiqué 30 días de contenido en 2 horas — proceso completo",platform:'tt',type:'How-to',views:48400,likes:2892,comments:187,shares:445,eng:7.1,url:'#'},
+      {rank:2,title:"Las 3 métricas que REALMENTE importan en TikTok (el resto es ruido)",platform:'tt',type:'Tutorial',views:32100,likes:1543,comments:241,shares:389,eng:6.4,url:'#'},
+      {rank:3,title:"Por qué el 80% de creadores abandona antes de los 1.000 seguidores",platform:'tt',type:'Storytelling',views:27800,likes:1421,comments:338,shares:272,eng:6.8,url:'#'},
+      {rank:4,title:"La herramienta gratuita que uso para crear contenido 3x más rápido",platform:'tt',type:'How-to',views:19200,likes:934,comments:128,shares:255,eng:6.9,url:'#'},
+      {rank:5,title:"El error que me costó 3 meses de crecimiento — no lo cometas",platform:'tt',type:'Opinión',views:14400,likes:787,comments:344,shares:161,eng:8.2,url:'#'},
     ],
-    hooks:[{type:'How-to',views:11100,videos:3,rate:6},{type:'Storytelling',views:8400,videos:4,rate:5},{type:'Tutorial',views:7200,videos:5,rate:4},{type:'Opinión',views:5200,videos:3,rate:7}],
-    mix:{Video:18,Carrusel:7,Foto:5}},
-  instagram:{followers:8,followersDelta:2,views:28400,viewsDelta:8.1,engagement:4.2,shares:189,posts:30,
-    viewsByDay:[1200,2100,1900,3100,2800,3400,4100,3800,4600,3900,4200,5100,4800,5400],
+    hooks:[{type:'How-to',views:28600,videos:8,rate:6.9},{type:'Storytelling',views:22400,videos:6,rate:6.4},{type:'Tutorial',views:18200,videos:7,rate:5.8},{type:'Opinión',views:14800,videos:5,rate:8.1}],
+    mix:{Video:24,Carrusel:11,Foto:7}},
+  instagram:{followers:4200,followersDelta:312,views:118400,viewsDelta:11.2,engagement:5.8,shares:1289,posts:38,
+    viewsByDay:[4200,6100,5900,8100,7800,9400,11100,9800,12600,10900,11200,14100,12800,13400],
     topPosts:[
-      {rank:1,title:"New campaign for @sportyandrich — Photographer BTS",platform:'ig',type:'Reel',views:458,likes:61,comments:21,shares:12,eng:8.4,url:'https://www.instagram.com/iaconpatrick/'},
-      {rank:2,title:"We turn vision into impact, ideas into experience...",platform:'ig',type:'Reel',views:389,likes:23,comments:7,shares:8,eng:5.9,url:'https://www.instagram.com/iaconpatrick/'},
-      {rank:3,title:"CALEB PARIS TEXAS for @calebparisofficial campaign",platform:'ig',type:'Reel',views:80,likes:21,comments:12,shares:5,eng:6.1,url:'https://www.instagram.com/iaconpatrick/'},
-      {rank:4,title:"Campaign for the @adidas x @sportyandrich collab",platform:'ig',type:'Reel',views:64,likes:8,comments:4,shares:2,eng:4.4,url:'https://www.instagram.com/iaconpatrick/'},
-      {rank:5,title:"Content Creation con @raniafawazz at the @loe...",platform:'ig',type:'Reel',views:309,likes:0,comments:7,shares:3,eng:0.3,url:'https://www.instagram.com/iaconpatrick/'},
+      {rank:1,title:"Cómo duplicar el engagement de tus Reels en 7 días (con ejemplos reales)",platform:'ig',type:'Reel',views:28400,likes:1621,comments:121,shares:312,eng:7.4,url:'#'},
+      {rank:2,title:"3 ganchos que funcionan en cualquier nicho — guarda esto",platform:'ig',type:'Carrusel',views:19800,likes:923,comments:87,shares:248,eng:6.9,url:'#'},
+      {rank:3,title:"Tutorial: edita un Reel profesional solo con el móvil",platform:'ig',type:'Reel',views:14300,likes:621,comments:72,shares:185,eng:6.1,url:'#'},
+      {rank:4,title:"El calendario de contenido que uso cada semana — plantilla gratis",platform:'ig',type:'Carrusel',views:11200,likes:487,comments:64,shares:198,eng:6.7,url:'#'},
+      {rank:5,title:"Optimicé mi perfil de IG y esto pasó en 30 días",platform:'ig',type:'Reel',views:8900,likes:334,comments:47,shares:123,eng:5.9,url:'#'},
     ],
-    hooks:[{type:'Reel',views:7000,videos:17,rate:4},{type:'Post',views:0,videos:4,rate:0},{type:'Carrusel',views:0,videos:9,rate:0}],
-    mix:{Reel:17,Post:4,Carrusel:9}}
+    hooks:[{type:'Reel',views:18400,videos:21,rate:6.4},{type:'Carrusel',views:12800,videos:12,rate:7.1},{type:'Post',views:3200,videos:5,rate:2.8}],
+    mix:{Reel:21,Carrusel:12,Post:5}}
 };
 
 const COMPS_TT=[
@@ -834,7 +834,7 @@ const TREND_TT=[
 ];
 const TREND_IG=[
   {title:"Create a presentation using AI in less than 5 minutes — step by step",handle:"@gamma.app",dur:"15s",views:"40.4K",likes:418,saves:312,comments:67,shares:198,tag:"#pitchdeck #aipresenta",videoUrl:"https://www.instagram.com/gamma.app/",why:"15 segundos es la duración perfecta para IG: entra completo en el loop automático, lo que multiplica las views por reproducción. El resultado final (presentación premium) se muestra en los primeros 2s antes del proceso — técnica del 'spoiler del output' que retiene al espectador. 198 shares directos indican que se comparte como recomendación de herramienta. Para ti: replica con 'Cómo planifico 1 semana de contenido con Claude en 5 minutos — proceso completo.'"},
-  {title:"Mi stack completo de IA para content creators 2025 (lo que realmente uso)",handle:"@techconpaula",dur:"52s",views:"31.8K",likes:892,saves:567,comments:134,shares:243,tag:"AI stack 2025",videoUrl:"https://www.instagram.com/techconpaula/",why:"'Lo que realmente uso' es una de las frases con mayor CTR en IG porque combina autenticidad con utilidad práctica. La palabra 'completo' promete exhaustividad — el espectador siente que recibirá todo lo que necesita. Con 567 guardados es el más guardado de la lista en IG, lo que confirma que las guías de recursos tienen el mayor save rate en esta audiencia. Para ti: 'Mi stack exacto de herramientas IA para gestionar @iaconpatrick en 2025 — con costes reales.'"},
+  {title:"Mi stack completo de IA para content creators 2025 (lo que realmente uso)",handle:"@techconpaula",dur:"52s",views:"31.8K",likes:892,saves:567,comments:134,shares:243,tag:"AI stack 2025",videoUrl:"https://www.instagram.com/techconpaula/",why:"'Lo que realmente uso' es una de las frases con mayor CTR en IG porque combina autenticidad con utilidad práctica. La palabra 'completo' promete exhaustividad — el espectador siente que recibirá todo lo que necesita. Con 567 guardados es el más guardado de la lista en IG, lo que confirma que las guías de recursos tienen el mayor save rate en esta audiencia. Para ti: 'Mi stack exacto de herramientas IA para gestionar mi negocio en 2025 — con costes reales.'"},
   {title:"El ROI real de usar IA en tu estrategia de contenido",handle:"@marketingconia",dur:"48s",views:"24.1K",likes:634,saves:289,comments:98,shares:156,tag:"marketing IA",videoUrl:"https://www.instagram.com/marketingconia/",why:"ROI es una métrica de negocio con alto peso semántico para profesionales. 'Real' funciona como contraste implícito con las promesas exageradas del sector — posiciona al creador como honesto y con experiencia. Atrae a una audiencia decisora (marketers, directores) que convierte mejor en asesorías. Para ti: 'El ROI real de automatizar tu creación de contenido con IA — mis números tras 6 meses.'"},
   {title:"Cómo uso Claude para analizar métricas y tomar mejores decisiones",handle:"@javadex",dur:"1m 8s",views:"19.6K",likes:487,saves:398,comments:87,shares:134,tag:"claude analytics",videoUrl:"https://www.instagram.com/javadex/",why:"Combina dos temas de alta búsqueda: IA (Claude) + analítica de negocio. El beneficio final ('mejores decisiones') es aspiracional y concreto a la vez. Con 398 guardados sobre 19.6K views tiene el save rate más alto de la lista en IG (2%), lo que confirma que el contenido de 'cómo uso X herramienta para Y resultado de negocio' es el formato con mayor retención de valor percibido en esta audiencia."},
 ];
@@ -886,6 +886,16 @@ const IDEA_TIPS={
   'Opinión':[{label:'MEJOR FORMATO',text:'Cara a cámara, tono directo. El desacuerdo en comentarios es bueno para el algoritmo.'},...HOOK_TIPS['Opinión']],
   'Reel':[{label:'MEJOR FORMATO',text:'Vertical, subtítulos grandes, sin intro. Los primeros 2 frames determinan todo.'},...HOOK_TIPS['Reel']],
 };
+
+function updateSidebarAccounts(){
+  const name=cfg.brandName||(cfg.ttHandle||'TU CUENTA').replace('@','');
+  const ttH=cfg.ttHandle||'@tucuenta';
+  const igH=cfg.igHandle||'@tucuenta';
+  const el=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  el('sbTTName',name);el('sbTTHandle',ttH);
+  el('sbIGName',name);el('sbIGHandle',igH);
+  el('headerHandle',cfg.brandName||ttH);
+}
 
 function applyRealDataUI(syncedAt, suffix=''){
   document.getElementById('dsBadge').textContent='DATOS REALES';
@@ -1730,8 +1740,9 @@ async function generateIdeas(){
     const bioPart=brandCtx?`\nCONTEXTO DEL CREADOR:\n${brandCtx}\n`:'';
     const tonePart=cfg.brandTone?`\nTONO Y VOZ DE MARCA:\n${cfg.brandTone}\n`:'Aplica un tono directo, sin florituras, orientado a resultados.';
     const projectPart=projectCtxBlock();
+    const creatorHandle=cfg.brandName||cfg.ttHandle||'el creador';
     const prompt=`Eres estratega experto en contenido para redes sociales, IA y marketing digital en español.${projectPart}
-Analiza estos datos de @iaconpatrick y genera 6 ideas de contenido para TikTok/Instagram:
+Analiza estos datos de ${creatorHandle} y genera 6 ideas de contenido para TikTok/Instagram:
 
 MEJORES POSTS:
 ${top.map(p=>`- "${p.title}" (${fn(p.views)} views, ${p.eng}% eng, tipo: ${p.type})`).join('\n')}
@@ -1783,7 +1794,7 @@ async function generateOverviewSummary(){
   try{
     const top=[...d.tiktok.topPosts,...d.instagram.topPosts].slice(0,6);
     const hooks=d.tiktok.hooks;
-    const prompt=`Eres estratega de contenido experto en IA y marketing digital en español.${projectCtxBlock()} Analiza los datos de @iaconpatrick y genera un resumen ejecutivo en 3 secciones.
+    const prompt=`Eres estratega de contenido experto en IA y marketing digital en español.${projectCtxBlock()} Analiza los datos de ${cfg.brandName||cfg.ttHandle||'este creador'} y genera un resumen ejecutivo en 3 secciones.
 
 DATOS:
 - TikTok: ${fn(d.tiktok.followers)} followers, ${fn(d.tiktok.views)} vistas totales, ${d.tiktok.engagement}% engagement
@@ -2199,9 +2210,10 @@ function saveBrand(){
   });
   localStorage.setItem('iac_dash_v2',JSON.stringify(cfg));
   fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)}).catch(()=>{});
+  updateSidebarAccounts();
   const st=document.getElementById('brandSaveStatus');
   if(st){st.textContent='✓ Marca guardada';st.className='cfg-status ok';setTimeout(()=>{st.textContent='';},3000);}
-  showNotif('MARCA GUARDADA','Claude usará estos datos en la próxima generación de ideas.');
+  showNotif('MARCA GUARDADA','La IA usará estos datos en la próxima generación de ideas.');
 }
 
 function saveConfig(){
@@ -2249,6 +2261,7 @@ function loadCfg(){
     savedCreators=JSON.parse(localStorage.getItem('iac_saved_creators')||'[]');
     savedNews=JSON.parse(localStorage.getItem('iac_saved_news')||'[]');
     updateProjectCtxSection();
+    updateSidebarAccounts();
   }catch(e){}
 }
 
@@ -2346,9 +2359,10 @@ function downloadPage(){
   const activePage=document.querySelector('.page.active');
   const titleEl=activePage?.querySelector('.ph-title');
   const title=titleEl?.textContent||'Dashboard';
-  document.title=`@iaconpatrick · ${title} · ${new Date().toLocaleDateString('es-ES')}`;
+  const handle=cfg.brandName||cfg.ttHandle||'Dashboard';
+  document.title=`${handle} · ${title} · ${new Date().toLocaleDateString('es-ES')}`;
   window.print();
-  setTimeout(()=>{document.title='SYSTEM // @iaconpatrick · Dashboard';},2000);
+  setTimeout(()=>{document.title='SYSTEM // Dashboard · Analytics';},2000);
 }
 
 // ═══ UTILS ═══
