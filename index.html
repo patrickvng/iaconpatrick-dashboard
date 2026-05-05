@@ -212,7 +212,7 @@ body.light::before{display:none}
 @media print{.topbar,.sidebar,.mq-wrap,.sync-btn,.theme-btn,.period-sel,.cfg-acts,.dl-btn,.modal-ov,.notif,.lo-overlay,.srv-banner,.idea-filter,.news-acts,.tb-r,.ph button{display:none!important}.layout{display:block!important;grid-template-columns:1fr}.content{padding:8px}.page{display:block!important;page-break-before:always}.page.active{page-break-before:avoid}}
 </style>
 </head>
-<body>
+<body class="light">
 
 <div class="modal-ov" id="modalOv" onclick="closeModal(event)">
   <div class="modal-box">
@@ -246,7 +246,7 @@ body.light::before{display:none}
   <div class="tb-r">
     <div class="tb-time" id="tbTime"></div>
     <button class="theme-btn" id="langBtn" onclick="toggleLang()" title="Cambiar idioma / Change language">🌐 ES</button>
-    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀ LIGHT</button>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">◑ DARK</button>
     <button class="dl-btn" onclick="downloadPage()" title="Descargar / Download">⬇ PDF</button>
     <button class="sync-btn" id="syncBtn" onclick="triggerSync()">↻ SYNC</button>
   </div>
@@ -296,7 +296,6 @@ body.light::before{display:none}
       <div class="acc-handle">@iaconpatrick</div>
       <div class="acc-stat"><b id="sbIGFol">8</b> seguidores</div>
     </div>
-    <div style="padding:6px 10px 0"><button class="btn-s" style="width:100%;font-size:9px;padding:5px" onclick="setAccount('all')">◈ VER TODAS</button></div>
   </div>
   <div class="sb-section">
     <div class="sb-label" data-i18n="period">PERÍODO</div>
@@ -324,7 +323,17 @@ body.light::before{display:none}
     <div class="sb-row"><div class="sb-lbl">APIFY</div><div id="sbApify" style="font-size:10px;color:var(--warn)">⚠ Sin config</div></div>
     <div class="sb-row"><div class="sb-lbl">DATOS</div><div id="sbDataMode" style="font-size:10px;color:var(--warn)">DEMO</div></div>
     <div class="sb-row"><div class="sb-lbl">ÚLTIMO SYNC</div><div id="sbLastSync" style="font-size:10px;color:var(--text3)">Nunca</div></div>
-    <button onclick="logout()" style="margin-top:12px;width:100%;background:none;border:1px solid rgba(255,71,87,.25);color:var(--accent2);font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:7px;cursor:pointer;transition:all .15s" onmouseenter="this.style.background='rgba(255,71,87,.08)'" onmouseleave="this.style.background='none'">⎋ CERRAR SESIÓN</button>
+    <div style="margin-top:14px;padding:10px;border:1px solid var(--border);background:var(--bg2)">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text);margin-bottom:5px">◆ IACONPATRICK</div>
+      <div style="font-size:9px;color:var(--text3);line-height:1.6;margin-bottom:8px">Patrick · Consultor IA & Marketing Digital. Ayudo a creadores y marcas a crecer con inteligencia artificial aplicada al contenido.</div>
+      <div style="display:flex;gap:5px;margin-bottom:8px">
+        <a href="https://tiktok.com/@iaconpatrick" target="_blank" style="flex:1;text-align:center;padding:4px 0;border:1px solid var(--border2);color:var(--text2);font-size:9px;font-family:var(--mono);letter-spacing:.08em;text-decoration:none;transition:all .15s" onmouseenter="this.style.color='var(--text)'" onmouseleave="this.style.color='var(--text2)'">TIKTOK</a>
+        <a href="https://instagram.com/iaconpatrick" target="_blank" style="flex:1;text-align:center;padding:4px 0;border:1px solid var(--border2);color:var(--text2);font-size:9px;font-family:var(--mono);letter-spacing:.08em;text-decoration:none;transition:all .15s" onmouseenter="this.style.color='var(--text)'" onmouseleave="this.style.color='var(--text2)'">INSTAGRAM</a>
+      </div>
+      <a href="https://iaconpatrick.com/" target="_blank" style="display:block;text-align:center;background:var(--accent);color:#000;padding:7px;font-weight:700;letter-spacing:.1em;font-size:9px;font-family:var(--mono);text-decoration:none;margin-bottom:8px;transition:opacity .15s" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">→ AGENDA UNA ASESORÍA</a>
+      <div style="font-size:8px;color:var(--text3);line-height:1.55">© 2025 Patrick Venegas · Todos los derechos reservados. Producto registrado. Prohibida su venta, distribución o reproducción sin autorización expresa por escrito. El incumplimiento puede acarrear consecuencias legales.</div>
+    </div>
+    <button onclick="logout()" style="margin-top:10px;width:100%;background:none;border:1px solid rgba(255,71,87,.25);color:var(--accent2);font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:7px;cursor:pointer;transition:all .15s" onmouseenter="this.style.background='rgba(255,71,87,.08)'" onmouseleave="this.style.background='none'">⎋ CERRAR SESIÓN</button>
   </div>
 </aside>
 
@@ -507,7 +516,7 @@ body.light::before{display:none}
 <!-- MI MARCA -->
 <div class="page" id="page-brand">
   <div class="ph">
-    <div><div class="ph-title">MI MARCA</div><div class="ph-sub">Cuéntale a Claude quién eres — <b>más contexto = ideas más personalizadas</b></div></div>
+    <div><div class="ph-title">MI MARCA</div><div class="ph-sub">Cuéntale a la IA quién eres — <b>más contexto = ideas más personalizadas</b></div></div>
     <button class="btn-p" onclick="saveBrand()">GUARDAR MARCA</button>
   </div>
 
@@ -559,18 +568,15 @@ body.light::before{display:none}
     </div>
   </div>
 
-  <div class="st">CONTEXTO DE CLAUDE PROJECT <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:.04em">(OPCIONAL)</span></div>
-  <div class="cfg-block" data-label="// CLAUDE PROJECT" style="border-color:rgba(232,255,71,.15);background:rgba(232,255,71,.02)">
-    <div class="cfg-info">Si usas <b>Claude Projects</b> o tienes un <b>prompt de sistema</b> con tu contexto completo, pégalo aquí.<br>
-    Claude lo usará como base en <b>todas</b> las generaciones de ideas, guiones y análisis — igual que si estuvieras dentro de tu proyecto.<br><br>
-    <span class="hl">Cómo obtenerlo:</span> Claude.ai → tu Proyecto → ··· → <b>Edit project instructions</b> → copia todo el texto.</div>
+  <div class="st" id="projectCtxTitle"><span id="projectCtxTitleText">CONTEXTO DE PROYECTO IA</span> <span style="font-size:9px;color:var(--text3);font-weight:400;letter-spacing:.04em">(OPCIONAL)</span></div>
+  <div class="cfg-block" id="projectCtxBlock" data-label="// PROYECTO IA" style="border-color:rgba(232,255,71,.15);background:rgba(232,255,71,.02)">
+    <div class="cfg-info" id="projectCtxInfo"></div>
     <div class="cfg-field" style="margin-top:14px">
       <div class="cfg-lbl" style="display:flex;justify-content:space-between;align-items:center">
-        <span>INSTRUCCIONES DE PROYECTO / SYSTEM PROMPT</span>
+        <span id="projectCtxFieldLabel">INSTRUCCIONES DE PROYECTO / SYSTEM PROMPT</span>
         <span id="projectCtxCount" style="color:var(--text3);font-weight:400;font-size:9px"></span>
       </div>
       <textarea class="cfg-inp" id="claudeProjectCtx" rows="8"
-        placeholder="Pega aquí tus instrucciones de Claude Project, tu system prompt, o cualquier contexto extendido que quieras que Claude tenga siempre presente al generar contenido para ti..."
         style="resize:vertical;line-height:1.55;margin-top:6px"
         oninput="document.getElementById('projectCtxCount').textContent=this.value.length?this.value.length+' caracteres':''"></textarea>
     </div>
@@ -691,6 +697,15 @@ body.light::before{display:none}
       <div class="cfg-status" id="aiStatus">No configurado</div>
     </div>
   </div>
+
+  <div class="st">GUÍA DE USO</div>
+  <div class="cfg-block" data-label="// MANUAL">
+    <div class="cfg-info">Descarga la guía completa del dashboard — configuración inicial, conexión de APIs, generación de contenido con IA y flujo de trabajo recomendado semana a semana.</div>
+    <div class="cfg-acts">
+      <button class="btn-p" disabled style="opacity:.45;cursor:not-allowed">↓ DESCARGAR GUÍA PDF</button>
+      <div class="cfg-status" style="color:var(--text3)">Documento en preparación — disponible próximamente.</div>
+    </div>
+  </div>
 </div>
 
 </main>
@@ -714,7 +729,7 @@ async function apiFetch(url, opts){
 let cfg={apifyToken:'',ttHandle:'@iaconpatrick',igHandle:'@iaconpatrick',maxPosts:50,nicheKw:'IA,marketing contenidos,automatización,prompt',compTT:'@javadex,@iafacil.es,@aprende_ia,@techconpaula,@automatiza_tu_vida',compIG:'@javadex,@iafacil.es,@marketingconia',anthropicKey:'',anthropicModel:'claude-sonnet-4-20250514',openaiKey:'',openaiModel:'gpt-4o',geminiKey:'',geminiModel:'gemini-2.0-flash',aiProvider:'claude',websiteUrl:'',creatorBio:'',brandTone:'',brandName:'',brandNiche:'',brandAudience:'',brandGoal:'',brandAvoid:'',claudeProjectCtx:''};
 let realData=null,platformFilter='all',trendFilter='tt',compFilter='all';
 let vChart=null,eChart=null,serverOk=false;
-let selectedAccount='all',currentPeriod='7d',isDark=true,lang='es';
+let selectedAccount='all',currentPeriod='7d',isDark=false,lang='es';
 let currentIdeas=[],currentHooks=[],savedIdeas=[],likedTags=[],dislikedTags=[],savedCreators=[],savedNews=[];
 let ideaTypeFilter='all',customDateStart='',customDateEnd='';
 let ideaScripts={}; // keyed by idea title, persists scripts across modal opens
@@ -1988,6 +2003,42 @@ function setAIProvider(p, btn){
     if(b)b.classList.toggle('active',n.toLowerCase()===p);
     if(f)f.style.display=n.toLowerCase()===p?'block':'none';
   });
+  updateProjectCtxSection();
+}
+
+const PROJECT_CTX_COPY={
+  claude:{
+    title:'CONTEXTO DE CLAUDE PROJECT',
+    info:'Si usas <b>Claude Projects</b> o tienes un <b>prompt de sistema</b> con tu contexto completo, pégalo aquí. Claude lo usará como base en <b>todas</b> las generaciones de ideas, guiones y análisis — igual que si estuvieras dentro de tu proyecto.<br><br><span class="hl">Cómo obtenerlo:</span> claude.ai → tu Proyecto → ··· → <b>Edit project instructions</b> → copia todo el texto.',
+    fieldLabel:'INSTRUCCIONES DE CLAUDE PROJECT',
+    placeholder:'Pega aquí las instrucciones de tu Claude Project o tu system prompt completo...',
+  },
+  openai:{
+    title:'INSTRUCCIONES PERSONALIZADAS DE CHATGPT',
+    info:'Si usas <b>ChatGPT Custom Instructions</b> o tienes un <b>GPT personalizado</b> con tu contexto, pégalo aquí. El modelo lo usará como base en todas las generaciones.<br><br><span class="hl">Cómo obtenerlo:</span> ChatGPT → tu nombre → <b>Personalizar ChatGPT</b> → copia el contenido de ambos campos.',
+    fieldLabel:'CUSTOM INSTRUCTIONS / SYSTEM PROMPT',
+    placeholder:'Pega aquí tus Custom Instructions de ChatGPT o las instrucciones de tu GPT personalizado...',
+  },
+  gemini:{
+    title:'INSTRUCCIONES DE SISTEMA DE GEMINI',
+    info:'Si usas <b>Gemini Gems</b> o tienes instrucciones de sistema con tu contexto, pégalas aquí. Gemini las usará como base en todas las generaciones.<br><br><span class="hl">Cómo obtenerlo:</span> Google AI Studio → tu Gem → <b>System instructions</b> → copia el texto completo.',
+    fieldLabel:'SYSTEM INSTRUCTIONS / GEM CONTEXT',
+    placeholder:'Pega aquí las instrucciones de sistema de tu Gem de Gemini o tu contexto de AI Studio...',
+  },
+};
+
+function updateProjectCtxSection(){
+  const p=cfg.aiProvider||'claude';
+  const copy=PROJECT_CTX_COPY[p]||PROJECT_CTX_COPY.claude;
+  const titleEl=document.getElementById('projectCtxTitle');
+  const infoEl=document.getElementById('projectCtxInfo');
+  const fieldLabelEl=document.getElementById('projectCtxFieldLabel');
+  const ta=document.getElementById('claudeProjectCtx');
+  const titleTextEl=document.getElementById('projectCtxTitleText');
+  if(titleTextEl)titleTextEl.textContent=copy.title;
+  if(infoEl)infoEl.innerHTML=copy.info;
+  if(fieldLabelEl)fieldLabelEl.textContent=copy.fieldLabel;
+  if(ta)ta.placeholder=copy.placeholder;
 }
 
 function hasAIKey(){
@@ -2175,6 +2226,7 @@ function loadCfg(){
     dislikedTags=JSON.parse(localStorage.getItem('iac_disliked_tags')||'[]');
     savedCreators=JSON.parse(localStorage.getItem('iac_saved_creators')||'[]');
     savedNews=JSON.parse(localStorage.getItem('iac_saved_news')||'[]');
+    updateProjectCtxSection();
   }catch(e){}
 }
 
