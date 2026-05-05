@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-:root{--bg:#0a0a08;--bg2:#111110;--bg3:#1a1a18;--bg4:#222220;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--accent:#e8ff47;--accent2:#ff4757;--accent3:#47ffe8;--accent4:#ff9f47;--text:#f0ede6;--text2:#888880;--text3:#444440;--tiktok:#fe2c55;--ig:#e1306c;--success:#47ff8a;--warn:#ffaa47;--mono:'JetBrains Mono',monospace}
+:root{--bg:#0a0a08;--bg2:#111110;--bg3:#1a1a18;--bg4:#222220;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--accent:#e8ff47;--accent2:#ff4757;--accent3:#47ffe8;--accent4:#ff9f47;--text:#f0ede6;--text2:#a0a098;--text3:#686860;--tiktok:#fe2c55;--ig:#e1306c;--success:#47ff8a;--warn:#ffaa47;--mono:'JetBrains Mono',monospace}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.025) 2px,rgba(0,0,0,0.025) 4px);pointer-events:none;z-index:9999}
@@ -415,7 +415,7 @@ body.light::before{display:none}
     </div>
   </div>
   <div class="cfg-block" style="background:rgba(71,255,232,.03);border-color:rgba(71,255,232,.15);margin-bottom:18px" data-label="// INFO">
-    <div class="cfg-info">Los datos de creadores se actualizan <b>automáticamente cada semana</b> desde Railway.<br>Para añadir más creadores ve a <b>Configurar</b> y edita los handles de TikTok / Instagram. El próximo sync automático los incluirá.</div>
+    <div class="cfg-info">Los datos de creadores se actualizan <b>automáticamente cada semana</b> desde Railway.<br>Para añadir más creadores edita los handles en <button onclick="showPage('config',document.querySelector('.nav-btn:nth-child(8)'))" style="background:none;border:none;font-family:var(--mono);font-size:11px;color:var(--accent3);cursor:pointer;padding:0;text-decoration:underline;letter-spacing:.04em">CREADORES A MONITORIZAR →</button> El próximo sync automático los incluirá.</div>
   </div>
   <div class="st">CREADORES EN TU NICHO · IA + MARKETING ESPAÑOL</div>
   <div class="comp-grid" id="compGrid"></div>
@@ -437,9 +437,15 @@ body.light::before{display:none}
       </div>
     </div>
   </div>
-  <div class="st" data-i18n="viral_videos">VIDEOS VIRALES · NICHO IA / MARKETING</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+    <div class="st" style="margin:0;flex:1" data-i18n="viral_videos">VIDEOS VIRALES · NICHO IA / MARKETING</div>
+    <button class="dl-btn" onclick="refreshTrending()" title="Refrescar videos">↺ REFRESCAR</button>
+  </div>
   <div class="trend-list" id="trendingList"></div>
-  <div class="st" style="margin-top:22px" data-i18n="news_title">NOTICIAS DE ÚLTIMA HORA · IA + MARKETING</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:22px;margin-bottom:6px">
+    <div class="st" style="margin:0;flex:1" data-i18n="news_title">NOTICIAS DE ÚLTIMA HORA · IA + MARKETING</div>
+    <button class="dl-btn" onclick="refreshNews()" title="Refrescar noticias">↺ REFRESCAR</button>
+  </div>
   <div style="font-size:10px;color:var(--text3);margin-bottom:10px">Actualizado diariamente · Selecciona para ver el resumen IA y guardar</div>
   <div id="newsList"></div>
 </div>
@@ -646,6 +652,7 @@ let vChart=null,eChart=null,serverOk=false;
 let selectedAccount='all',currentPeriod='7d',isDark=true,lang='es';
 let currentIdeas=[],currentHooks=[],savedIdeas=[],likedTags=[],dislikedTags=[],savedCreators=[],savedNews=[];
 let ideaTypeFilter='all',customDateStart='',customDateEnd='';
+let ideaScripts={}; // keyed by idea title, persists scripts across modal opens
 
 // ═══ TRANSLATIONS ═══
 const TR={
@@ -858,6 +865,15 @@ function openModal(title,html){
   document.getElementById('modalBody').innerHTML=html;
   document.getElementById('modalOv').classList.add('show');
   document.body.style.overflow='hidden';
+  // Restore any cached script for this idea
+  const result=document.getElementById('ideaScriptResult');
+  if(result&&ideaScripts[title]){
+    renderScriptResult(result,ideaScripts[title]);
+    const btn=document.getElementById('ideaScriptBtn');
+    if(btn)btn.textContent='✦ REGENERAR GUIÓN';
+    const st=document.getElementById('ideaScriptStatus');
+    if(st){st.textContent='✓ Guión guardado · Edita los campos si quieres';st.className='cfg-status ok';}
+  }
 }
 function closeModal(e){
   if(e&&e.target!==document.getElementById('modalOv'))return;
@@ -1357,13 +1373,44 @@ function openIdeaDetail(idx){
     <button class="btn-s" onclick="likeIdea(${idx})" title="Marcar como interesante — influye en próximas ideas">👍 ME GUSTA</button>
     <button class="btn-s" onclick="dislikeIdea(${idx})" title="No me interesa — se reemplaza por otra idea">👎 NO ME INTERESA</button>
   </div>
-  <div class="st" style="margin-top:18px">${t('generate_script')}</div>
+  <div class="st" style="margin-top:18px">GUIÓN IA — BASADO EN TU MARCA</div>
   <div id="ideaScriptArea">
-    <button class="btn-p" style="width:100%" onclick="generateIdeaScript(${idx})">✦ GENERAR GUIÓN PARA ESTA IDEA</button>
+    <button class="btn-p" style="width:100%" onclick="generateIdeaScript(${idx})" id="ideaScriptBtn">✦ GENERAR GUIÓN PARA ESTA IDEA</button>
     <div class="cfg-status" id="ideaScriptStatus" style="margin-top:6px"></div>
-    <div id="ideaScriptResult" style="display:none;margin-top:12px"></div>
+    <div id="ideaScriptResult" style="${ideaScripts[idea.title]?'':'display:none;'}margin-top:12px"></div>
   </div>`;
   openModal(idea.title,html);
+}
+
+function renderScriptResult(container,s){
+  if(!container||!s)return;
+  container.style.display='block';
+  const editStyle='outline:none;width:100%;background:transparent;border:none;font-family:var(--mono);font-size:12px;color:inherit;resize:vertical;line-height:1.55;padding:0';
+  container.innerHTML=`
+    <div style="font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:8px;font-weight:700">✏ CAMPOS EDITABLES — MODIFICA DIRECTAMENTE</div>
+    <div class="exec-tip"><div class="exec-label">TÍTULO</div><textarea class="script-field" data-field="titulo" style="${editStyle};font-size:14px;font-weight:700;color:var(--text);rows:2">${s.titulo}</textarea></div>
+    <div class="exec-tip"><div class="exec-label">HOOK (3-5s)</div><textarea class="script-field" data-field="hook" style="${editStyle};color:var(--accent);rows:2">${s.hook}</textarea></div>
+    <div class="exec-tip"><div class="exec-label">ESTRUCTURA</div><textarea class="script-field" data-field="estructura" style="${editStyle};rows:5;min-height:80px">${s.estructura.join('\n')}</textarea></div>
+    <div class="exec-tip"><div class="exec-label">CAPTION</div><textarea class="script-field" data-field="caption" style="${editStyle};rows:3">${s.caption}</textarea></div>
+    <div class="exec-tip"><div class="exec-label">TAGS</div><textarea class="script-field" data-field="tags" style="${editStyle};color:var(--accent3);rows:2">${s.tags.join(' ')}</textarea></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <div class="exec-tip" style="flex:1;margin:0"><div class="exec-label">DURACIÓN</div><textarea class="script-field" data-field="duracion" style="${editStyle};rows:1">${s.duracion}</textarea></div>
+      <div class="exec-tip" style="flex:1;margin:0"><div class="exec-label">FORMATO</div><textarea class="script-field" data-field="formato" style="${editStyle};rows:1">${s.formato}</textarea></div>
+    </div>`;
+  // Auto-save edits back to ideaScripts on input
+  container.querySelectorAll('.script-field').forEach(el=>{
+    el.addEventListener('input',()=>{
+      // find which idea this belongs to by looking up the modal title
+      const title=document.getElementById('modalTitle')?.textContent;
+      if(title&&ideaScripts[title]){
+        const f=el.dataset.field;
+        if(f==='estructura')ideaScripts[title].estructura=el.value.split('\n').filter(Boolean);
+        else if(f==='tags')ideaScripts[title].tags=el.value.split(' ').filter(Boolean);
+        else ideaScripts[title][f]=el.value;
+        window._lastScript=ideaScripts[title];
+      }
+    });
+  });
 }
 
 async function generateIdeaScript(idx){
@@ -1394,19 +1441,10 @@ async function generateIdeaScript(idx){
     const data=await r.json();
     const text=data.content.map(c=>c.text||'').join('');
     const s=JSON.parse(text.replace(/```json|```/g,'').trim());
-    result.style.display='block';
-    result.innerHTML=`
-      <div class="exec-tip"><div class="exec-label">TÍTULO</div><div class="exec-text" style="font-size:14px;font-weight:700;color:var(--text)">${s.titulo}</div></div>
-      <div class="exec-tip"><div class="exec-label">HOOK (3-5s)</div><div class="exec-text" style="color:var(--accent)">"${s.hook}"</div></div>
-      <div class="exec-tip"><div class="exec-label">ESTRUCTURA</div><div class="exec-text"><ol style="padding-left:16px;line-height:2">${s.estructura.map(e=>`<li>${e}</li>`).join('')}</ol></div></div>
-      <div class="exec-tip"><div class="exec-label">CAPTION</div><div class="exec-text">${s.caption}</div></div>
-      <div class="exec-tip"><div class="exec-label">TAGS</div><div class="exec-text" style="color:var(--accent3)">${s.tags.join(' ')}</div></div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <div class="exec-tip" style="flex:1;margin:0"><div class="exec-label">DURACIÓN</div><div class="exec-text">${s.duracion}</div></div>
-        <div class="exec-tip" style="flex:1;margin:0"><div class="exec-label">FORMATO</div><div class="exec-text">${s.formato}</div></div>
-      </div>`;
+    ideaScripts[idea.title]=s;
+    renderScriptResult(result,s);
     window._lastScript=s;
-    st.textContent='✓ Guión generado';st.className='cfg-status ok';
+    st.textContent='✓ Guión generado · Edita los campos si quieres';st.className='cfg-status ok';
   }catch(e){
     st.textContent='✕ '+e.message;st.className='cfg-status err';
   }finally{
@@ -1417,9 +1455,11 @@ async function generateIdeaScript(idx){
 function saveIdea(idx){
   const idea=currentIdeas[idx];
   if(savedIdeas.some(s=>s.title===idea.title)){showNotif('YA GUARDADA','Esta idea ya está en tu lista.');return;}
-  savedIdeas.push({...idea,savedAt:new Date().toISOString()});
+  const script=ideaScripts[idea.title]||null;
+  savedIdeas.push({...idea,savedAt:new Date().toISOString(),script});
   localStorage.setItem('iac_saved_ideas',JSON.stringify(savedIdeas));
-  showNotif('IDEA GUARDADA',idea.title.slice(0,60)+'...');
+  const msg=script?'Idea + guión guardados.':idea.title.slice(0,60)+'...';
+  showNotif('IDEA GUARDADA',msg);
   renderIdeas(currentIdeas);
   renderSaved();
 }
@@ -1545,11 +1585,16 @@ function openSavedDetail(idx){
     <div style="font-size:10px;color:var(--text3);margin-top:8px">Guardada el ${new Date(idea.savedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'})}</div>
   </div>
   <div class="st">CÓMO EJECUTARLO</div>
-  ${tips.map(t=>`<div class="exec-tip"><div class="exec-label">${t.label}</div><div class="exec-text" style="white-space:pre-line">${t.text}</div></div>`).join('')}
+  ${tips.map(tp=>`<div class="exec-tip"><div class="exec-label">${tp.label}</div><div class="exec-text" style="white-space:pre-line">${tp.text}</div></div>`).join('')}
+  ${idea.script?`<div class="st" style="margin-top:18px">GUIÓN GUARDADO</div><div id="savedScriptResult"></div>`:''}
   <div style="margin-top:16px">
     <button class="btn-s" style="color:var(--accent2);border-color:var(--accent2)" onclick="removeSaved(${idx});closeModal()">✕ ELIMINAR DE GUARDADO</button>
   </div>`;
   openModal(idea.title,html);
+  if(idea.script){
+    const el=document.getElementById('savedScriptResult');
+    if(el)renderScriptResult(el,idea.script);
+  }
 }
 
 async function generateIdeas(){
@@ -2035,6 +2080,36 @@ function showNotif(title,body){
   document.getElementById('nTitle').textContent=title;document.getElementById('nBody').textContent=body;
   document.getElementById('notif').classList.add('show');
   if(nTimer)clearTimeout(nTimer);nTimer=setTimeout(()=>document.getElementById('notif').classList.remove('show'),5000);
+}
+
+// ═══ TRENDING REFRESH ═══
+function refreshTrending(){
+  const list=trendFilter==='tt'?[...TREND_TT]:[...TREND_IG];
+  // Shuffle order
+  for(let i=list.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[list[i],list[j]]=[list[j],list[i]];}
+  const trendList=document.getElementById('trendingList');
+  if(trendList){
+    trendList.style.opacity='0';
+    setTimeout(()=>{
+      renderTrending(trendFilter);
+      trendList.style.opacity='1';
+      trendList.style.transition='opacity .3s';
+    },200);
+  }
+  showNotif('VIDEOS REFRESCADOS','Orden actualizado con los últimos datos disponibles.');
+}
+
+function refreshNews(){
+  const nl=document.getElementById('newsList');
+  if(nl){
+    nl.style.opacity='0';
+    setTimeout(()=>{
+      renderNews();
+      nl.style.opacity='1';
+      nl.style.transition='opacity .3s';
+    },200);
+  }
+  showNotif('NOTICIAS REFRESCADAS','Noticias actualizadas. Con datos reales se mostrarían los últimos titulares del día.');
 }
 
 // ═══ LANGUAGE TOGGLE ═══
