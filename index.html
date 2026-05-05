@@ -887,6 +887,15 @@ const IDEA_TIPS={
   'Reel':[{label:'MEJOR FORMATO',text:'Vertical, subtítulos grandes, sin intro. Los primeros 2 frames determinan todo.'},...HOOK_TIPS['Reel']],
 };
 
+function applyRealDataUI(syncedAt, suffix=''){
+  document.getElementById('dsBadge').textContent='DATOS REALES';
+  document.getElementById('dsBadge').style.color='var(--success)';
+  document.getElementById('sbDataMode').textContent='REAL';document.getElementById('sbDataMode').style.color='var(--success)';
+  document.getElementById('sbApify').textContent='✓ Cache';document.getElementById('sbApify').style.color='var(--success)';
+  const ts=syncedAt?new Date(syncedAt).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'Auto-sync';
+  document.getElementById('sbLastSync').textContent=ts+(suffix?' '+suffix:'');
+}
+
 // ═══ INIT ═══
 window.addEventListener('DOMContentLoaded',async()=>{
   updateClock();setInterval(updateClock,1000);
@@ -900,19 +909,29 @@ window.addEventListener('DOMContentLoaded',async()=>{
       :'<b>→</b> Servidor corriendo en <span class="hl">Railway</span> ✓<br>No necesitas configurar nada aquí. El servidor está siempre encendido y hace sync automático cada semana.';
   }
   checkServer(true);
-  // Cargar cache del servidor si existe (datos del último auto-sync)
+  // Cargar cache — primero servidor, si no hay fallback a localStorage
+  let cacheLoaded=false;
   try{
     const r=await fetch('/api/cache');
     const cached=await r.json();
     if(cached&&cached.ttRaw){
       realData=processData(cached.ttRaw,cached.igRaw,cached.trendRaw);
-      document.getElementById('dsBadge').textContent='DATOS REALES';
-      document.getElementById('dsBadge').style.color='var(--success)';
-      document.getElementById('sbDataMode').textContent='REAL';document.getElementById('sbDataMode').style.color='var(--success)';
-      document.getElementById('sbLastSync').textContent=cached.syncedAt?new Date(cached.syncedAt).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'Auto-sync';
-      document.getElementById('sbApify').textContent='✓ Cache';document.getElementById('sbApify').style.color='var(--success)';
+      applyRealDataUI(cached.syncedAt);
+      cacheLoaded=true;
+      // Sincronizar también a localStorage por si el servidor se reinicia
+      localStorage.setItem('iac_raw_cache',JSON.stringify(cached));
     }
   }catch(e){}
+  // Si el servidor no tenía cache, intentar desde localStorage
+  if(!cacheLoaded){
+    try{
+      const local=JSON.parse(localStorage.getItem('iac_raw_cache')||'null');
+      if(local&&local.ttRaw){
+        realData=processData(local.ttRaw,local.igRaw,local.trendRaw);
+        applyRealDataUI(local.syncedAt,'(local)');
+      }
+    }catch(e){}
+  }
   renderAll();
 });
 
@@ -1888,13 +1907,16 @@ async function triggerSync(){
 
     setLoad(90,'PROCESANDO DATOS...','');
     realData=processData(ttRaw,igRaw,trendRaw);
+    const syncedAt=new Date().toISOString();
+    // Guardar en localStorage para que persista aunque Railway se reinicie
+    try{localStorage.setItem('iac_raw_cache',JSON.stringify({ttRaw,igRaw,trendRaw,syncedAt}));}catch(e){}
     setLoad(100,'SYNC COMPLETO ✓','');
     await sleep(600);hideLoad();
 
     document.getElementById('sbApify').textContent='✓ Conectado';document.getElementById('sbApify').style.color='var(--success)';
     document.getElementById('sbDataMode').textContent='REAL';document.getElementById('sbDataMode').style.color='var(--success)';
     document.getElementById('dsBadge').textContent='DATOS REALES';document.getElementById('dsBadge').style.color='var(--success)';document.getElementById('dsBadge').style.background='rgba(71,255,138,.1)';document.getElementById('dsBadge').style.borderColor='rgba(71,255,138,.2)';
-    document.getElementById('sbLastSync').textContent=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('sbLastSync').textContent=new Date(syncedAt).toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
     document.getElementById('sbTTFol').textContent=fn(realData.tiktok.followers);
     document.getElementById('sbIGFol').textContent=fn(realData.instagram.followers);
     renderAll();
