@@ -165,6 +165,7 @@ body.light::before{display:none}
 .idea-card{cursor:pointer}.idea-footer{margin-top:10px;display:flex;align-items:center;justify-content:space-between}
 .idea-save-btn{background:none;border:1px solid var(--border2);color:var(--text3);font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:4px 10px;cursor:pointer;transition:all .15s}
 .idea-save-btn:hover{border-color:var(--accent);color:var(--accent)}.idea-save-btn.saved{border-color:var(--success);color:var(--success)}
+.idea-save-btn.saved .ih{display:none}.idea-save-btn.saved:hover .in{display:none}.idea-save-btn.saved:hover .ih{display:inline}.idea-save-btn.saved:hover{border-color:rgba(255,71,87,.5);color:var(--accent2);background:rgba(255,71,87,.08)}
 /* ─── EXEC TIPS ─────────────────────────────────────────── */
 .exec-tip{background:var(--bg3);border:1px solid var(--border);padding:12px 14px;margin-bottom:8px}
 .exec-label{font-size:9px;color:var(--accent);font-weight:700;letter-spacing:.1em;margin-bottom:5px}
@@ -1137,6 +1138,14 @@ function renderAll(){
   renderComps();renderTrending(trendFilter);renderIdeas();
   renderSaved();
   applyTranslations();
+  // Auto-generar noticias con IA si hay API key configurada y no hay noticias personalizadas ya cargadas
+  if(hasAIKey()&&serverOk){
+    const cached=localStorage.getItem('iac_news_cache');
+    const cacheAge=localStorage.getItem('iac_news_cache_ts');
+    const stale=!cacheAge||Date.now()-parseInt(cacheAge)>24*60*60*1000;
+    if(!cached||stale){setTimeout(()=>refreshNews(),2500);}
+    else{try{const items=JSON.parse(cached);renderCachedNews(items);}catch(e){}}
+  }
 }
 
 function updateClock(){
@@ -1674,12 +1683,13 @@ function openCreatorModal(handle,platform){
         <div style="font-size:11px;color:${platformColor};margin-top:2px">${platformIcon} ${c.platform} · ${c.followers} seguidores</div>
       </div>
     </div>
-    <div class="mgrid" style="grid-template-columns:repeat(2,1fr);margin-bottom:16px">
+    <div class="mgrid" style="grid-template-columns:repeat(2,1fr);margin-bottom:4px">
       <div class="mc g"><div class="mc-lbl">ENGAGEMENT</div><div class="mc-val" style="font-size:20px">${c.eng}</div></div>
       <div class="mc y"><div class="mc-lbl">AVG VIEWS</div><div class="mc-val" style="font-size:20px">${c.avgViews}</div></div>
     </div>
+    <div style="font-size:9px;color:var(--text3);margin-bottom:14px;letter-spacing:.05em">Datos estimados · publicados en su perfil público</div>
     <div class="exec-tip" style="margin-bottom:16px"><div class="exec-label">NICHO</div><div class="exec-text">${c.niche}</div></div>
-    <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--accent3);margin-bottom:8px">TOP VÍDEOS</div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--accent3);margin-bottom:4px">TOP VÍDEOS <span style="font-weight:400;color:var(--text3);font-size:9px">· referencia de contenido destacado — click para ver su perfil</span></div>
     ${c.topVideos.map(v=>`
       <a href="${c.profileUrl}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);margin-bottom:6px;text-decoration:none;color:inherit;transition:border-color .15s" onmouseover="this.style.borderColor='${c.color}'" onmouseout="this.style.borderColor='var(--border)'">
         <div style="font-size:11px;line-height:1.4;flex:1;margin-right:12px">${v.t}</div>
@@ -1940,7 +1950,10 @@ function renderIdeas(ideas){
       <div class="idea-desc">${i.desc}</div>
       <div class="idea-tags">${i.tags.map(tg=>`<span class="idea-tag">${tg}</span>`).join('')}</div>
       <div class="idea-footer">
-        <button class="idea-save-btn${saved?' saved':''}" onclick="event.stopPropagation();saveIdea(${realIdx})">${saved?t('idea_saved'):t('save_idea')}</button>
+        ${saved
+          ?`<button class="idea-save-btn saved" onclick="event.stopPropagation();unsaveByTitle('${i.title.replace(/'/g,"\\'")}')"><span class="in">✓ GUARDADA</span><span class="ih">✕ QUITAR</span></button>`
+          :`<button class="idea-save-btn" onclick="event.stopPropagation();saveIdea(${realIdx})">${t('save_idea')}</button>`
+        }
         <span style="font-size:9px;color:var(--text3)">Click para ver más →</span>
       </div>
     </div>`;
@@ -1952,18 +1965,26 @@ function openIdeaDetail(idx){
   const saved=savedIdeas.some(s=>s.title===idea.title);
   const tipKey=idea.tags[0]||'How-to';
   const tips=(IDEA_TIPS[tipKey]||IDEA_TIPS['How-to']);
+  const hasAIExec=idea.hook||idea.estructura||idea.caption;
   let html=`<div style="margin-bottom:18px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-      <div class="idea-score">${idea.score}</div>${ctypeTag(idea.contentType||'VIDEO')}
+      <div class="idea-score">${idea.score}</div>${ctypeTag(idea.contentType||'VIDEO')}${idea.duracion?`<span style="font-size:9px;color:var(--text3);border:1px solid var(--border);padding:2px 6px">${idea.duracion}</span>`:''}
     </div>
     <div class="idea-title" style="font-size:16px;margin:8px 0;line-height:1.3">${idea.title}</div>
     <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">${idea.desc}</div>
     <div class="idea-tags">${idea.tags.map(tg=>`<span class="idea-tag">${tg}</span>`).join('')}</div>
   </div>
-  <div class="st">${t('how_exec')}</div>
-  ${tips.map(tp=>`<div class="exec-tip"><div class="exec-label">${tp.label}</div><div class="exec-text" style="white-space:pre-line">${tp.text}</div></div>`).join('')}
+  <div class="st">CÓMO EJECUTARLO</div>
+  ${hasAIExec?`
+    ${idea.hook?`<div class="exec-tip"><div class="exec-label">HOOK (primeros 3s)</div><div class="exec-text" style="color:var(--accent);font-size:13px;font-weight:600">${idea.hook}</div></div>`:''}
+    ${idea.estructura?`<div class="exec-tip"><div class="exec-label">ESTRUCTURA</div><div class="exec-text" style="white-space:pre-line">${idea.estructura}</div></div>`:''}
+    ${idea.caption?`<div class="exec-tip"><div class="exec-label">CAPTION</div><div class="exec-text">${idea.caption}</div></div>`:''}
+  `:tips.map(tp=>`<div class="exec-tip"><div class="exec-label">${tp.label}</div><div class="exec-text" style="white-space:pre-line">${tp.text}</div></div>`).join('')}
   <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-    <button class="btn-p" id="saveModalBtn" onclick="saveIdeaFromModal(${idx})">${saved?'✓ YA GUARDADA':'+ GUARDAR IDEA'}</button>
+    ${saved
+      ?`<button class="idea-save-btn saved" style="font-size:11px;padding:9px 18px" onclick="unsaveByTitle('${idea.title.replace(/'/g,"\\'")}');closeModal()"><span class="in">✓ YA GUARDADA</span><span class="ih">✕ QUITAR DE GUARDADOS</span></button>`
+      :`<button class="btn-p" id="saveModalBtn" onclick="saveIdeaFromModal(${idx})">+ GUARDAR IDEA</button>`
+    }
     <button class="btn-s" onclick="likeIdea(${idx})" title="Marcar como interesante — influye en próximas ideas">👍 ME GUSTA</button>
     <button class="btn-s" onclick="dislikeIdea(${idx})" title="No me interesa — se reemplaza por otra idea">👎 NO ME INTERESA</button>
   </div>
@@ -2103,6 +2124,14 @@ function removeSaved(idx){
   localStorage.setItem('iac_saved_ideas',JSON.stringify(savedIdeas));
   renderSaved();
   showNotif('ELIMINADA','Idea removida de tu guardado.');
+}
+function unsaveByTitle(title){
+  const idx=savedIdeas.findIndex(s=>s.title===title);
+  if(idx===-1)return;
+  savedIdeas.splice(idx,1);
+  localStorage.setItem('iac_saved_ideas',JSON.stringify(savedIdeas));
+  renderSaved();renderIdeas(currentIdeas);
+  showNotif('ELIMINADA','Idea quitada de guardados.');
 }
 
 function clearSaved(){
@@ -2280,20 +2309,37 @@ async function generateIdeas(){
     const tonePart=cfg.brandTone?`\nTONO Y VOZ DE MARCA:\n${cfg.brandTone}\n`:'Aplica un tono directo, sin florituras, orientado a resultados.';
     const projectPart=projectCtxBlock();
     const creatorHandle=cfg.brandName||cfg.ttHandle||'el creador';
-    const prompt=`Eres estratega experto en contenido para redes sociales, IA y marketing digital en español.${projectPart}
-Analiza estos datos de ${creatorHandle} y genera 6 ideas de contenido para TikTok/Instagram:
+    const allTop=[...d.tiktok.topPosts,...d.instagram.topPosts];
+    const topStr=allTop.slice(0,10).map(p=>`- [${p.platform?.toUpperCase()||'TT'}] "${p.title}" → ${fn(p.views)} views, ${p.eng}% eng, tipo: ${p.type}, saves: ${fn(p.saves||0)}`).join('\n');
+    const ttHooks=d.tiktok.hooks.map(h=>`${h.type}: ${fn(h.views)} avg views, ${h.rate}% like rate`).join(' | ');
+    const igHooks=d.instagram.hooks.map(h=>`${h.type}: ${fn(h.views)} avg views, ${h.rate}% like rate`).join(' | ');
+    const prompt=`Eres el mejor estratega de contenido para creadores de IA y marketing digital en español. Tu trabajo: ideas que generan MÍNIMO 10K views basadas en datos REALES del creador.${projectPart}
 
-MEJORES POSTS:
-${top.map(p=>`- "${p.title}" (${fn(p.views)} views, ${p.eng}% eng, tipo: ${p.type})`).join('\n')}
+CREADOR: ${creatorHandle}
+${bioPart}
+MÉTRICAS REALES (${currentPeriod==='7d'?'últimos 7 días':currentPeriod==='30d'?'últimos 30 días':'últimos 90 días'}):
+- TikTok: ${fn(d.tiktok.followers)} followers · ${fn(d.tiktok.views)} views · ${d.tiktok.engagement}% engagement
+- Instagram: ${fn(d.instagram.followers)} followers · ${fn(d.instagram.views)} views · ${d.instagram.engagement}% engagement
 
-NICHO: IA aplicada al marketing de contenidos, asesorías 1:1, automatizaciones, prompts para creadores.
-MEJOR HOOK: How-to (11.1K avg views, 6% like rate)
-AUDIENCIA: creadores, marcas personales, marketers hispanohablantes.
-${bioPart}${webContext}${tonePart}${prefPart}
-Genera 6 ideas en JSON. Responde SOLO con el JSON sin texto adicional:
-[{"score":"SCORE: X.X/10","title":"título del vídeo","desc":"ángulo + hook + por qué funcionará (máx 200 chars)","tags":["tag1","tag2","tag3"],"contentType":"VIDEO|CARRUSEL|IMAGEN"}]`;
+POSTS QUE MÁS FUNCIONARON:
+${topStr}
 
-    const text=await callAI(prompt, 1000);
+TIPO DE CONTENIDO POR PLATAFORMA:
+- TikTok → ${ttHooks}
+- Instagram → ${igHooks}
+${webContext}${tonePart}${prefPart}
+REGLAS:
+1. Cada idea debe referenciar DIRECTAMENTE el nicho y datos del creador (no ideas genéricas)
+2. El título debe ser el gancho exacto que usaría en TikTok/IG — nada de placeholders
+3. La desc explica el ángulo único + por qué funcionará basándose en sus datos reales
+4. El hook es la frase exacta de los primeros 3 segundos del vídeo
+5. La estructura es el guión resumido paso a paso
+6. El caption es el texto real para publicar en redes
+
+Genera 6 ideas en JSON. Responde SOLO con el JSON:
+[{"score":"X.X/10","title":"título exacto del vídeo","desc":"ángulo + por qué funcionará referenciando sus datos (3-4 frases)","tags":["tag1","tag2","tag3"],"contentType":"VIDEO|CARRUSEL|IMAGEN","hook":"frase exacta de los primeros 3s del vídeo","estructura":"1. intro/hook → 2. desarrollo → 3. conclusión/CTA (2-3 líneas por paso)","caption":"caption completo para TikTok/IG con hashtags","duracion":"15s|30s|60s|90s|carrusel"}]`;
+
+    const text=await callAI(prompt, 1800);
     const ideas=JSON.parse(text.replace(/```json|```/g,'').trim());
     currentIdeas=ideas;
     renderIdeas(ideas);
@@ -2331,29 +2377,61 @@ async function generateOverviewSummary(){
   if(!serverOk){showNotif('SERVIDOR OFFLINE','Arranca el servidor con: node server.js');return;}
   btn.disabled=true;btn.textContent='ANALIZANDO...';st.textContent='IA analizando tus métricas...';st.className='cfg-status loading';
   try{
-    const top=[...d.tiktok.topPosts,...d.instagram.topPosts].slice(0,6);
-    const hooks=d.tiktok.hooks;
-    const prompt=`Eres estratega de contenido experto en IA y marketing digital en español.${projectCtxBlock()} Analiza los datos de ${cfg.brandName||cfg.ttHandle||'este creador'} y genera un resumen ejecutivo en 3 secciones.
+    const ttPosts=d.tiktok.topPosts;
+    const igPosts=d.instagram.topPosts;
+    const allPosts=[...ttPosts,...igPosts];
+    const ttHooks=d.tiktok.hooks;
+    const igHooks=d.instagram.hooks;
+    const period=currentPeriod==='7d'?'últimos 7 días':currentPeriod==='30d'?'últimos 30 días':'últimos 90 días';
+    const bestTT=ttPosts[0];const worstTT=ttPosts[ttPosts.length-1];
+    const bestIG=igPosts[0];const worstIG=igPosts[igPosts.length-1];
+    const prompt=`Eres el mejor analista de contenido digital en español, especializado en creadores de IA y marketing. Analiza TODOS los datos de ${cfg.brandName||cfg.ttHandle||'este creador'} y genera un informe estratégico profundo.${projectCtxBlock()}
 
-DATOS:
-- TikTok: ${fn(d.tiktok.followers)} followers, ${fn(d.tiktok.views)} vistas totales, ${d.tiktok.engagement}% engagement
-- Instagram: ${fn(d.instagram.followers)} followers, ${fn(d.instagram.views)} vistas totales, ${d.instagram.engagement}% engagement
-- Mejor hook: ${hooks[0]?.type||'How-to'} (${fn(hooks[0]?.views||0)} avg views, ${hooks[0]?.rate||0}% like rate)
-- Top posts: ${top.map(p=>`"${p.title?.slice(0,60)}" (${fn(p.views)} views, ${p.eng}% eng)`).join(' | ')}
-- Período: ${currentPeriod==='7d'?'últimos 7 días':currentPeriod==='30d'?'últimos 30 días':'últimos 90 días'}
+PERÍODO: ${period}
 
-Responde SOLO con este JSON (sin texto extra):
+═══ TIKTOK ═══
+Followers: ${fn(d.tiktok.followers)} · Vistas totales: ${fn(d.tiktok.views)} · Engagement: ${d.tiktok.engagement}%
+Shares totales: ${fn(d.tiktok.shares)} · Posts analizados: ${ttPosts.length}
+
+Mejor post: "${bestTT?.title}" → ${fn(bestTT?.views||0)} views, ${bestTT?.eng}% eng, tipo: ${bestTT?.type}
+Peor post: "${worstTT?.title}" → ${fn(worstTT?.views||0)} views, ${worstTT?.eng}% eng, tipo: ${worstTT?.type}
+
+Tipos de contenido TikTok:
+${ttHooks.map(h=>`• ${h.type}: ${fn(h.views)} avg views, ${h.rate}% like rate, ${h.videos} vídeos`).join('\n')}
+
+Todos los posts TikTok (de mayor a menor views):
+${ttPosts.map((p,i)=>`${i+1}. "${p.title?.slice(0,80)}" · ${fn(p.views)} views · ${p.eng}% eng · ${p.type} · saves: ${fn(p.saves||0)}`).join('\n')}
+
+═══ INSTAGRAM ═══
+Followers: ${fn(d.instagram.followers)} · Vistas totales: ${fn(d.instagram.views)} · Engagement: ${d.instagram.engagement}%
+Posts analizados: ${igPosts.length}
+
+Mejor post: "${bestIG?.title}" → ${fn(bestIG?.views||0)} views, ${bestIG?.eng}% eng, tipo: ${bestIG?.type}
+Peor post: "${worstIG?.title}" → ${fn(worstIG?.views||0)} views, ${worstIG?.eng}% eng, tipo: ${worstIG?.type}
+
+Tipos de contenido Instagram:
+${igHooks.map(h=>`• ${h.type}: ${fn(h.views)} avg views, ${h.rate}% like rate, ${h.videos} contenidos`).join('\n')}
+
+Todos los posts Instagram:
+${igPosts.map((p,i)=>`${i+1}. "${p.title?.slice(0,80)}" · ${fn(p.views)} views · ${p.eng}% eng · ${p.type}`).join('\n')}
+
+Genera un informe profundo que cite DATOS REALES y TÍTULOS CONCRETOS de sus posts. Responde SOLO con este JSON:
 {
-  "funcionando": "2-3 frases sobre qué formatos y temas están generando mejores resultados y por qué",
-  "mejorar": "2-3 frases sobre qué no está funcionando y qué debería cambiar",
-  "oportunidades": "3 oportunidades concretas y accionables para esta semana numeradas como 1. 2. 3."
+  "funcionando": "3-4 frases específicas citando posts y métricas reales — qué tipo de contenido, qué temas, qué formatos funcionan y por qué, con números concretos",
+  "mejorar": "3-4 frases citando posts específicos con bajo rendimiento — qué no funciona, por qué y qué cambiaría exactamente",
+  "oportunidades": "5 oportunidades numeradas con datos: qué hacer, cómo ejecutarlo, qué resultado esperar basándose en sus métricas actuales. Cada punto en una línea.",
+  "diferenciacion": "2-3 frases: qué hace DIFERENTE a este creador vs la media del nicho, y qué ventaja competitiva debería potenciar",
+  "alerta": "1 riesgo o punto ciego importante que el creador no está viendo en sus datos"
 }`;
-    const text=await callAI(prompt, 600);
+    const text=await callAI(prompt, 1400);
     const s=JSON.parse(text.replace(/```json|```/g,'').trim());
     content.innerHTML=`
-      <div style="margin-bottom:12px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent);font-weight:700;margin-bottom:6px">✦ QUÉ ESTÁ FUNCIONANDO</div><p>${s.funcionando}</p></div>
-      <div style="margin-bottom:12px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent2);font-weight:700;margin-bottom:6px">✕ QUÉ MEJORAR</div><p>${s.mejorar}</p></div>
-      <div><div style="font-size:9px;letter-spacing:.14em;color:var(--accent3);font-weight:700;margin-bottom:6px">→ OPORTUNIDADES ESTA SEMANA</div><p style="white-space:pre-line">${s.oportunidades}</p></div>`;
+      <div style="margin-bottom:14px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent);font-weight:700;margin-bottom:8px">✦ QUÉ ESTÁ FUNCIONANDO</div><p style="line-height:1.7">${s.funcionando}</p></div>
+      <div style="margin-bottom:14px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent2);font-weight:700;margin-bottom:8px">✕ QUÉ MEJORAR</div><p style="line-height:1.7">${s.mejorar}</p></div>
+      <div style="margin-bottom:14px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent3);font-weight:700;margin-bottom:8px">→ 5 OPORTUNIDADES CONCRETAS</div><p style="white-space:pre-line;line-height:1.8">${s.oportunidades}</p></div>
+      ${s.diferenciacion?`<div style="margin-bottom:14px;background:rgba(232,255,71,.04);border:1px solid rgba(232,255,71,.15);padding:12px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent);font-weight:700;margin-bottom:8px">◈ TU VENTAJA DIFERENCIAL</div><p style="line-height:1.7">${s.diferenciacion}</p></div>`:''}
+      ${s.alerta?`<div style="background:rgba(255,71,87,.04);border:1px solid rgba(255,71,87,.2);padding:12px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent2);font-weight:700;margin-bottom:8px">⚠ PUNTO CIEGO A VIGILAR</div><p style="line-height:1.7">${s.alerta}</p></div>`:''}
+      <div style="font-size:9px;color:var(--text3);margin-top:10px">Basado en ${allPosts.length} posts · ${period}</div>`;
     st.textContent='✓ Análisis generado';st.className='cfg-status ok';
   }catch(e){
     st.textContent='✕ '+e.message;st.className='cfg-status err';
@@ -2924,6 +3002,29 @@ function refreshTrending(){
   showNotif('VIDEOS REFRESCADOS','Orden actualizado con los últimos datos disponibles.');
 }
 
+function renderCachedNews(items){
+  const nlEl=document.getElementById('newsList');
+  if(!nlEl) return;
+  nlEl.innerHTML=items.map((n,idx)=>{
+    const isSaved=savedNews.some(s=>s.id===n.id);
+    const nStr=JSON.stringify(n).replace(/'/g,"&#39;").replace(/`/g,"&#96;");
+    return`<div class="news-item" id="aiNewsItem${idx}">
+      <div class="news-hd" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.na').textContent=this.nextElementSibling.classList.contains('open')?'▲':'▼'">
+        <div style="flex:1;min-width:0"><div class="news-title">${n.headline}</div><div class="news-tag">${n.tag}</div></div>
+        <div class="news-meta">${n.date} <span class="na" style="color:var(--accent3);margin-left:6px">▼</span></div>
+      </div>
+      <div class="news-body">
+        <div class="news-summary" style="white-space:pre-line">${n.summary}</div>
+        <div class="news-acts">
+          <a href="${n.url}" target="_blank" rel="noopener" class="btn-s" style="font-size:10px;padding:5px 12px;text-decoration:none">↗ LEER MÁS</a>
+          <button class="btn-p" style="font-size:9px;padding:5px 12px" ${isSaved?'disabled style="opacity:.5"':''} onclick="savedNews.push({...${nStr},savedAt:new Date().toISOString()});localStorage.setItem('iac_saved_news',JSON.stringify(savedNews));this.disabled=true;this.textContent='✓ GUARDADA';renderSaved()">${isSaved?'✓ GUARDADA':'+ GUARDAR'}</button>
+          <span style="font-size:9px;color:var(--accent3)">✦ IA · personalizado</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 async function refreshNews(){
   if(!hasAIKey()){
     showNotif('SIN API IA','Configura tu API key de Claude, ChatGPT o Gemini en CONFIGURAR para generar noticias reales.');
@@ -2931,47 +3032,49 @@ async function refreshNews(){
   }
   const nl=document.getElementById('newsList');
   if(nl) nl.innerHTML=`<div style="padding:20px;text-align:center;font-size:11px;color:var(--text3)">✦ Generando noticias con IA...</div>`;
-  const keywords=(cfg.nicheKw||'IA,marketing,automatización').split(',').slice(0,5).map(k=>k.trim()).join(', ');
+  const keywords=(cfg.nicheKw||'IA,marketing,automatización').split(',').slice(0,6).map(k=>k.trim()).join(', ');
   const niche=cfg.brandNiche||cfg.nicheKw||'IA y marketing digital';
+  const audience=cfg.brandAudience||'creadores de contenido y marketers';
   const today=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
-  const prompt=`Eres un periodista experto en tecnología e IA. Hoy es ${today}. Genera 3 noticias recientes y relevantes sobre: ${keywords}.
-El contexto es un creador de contenido en el nicho de: ${niche}.
-Cada noticia debe ser accionable — incluye en el summary una idea concreta de cómo el creador puede usar esa noticia para hacer contenido.
+  const d=realData||D;
+  const topPost=d.tiktok.topPosts[0]||d.instagram.topPosts[0];
+  const prompt=`Eres el editor jefe de una publicación especializada en creadores de contenido, IA y marketing digital en español. Hoy es ${today}.
 
-Responde SOLO con este JSON (sin texto extra):
+CONTEXTO DEL CREADOR:
+- Nicho: ${niche}
+- Audiencia: ${audience}
+- Keywords de interés: ${keywords}
+- Su mejor contenido reciente: "${topPost?.title||'IA aplicada al marketing'}" (${fn(topPost?.views||0)} views)
+
+MISIÓN: Genera 5 noticias/actualizaciones ALTAMENTE RELEVANTES para este creador específico. Cada noticia debe:
+1. Ser sobre algo real en el ecosistema de IA, TikTok, Instagram, creadores, o marketing digital
+2. Tener un ángulo específico para su nicho — no genérico
+3. Incluir una idea de contenido CONCRETA que el creador pueda grabar ESTA SEMANA
+4. La "idea de contenido" debe ser un gancho de vídeo listo para usar
+
+Categorías prioritarias: actualizaciones de Claude/ChatGPT/Gemini, cambios en algoritmo TikTok/IG, herramientas de automatización, tendencias creator economy, casos de uso de IA en marketing.
+
+Responde SOLO con este JSON (sin texto extra, 5 noticias):
 [
-  {"headline":"título de la noticia en español","summary":"resumen de 3 oraciones: qué pasó, por qué importa, idea de contenido accionable","tag":"CATEGORÍA EN MAYÚSCULAS (ej: OPENAI, TIKTOK, MARKETING, IA, TOOLS)","url":"https://url-real-al-articulo-o-fuente-oficial"},
-  {...},
-  {...}
+  {
+    "headline": "titular específico y concreto en español (no genérico)",
+    "summary": "Qué pasó y por qué importa para creadores de IA (2 frases). Después en nueva línea: '💡 IDEA DE CONTENIDO: [gancho exacto de vídeo que puede grabar esta semana]'",
+    "tag": "CATEGORÍA (CLAUDE|CHATGPT|TIKTOK|INSTAGRAM|AUTOMATIZACIÓN|CREATOR ECONOMY|TOOLS|IA)",
+    "url": "URL de la fuente oficial o artículo real (blog.anthropic.com, newsroom.tiktok.com, help.instagram.com, openai.com/blog, techcrunch.com, etc.)"
+  }
 ]`;
   try{
-    const raw=await callAI(prompt,800);
+    const raw=await callAI(prompt,1200);
     const match=raw.match(/\[[\s\S]*\]/);
     if(!match) throw new Error('Formato inválido');
     const items=JSON.parse(match[0]);
     if(!Array.isArray(items)||!items.length) throw new Error('Sin resultados');
-    // Asignar IDs temporales y renderizar
     const tempItems=items.map((n,i)=>({...n,id:'ai_'+Date.now()+'_'+i,date:new Date().toISOString().slice(0,10)}));
-    const nlEl=document.getElementById('newsList');
-    if(!nlEl) return;
-    nlEl.innerHTML=tempItems.map((n,idx)=>{
-      const isSaved=savedNews.some(s=>s.id===n.id);
-      return`<div class="news-item" id="aiNewsItem${idx}">
-        <div class="news-hd" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('span').textContent=this.nextElementSibling.classList.contains('open')?'▲':'▼'">
-          <div><div class="news-title">${n.headline}</div><div class="news-tag">${n.tag}</div></div>
-          <div class="news-meta">${n.date} <span style="color:var(--accent3);margin-left:6px">▼</span></div>
-        </div>
-        <div class="news-body">
-          <div class="news-summary">${n.summary}</div>
-          <div class="news-acts">
-            <a href="${n.url}" target="_blank" rel="noopener" class="btn-s" style="font-size:10px;padding:5px 12px;text-decoration:none">↗ LEER MÁS</a>
-            <button class="btn-p" style="font-size:9px;padding:5px 12px" onclick="savedNews.push({...${JSON.stringify(n).replace(/'/g,"&#39;")},savedAt:new Date().toISOString()});localStorage.setItem('iac_saved_news',JSON.stringify(savedNews));this.disabled=true;this.textContent='✓ GUARDADA';renderSaved()">+ GUARDAR</button>
-            <span style="font-size:9px;color:var(--accent3)">✦ Generado con IA</span>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
-    showNotif('NOTICIAS GENERADAS','3 noticias frescas basadas en tus keywords del nicho.');
+    // Cachear por 24h
+    localStorage.setItem('iac_news_cache',JSON.stringify(tempItems));
+    localStorage.setItem('iac_news_cache_ts',Date.now().toString());
+    renderCachedNews(tempItems);
+    showNotif('NOTICIAS GENERADAS',`${tempItems.length} noticias personalizadas para tu nicho.`);
   }catch(e){
     renderNews();
     showNotif('ERROR IA','No se pudieron generar noticias: '+e.message);
