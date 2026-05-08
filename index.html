@@ -1142,13 +1142,16 @@ function renderAll(){
   renderComps();renderTrending(trendFilter);renderIdeas();
   renderSaved();
   applyTranslations();
-  // Auto-generar noticias con IA si hay API key configurada y no hay noticias personalizadas ya cargadas
+  // Noticias: mostrar caché inmediatamente si existe, y siempre refrescar RSS en background
   if(hasAIKey()&&serverOk){
     const cached=localStorage.getItem('iac_news_cache');
     const cacheAge=localStorage.getItem('iac_news_cache_ts');
-    const stale=!cacheAge||Date.now()-parseInt(cacheAge)>24*60*60*1000;
-    if(!cached||stale){setTimeout(()=>refreshNews(),2500);}
-    else{try{const items=JSON.parse(cached);renderCachedNews(items);}catch(e){}}
+    // Mostrar caché al instante mientras llega el RSS
+    if(cached){try{renderCachedNews(JSON.parse(cached));}catch(e){}}
+    // Refrescar siempre en background (respetando mínimo de 2h para no gastar tokens en cada F5)
+    const twoHours=2*60*60*1000;
+    const needsRefresh=!cacheAge||Date.now()-parseInt(cacheAge)>twoHours;
+    if(needsRefresh) setTimeout(()=>refreshNews(),2500);
   }
 }
 
