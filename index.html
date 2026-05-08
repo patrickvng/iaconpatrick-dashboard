@@ -1106,7 +1106,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
   if(si&&isLocal){
     si.innerHTML='El dashboard necesita un servidor local para comunicarse con Apify sin errores de CORS.<br><b>1.</b> Asegúrate de tener <span class="hl">Node.js</span> instalado<br><b>2.</b> Abre una terminal en la carpeta del proyecto<br><b>3.</b> Ejecuta: <span class="hl">node server.js</span><br><b>4.</b> Abre el navegador en <span class="hl">http://localhost:3000</span>';
   }
-  checkServer(true);
+  await checkServer(true);
   // Cargar cache — primero servidor, si no hay fallback a localStorage
   let cacheLoaded=false;
   try{
@@ -1143,15 +1143,15 @@ function renderAll(){
   renderSaved();
   applyTranslations();
   // Noticias: mostrar caché inmediatamente si existe, y siempre refrescar RSS en background
-  if(hasAIKey()&&serverOk){
+  {
     const cached=localStorage.getItem('iac_news_cache');
     const cacheAge=localStorage.getItem('iac_news_cache_ts');
-    // Mostrar caché al instante mientras llega el RSS
+    // Mostrar caché al instante (no requiere servidor ni API key)
     if(cached){try{renderCachedNews(JSON.parse(cached));}catch(e){}}
-    // Refrescar siempre en background (respetando mínimo de 2h para no gastar tokens en cada F5)
+    // Auto-refresh si hay API key (con servidor o sin él para usar fallback IA)
     const twoHours=2*60*60*1000;
     const needsRefresh=!cacheAge||Date.now()-parseInt(cacheAge)>twoHours;
-    if(needsRefresh) setTimeout(()=>refreshNews(),2500);
+    if(hasAIKey()&&needsRefresh) setTimeout(()=>refreshNews(),3000);
   }
 }
 
@@ -3152,33 +3152,36 @@ async function refreshNews(){
       // Modo principal: IA curates artículos REALES con URLs reales
       if(nl) nl.innerHTML=`<div style="padding:20px;text-align:center;font-size:11px;color:var(--text3)">✦ IA seleccionando las noticias más relevantes para ti...</div>`;
       const articleList=articles.slice(0,30).map((a,i)=>`${i+1}. [${a.source}] "${a.title}"${a.description?' — '+a.description.slice(0,150):''}\nURL: ${a.url}`).join('\n\n');
-      prompt=`Eres un editor jefe especializado en creadores de contenido de IA y marketing digital en español. Hoy es ${today}.
+      prompt=`Eres un editor jefe especializado en creadores de contenido de IA y marketing digital. Hoy es ${today}.
+IDIOMA DE RESPUESTA: TODO EN ESPAÑOL (titulares, resúmenes, ideas — todo).
 
 PERFIL DEL CREADOR:
 - Nicho: ${niche}
 - Audiencia: ${audience}
-- Keywords de interés: ${keywords}
+- Keywords: ${keywords}
 
-ARTÍCULOS REALES DE FUENTES COMO TECHCRUNCH, THE VERGE, VENTUREBEAT Y SOCIAL MEDIA TODAY:
+ARTÍCULOS REALES (de TechCrunch, The Verge, VentureBeat, Social Media Today):
 ${articleList}
 
-TAREA: Selecciona exactamente 5 artículos de la lista que sean MÁS RELEVANTES para este creador. Para cada uno:
-1. Traduce o adapta el titular al español (claro y específico)
-2. Explica en 2 frases por qué importa para su nicho
-3. Añade en nueva línea: "💡 IDEA: [gancho concreto de vídeo que puede grabar esta semana basado en este artículo]"
+TAREA: Selecciona 5 artículos MÁS RELEVANTES para este creador. Para cada uno:
+1. Titular en español claro y específico (traduce del inglés si es necesario)
+2. 2 frases en español explicando por qué importa para su nicho
+3. Nueva línea: "💡 IDEA: [gancho concreto de vídeo en español para grabar esta semana]"
 
-IMPORTANTE: Usa el URL EXACTO de la lista, no lo modifiques ni inventes ninguno.
+REGLAS ESTRICTAS:
+- Todo el texto en ESPAÑOL
+- URL: copia el URL EXACTO de la lista, sin modificar ni inventar
+- No añadas texto fuera del JSON
 
-Responde SOLO con JSON válido (sin texto extra):
-[{"headline":"...","summary":"explicación.\\n💡 IDEA: gancho","tag":"CLAUDE|CHATGPT|TIKTOK|INSTAGRAM|AUTOMATIZACIÓN|CREATOR ECONOMY|TOOLS|IA","url":"URL exacto de la lista","source":"nombre fuente"}]`;
+JSON de respuesta (sin texto extra):
+[{"headline":"titular en español","summary":"resumen en español.\\n💡 IDEA: gancho en español","tag":"CLAUDE|CHATGPT|TIKTOK|INSTAGRAM|AUTOMATIZACIÓN|CREATOR ECONOMY|TOOLS|IA","url":"URL exacto de la lista","source":"nombre fuente"}]`;
     }else{
       // Fallback: sin RSS, IA genera tendencias (sin URLs a artículos específicos)
       if(nl) nl.innerHTML=`<div style="padding:20px;text-align:center;font-size:11px;color:var(--text3)">✦ Generando radar de tendencias...</div>`;
-      prompt=`Eres un experto en tendencias de IA y marketing de contenidos en español. Hoy es ${today}.
+      prompt=`Eres un experto en tendencias de IA y marketing de contenidos. TODO EN ESPAÑOL. Hoy es ${today}.
 NICHO: ${niche} · AUDIENCIA: ${audience}
-Genera 5 tendencias/novedades de ESTA SEMANA relevantes para este creador (basado en tu conocimiento hasta tu fecha de corte).
-Para cada una añade una idea de vídeo concreta. Las URLs deben ser a páginas PRINCIPALES de fuentes reales (blog.anthropic.com, newsroom.tiktok.com, openai.com/blog, techcrunch.com/ai) — NUNCA a artículos específicos que no puedas verificar.
-Responde SOLO con JSON: [{"headline":"...","summary":"...\\n💡 IDEA: ...","tag":"IA|TOOLS|TIKTOK|INSTAGRAM|AUTOMATIZACIÓN","url":"URL a página principal (no artículo)","source":"nombre fuente"}]`;
+Genera 5 tendencias relevantes para este creador. Todo el texto en español. Las URLs deben ser páginas PRINCIPALES de fuentes reales (blog.anthropic.com, openai.com/blog, techcrunch.com/ai, newsroom.tiktok.com) — NUNCA artículos específicos.
+Responde SOLO con JSON: [{"headline":"titular en español","summary":"resumen en español.\\n💡 IDEA: gancho en español","tag":"IA|TOOLS|TIKTOK|INSTAGRAM|AUTOMATIZACIÓN","url":"URL a página principal","source":"fuente"}]`;
     }
 
     rawResponse=await callAI(prompt,2000);
