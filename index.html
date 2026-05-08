@@ -2161,7 +2161,7 @@ async function triggerSync(){
 
     setLoad(75,'SCRAPEANDO TRENDING...','keywords: '+cfg.nicheKw.split(',')[0].trim());
     const kwArr=cfg.nicheKw.split(',').slice(0,3).map(k=>k.trim());
-    const trendRaw=await runActor(token,'clockworks~tiktok-hashtag-scraper',{hashtags:kwArr,resultsPerPage:30});
+    const trendRaw=await runActor(token,'clockworks~tiktok-hashtag-scraper',{hashtags:kwArr,resultsPerPage:50,postWithin:30});
 
     setLoad(92,'PROCESANDO DATOS...','');
     realData=processData(ttRaw,igRaw,trendRaw,igProfileRaw);
@@ -2261,8 +2261,14 @@ function processData(ttRaw,igRaw,trendRaw,igProfileRaw){
   const ttTop=ttSorted.map((p,i)=>({rank:i+1,title:(p.text||'').slice(0,120)||'Sin título',platform:'tt',type:detectType(p.text||''),views:p.playCount||0,likes:p.diggCount||0,comments:p.commentCount||0,shares:p.shareCount||0,eng:ttProf.fans?(((p.diggCount||0)+(p.commentCount||0))/(ttProf.fans||1)*100).toFixed(1):0,url:ttUrl(p),publishedAt:ttTs(p)}));
   const igTop=igSorted.map((p,i)=>({rank:i+1,title:(p.caption||p.alt||p.accessibility_caption||'').slice(0,120)||'Sin título',platform:'ig',type:igType(p),views:igViews(p),likes:p.likesCount||0,comments:p.commentsCount||p.commentCount||0,shares:0,eng:igFollowers?(((p.likesCount||0)+(p.commentsCount||p.commentCount||0))/igFollowers*100).toFixed(2):0,url:igUrl(p),publishedAt:igTs(p)}));
 
-  // Trending
-  const trendItems=trendPosts.slice(0,8).map(p=>({title:(p.text||'').slice(0,100),handle:'@'+(p.authorMeta?.name||'unknown'),dur:p.videoMeta?.duration?Math.round(p.videoMeta.duration)+'s':'—',views:fn(p.playCount||0),likes:p.diggCount||0,saves:p.collectCount||0,comments:p.commentCount||0,shares:p.shareCount||0,tag:(p.hashtags||[]).slice(0,2).map(h=>'#'+h.name).join(' ')||'#ia',videoUrl:p.webVideoUrl||(p.id&&p.authorMeta?.name?`https://www.tiktok.com/@${p.authorMeta.name}/video/${p.id}`:`https://www.tiktok.com/@${p.authorMeta?.name||''}`),why:''}));
+  // Trending — solo posts del último mes
+  const trendCutoff=new Date(Date.now()-30*24*60*60*1000);
+  const trendFiltered=trendPosts.filter(p=>{
+    const ts=p.createTimeISO||(p.createTime?new Date(p.createTime*1000).toISOString():null);
+    return ts?new Date(ts)>=trendCutoff:false;
+  });
+  const trendSource=(trendFiltered.length>0?trendFiltered:trendPosts);
+  const trendItems=trendSource.slice(0,8).map(p=>({title:(p.text||'').slice(0,100),handle:'@'+(p.authorMeta?.name||'unknown'),dur:p.videoMeta?.duration?Math.round(p.videoMeta.duration)+'s':'—',views:fn(p.playCount||0),likes:p.diggCount||0,saves:p.collectCount||0,comments:p.commentCount||0,shares:p.shareCount||0,tag:(p.hashtags||[]).slice(0,2).map(h=>'#'+h.name).join(' ')||'#ia',videoUrl:p.webVideoUrl||(p.id&&p.authorMeta?.name?`https://www.tiktok.com/@${p.authorMeta.name}/video/${p.id}`:`https://www.tiktok.com/@${p.authorMeta?.name||''}`),why:''}));
 
   // Engagement real
   const ttEngReal=ttProf.fans&&ttSorted.length?((ttSorted.reduce((s,p)=>s+(p.diggCount||0)+(p.commentCount||0),0))/(ttProf.fans*ttSorted.length)*100).toFixed(1):D.tiktok.engagement;

@@ -246,7 +246,7 @@ async function runAutoSync() {
     const ttRaw       = await runActorServer(token, 'clockworks~tiktok-scraper',        { profiles: [ttHandle], resultsType: 'posts', maxPostsPerPage: maxPosts, shouldDownloadVideos: false, shouldDownloadCovers: false });
     const igProfileRaw= await runActorServer(token, 'apify~instagram-scraper',           { directUrls: [`https://www.instagram.com/${igHandle}/`], resultsType: 'posts', resultsLimit: 1 }).catch(()=>[]);
     const igRaw       = await runActorServer(token, 'apify~instagram-scraper',           { directUrls: [`https://www.instagram.com/${igHandle}/`], resultsType: 'posts', resultsLimit: maxPosts });
-    const trendRaw    = await runActorServer(token, 'clockworks~tiktok-hashtag-scraper', { hashtags: kwArr, resultsPerPage: 30 });
+    const trendRaw    = await runActorServer(token, 'clockworks~tiktok-hashtag-scraper', { hashtags: kwArr, resultsPerPage: 50, postWithin: 30 });
     saveCacheFile({ ttRaw, igRaw, igProfileRaw, trendRaw, syncedAt: new Date().toISOString() });
     console.log(`[AUTO-SYNC] ✓ Completado — ${ttRaw.length} TT, ${igRaw.length} IG, followers en perfil: ${igProfileRaw[0]?.followersCount||'N/D'}`);
   } catch(e) { console.error('[AUTO-SYNC] Error:', e.message); }
