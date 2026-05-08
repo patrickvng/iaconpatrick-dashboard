@@ -779,6 +779,22 @@ body.light::before{display:none}
       <div class="cfg-field"><div class="cfg-lbl">INSTAGRAM HANDLE</div><input type="text" class="cfg-inp" id="igHandle" placeholder="@tucuenta"></div>
       <div class="cfg-field" style="grid-column:1/-1"><div class="cfg-lbl">KEYWORDS NICHO (para trending)</div><input type="text" class="cfg-inp" id="nicheKw" value="IA,marketing contenidos,automatización,prompt,inteligencia artificial"></div>
     </div>
+    <div style="background:rgba(225,48,108,.04);border:1px solid rgba(225,48,108,.15);padding:14px 16px;margin-top:12px;border-radius:2px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--ig);margin-bottom:6px">◆ SHARES DE INSTAGRAM — DATO MANUAL</div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:12px">
+        Instagram <b>no permite</b> obtener el número de shares automáticamente — es un dato privado que solo tú ves en tus Insights.<br><br>
+        <b>Cómo conseguirlo:</b><br>
+        <span style="color:var(--text3)">1.</span> Abre Instagram en el móvil → Ve a tu perfil<br>
+        <span style="color:var(--text3)">2.</span> Pulsa <b>Ver estadísticas</b> (o el botón ↗ en cualquier post)<br>
+        <span style="color:var(--text3)">3.</span> Busca la métrica <b>"Compartidos"</b> o <b>"Shares"</b> — puedes verla por post o en el resumen de los últimos 7/30/90 días en <b>Panel profesional → Contenido</b><br>
+        <span style="color:var(--text3)">4.</span> Suma los shares de tus posts del período y ponlo aquí
+      </div>
+      <div class="cfg-grid" style="grid-template-columns:repeat(3,1fr);gap:10px">
+        <div class="cfg-field"><div class="cfg-lbl">SHARES IG — 7 DÍAS</div><input type="number" class="cfg-inp" id="igShares7d" placeholder="0" min="0"></div>
+        <div class="cfg-field"><div class="cfg-lbl">SHARES IG — 30 DÍAS</div><input type="number" class="cfg-inp" id="igShares30d" placeholder="0" min="0"></div>
+        <div class="cfg-field"><div class="cfg-lbl">SHARES IG — 90 DÍAS</div><input type="number" class="cfg-inp" id="igShares90d" placeholder="0" min="0"></div>
+      </div>
+    </div>
     <div class="cfg-acts">
       <button class="btn-p" onclick="testApify()">PROBAR CONEXIÓN</button>
       <button class="btn-s" onclick="saveConfig()">GUARDAR</button>
@@ -888,7 +904,7 @@ async function apiFetch(url, opts){
 }
 
 // ═══ STATE ═══
-let cfg={apifyToken:'',ttHandle:'',igHandle:'',maxPosts:50,nicheKw:'',compTT:'',compIG:'',anthropicKey:'',anthropicModel:'claude-sonnet-4-6',openaiKey:'',openaiModel:'gpt-4o',geminiKey:'',geminiModel:'gemini-2.0-flash',aiProvider:'claude',websiteUrl:'',creatorBio:'',brandTone:'',brandName:'',brandNiche:'',brandAudience:'',brandGoal:'',brandAvoid:'',claudeProjectCtx:''};
+let cfg={apifyToken:'',ttHandle:'',igHandle:'',maxPosts:50,nicheKw:'',compTT:'',compIG:'',igShares7d:0,igShares30d:0,igShares90d:0,anthropicKey:'',anthropicModel:'claude-sonnet-4-6',openaiKey:'',openaiModel:'gpt-4o',geminiKey:'',geminiModel:'gemini-2.0-flash',aiProvider:'claude',websiteUrl:'',creatorBio:'',brandTone:'',brandName:'',brandNiche:'',brandAudience:'',brandGoal:'',brandAvoid:'',claudeProjectCtx:''};
 let realData=null,platformFilter='all',trendFilter='tt',compFilter='all';
 let vChart=null,eChart=null,serverOk=false;
 let selectedAccount='all',currentPeriod='7d',isDark=false,lang='es';
@@ -2257,7 +2273,7 @@ function processData(ttRaw,igRaw,trendRaw,igProfileRaw){
 
   return{
     tiktok:{followers:ttProf.fans||D.tiktok.followers,followersDelta:0,views:ttSorted.reduce((s,p)=>s+(p.playCount||0),0)||D.tiktok.views,viewsDelta:0,engagement:parseFloat(ttEngReal)||D.tiktok.engagement,shares:ttSorted.reduce((s,p)=>s+(p.shareCount||0),0)||D.tiktok.shares,posts:ttPosts.length||D.tiktok.posts,viewsByDay:D.tiktok.viewsByDay,topPosts:ttTop.length>0?ttTop:D.tiktok.topPosts,hooks:D.tiktok.hooks,mix:D.tiktok.mix},
-    instagram:{followers:igFollowers,followersDelta:0,views:igTotalViews,viewsDelta:0,engagement:parseFloat(igEngReal)||D.instagram.engagement,shares:0,posts:igPosts.length||D.instagram.posts,viewsByDay:D.instagram.viewsByDay,topPosts:igTop.length>0?igTop:D.instagram.topPosts,hooks:D.instagram.hooks,mix:D.instagram.mix},
+    instagram:{followers:igFollowers,followersDelta:0,views:igTotalViews,viewsDelta:0,engagement:parseFloat(igEngReal)||D.instagram.engagement,shares:currentPeriod==='30d'?(parseInt(cfg.igShares30d)||0):currentPeriod==='90d'?(parseInt(cfg.igShares90d)||0):(parseInt(cfg.igShares7d)||0),posts:igPosts.length||D.instagram.posts,viewsByDay:D.instagram.viewsByDay,topPosts:igTop.length>0?igTop:D.instagram.topPosts,hooks:D.instagram.hooks,mix:D.instagram.mix},
     trending:{tt:trendItems.length>0?trendItems:[],ig:[]},
   };
 }
@@ -2502,6 +2518,9 @@ function saveConfig(){
   cfg.nicheKw=document.getElementById('nicheKw').value;
   cfg.compTT=document.getElementById('compTT').value;
   cfg.compIG=document.getElementById('compIG').value;
+  cfg.igShares7d=parseInt(document.getElementById('igShares7d')?.value)||0;
+  cfg.igShares30d=parseInt(document.getElementById('igShares30d')?.value)||0;
+  cfg.igShares90d=parseInt(document.getElementById('igShares90d')?.value)||0;
   cfg.anthropicKey=document.getElementById('anthropicKey').value;
   cfg.anthropicModel=document.getElementById('anthropicModel').value;
   cfg.openaiKey=document.getElementById('openaiKey')?.value||cfg.openaiKey;
@@ -2528,7 +2547,7 @@ function loadCfg(){
     if(s.anthropicModel==='claude-sonnet-4-20250514') s.anthropicModel='claude-sonnet-4-6';
     if(s.anthropicModel==='claude-haiku-4-5-20251001') s.anthropicModel='claude-haiku-4-5';
     Object.assign(cfg,s);
-    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel',openaiKey:'openaiKey',openaiModel:'openaiModel',geminiKey:'geminiKey',geminiModel:'geminiModel',websiteUrl:'websiteUrl',creatorBio:'creatorBio',brandTone:'brandTone',brandName:'brandName',brandNiche:'brandNiche',brandAudience:'brandAudience',brandGoal:'brandGoal',brandAvoid:'brandAvoid',claudeProjectCtx:'claudeProjectCtx'};
+    const map={apifyToken:'apifyToken',ttHandle:'ttHandle',igHandle:'igHandle',maxPosts:'maxPosts',nicheKw:'nicheKw',compTT:'compTT',compIG:'compIG',igShares7d:'igShares7d',igShares30d:'igShares30d',igShares90d:'igShares90d',anthropicKey:'anthropicKey',anthropicModel:'anthropicModel',openaiKey:'openaiKey',openaiModel:'openaiModel',geminiKey:'geminiKey',geminiModel:'geminiModel',websiteUrl:'websiteUrl',creatorBio:'creatorBio',brandTone:'brandTone',brandName:'brandName',brandNiche:'brandNiche',brandAudience:'brandAudience',brandGoal:'brandGoal',brandAvoid:'brandAvoid',claudeProjectCtx:'claudeProjectCtx'};
     // Restore AI provider toggle
     if(cfg.aiProvider) setAIProvider(cfg.aiProvider,document.getElementById('provBtn'+cfg.aiProvider.charAt(0).toUpperCase()+cfg.aiProvider.slice(1)));
     // Restore char counter for project context
