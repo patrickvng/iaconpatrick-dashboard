@@ -567,6 +567,8 @@ body.light::before{display:none}
   <div class="mgrid" id="contentMetrics" style="grid-template-columns:repeat(4,1fr)"></div>
   <div class="st" data-i18n="best_posts">MEJORES POSTS</div>
   <div class="posts-list" id="postsGrid"></div>
+  <div class="st" style="margin-top:24px">TODOS LOS POSTS <span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:6px">CRONOLÓGICO · MÁS RECIENTE PRIMERO</span></div>
+  <div class="posts-list" id="postsChronGrid"></div>
 </div>
 
 <!-- CREADORES -->
@@ -1256,6 +1258,16 @@ function showPage(id,btn){
   document.getElementById('page-'+id).classList.add('active');
   if(btn)btn.classList.add('active');
 }
+function goToContent(platform){
+  platformFilter=platform||'all';
+  document.querySelectorAll('#page-content .period-sel .pb').forEach(b=>{
+    const map={'ALL':'all','TT':'tt','IG':'ig'};
+    b.classList.toggle('active',map[b.textContent.trim()]===platformFilter);
+  });
+  showPage('content',document.querySelector('.nav-btn:nth-child(2)'));
+  const d=realData||D;
+  renderContentMetrics(d);renderPosts(d);
+}
 function setPeriod(p,btn){
   if(p==='custom'){
     const picker=document.getElementById('datePicker');
@@ -1355,7 +1367,7 @@ function openMetricDetail(metric){
       <span style="color:${p.platform==='tt'?'var(--tiktok)':'var(--ig)'}">${p.platform==='tt'?'TIKTOK':'INSTAGRAM'}</span>
       <span>${fn(p.views)} views</span><span>${fn(p.likes)} likes</span><span>${p.eng}% eng</span>
     </div>
-  </div>`).join('')+`<div style="margin-top:12px"><button class="btn-p" onclick="closeModal();showPage('content',document.querySelector('.nav-btn:nth-child(2)'))">VER TODO MI CONTENIDO →</button></div>`;
+  </div>`).join('')+`<div style="margin-top:12px"><button class="btn-p" onclick="closeModal();goToContent('${metric.includes('_ig')?'ig':metric.includes('_tt')?'tt':'all'}')">VER TODO MI CONTENIDO →</button></div>`;
   openModal(title,html);
 }
 function renderViewsChart(d){
@@ -1476,6 +1488,32 @@ function renderPosts(d){
       <div class="pr-stat"><div class="pr-val">${fn(p.likes)}</div><div class="pr-lbl">LIKES</div></div>
       <div class="pr-stat"><div class="pr-val">${p.comments}</div><div class="pr-lbl">CMTS</div></div>
       <div class="pr-stat"><div class="pr-val">${p.shares}</div><div class="pr-lbl">SHARES</div></div>
+    </a>`).join('');
+
+  // Todos los posts ordenados cronológicamente (más reciente primero)
+  const allChron=[];
+  if(platformFilter==='all'||platformFilter==='tt') allChron.push(...d.tiktok.topPosts);
+  if(platformFilter==='all'||platformFilter==='ig') allChron.push(...d.instagram.topPosts);
+  allChron.sort((a,b)=>{
+    if(!a.publishedAt&&!b.publishedAt) return 0;
+    if(!a.publishedAt) return 1;
+    if(!b.publishedAt) return -1;
+    return new Date(b.publishedAt)-new Date(a.publishedAt);
+  });
+  const chronGrid=document.getElementById('postsChronGrid');
+  if(!chronGrid) return;
+  if(!allChron.length){
+    chronGrid.innerHTML=`<div class="empty">Haz un SYNC para ver todos tus posts en orden cronológico.</div>`;
+    return;
+  }
+  chronGrid.innerHTML=allChron.map((p,i)=>`
+    <a class="post-row" href="${p.url||'#'}" target="_blank" rel="noopener">
+      <div class="pr-rank">${i+1}</div>
+      <div><div class="pr-title">${p.title}</div><div class="pr-meta"><span class="${p.platform==='tt'?'tag-tt':'tag-ig'}">${p.platform==='tt'?'TIKTOK':'INSTAGRAM'}</span> · ${p.type}${p.publishedAt?' · '+new Date(p.publishedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'2-digit'}):' · sin fecha'} · Eng: ${p.eng}%</div></div>
+      <div class="pr-stat"><div class="pr-val">${fn(p.views)}</div><div class="pr-lbl">VIEWS</div></div>
+      <div class="pr-stat"><div class="pr-val">${fn(p.likes)}</div><div class="pr-lbl">LIKES</div></div>
+      <div class="pr-stat"><div class="pr-val">${p.comments}</div><div class="pr-lbl">CMTS</div></div>
+      <div class="pr-stat"><div class="pr-val">${p.eng}%</div><div class="pr-lbl">ENG</div></div>
     </a>`).join('');
 }
 
@@ -2154,7 +2192,7 @@ async function triggerSync(){
     const ttRaw=await runActor(token,'clockworks~tiktok-scraper',{profiles:[ttHandleClean],resultsType:'posts',maxPostsPerPage:parseInt(cfg.maxPosts)||50,shouldDownloadVideos:false,shouldDownloadCovers:false});
 
     setLoad(35,'OBTENIENDO PERFIL INSTAGRAM...',cfg.igHandle);
-    const igProfileRaw=await runActor(token,'apify~instagram-scraper',{directUrls:[`https://www.instagram.com/${igHandleClean}/`],resultsType:'posts',resultsLimit:1}).catch(()=>[]);
+    const igProfileRaw=await runActor(token,'apify~instagram-profile-scraper',{usernames:[igHandleClean]}).catch(()=>[]);
 
     setLoad(55,'SCRAPEANDO POSTS INSTAGRAM...',cfg.igHandle);
     const igRaw=await runActor(token,'apify~instagram-scraper',{directUrls:[`https://www.instagram.com/${igHandleClean}/`],resultsType:'posts',resultsLimit:parseInt(cfg.maxPosts)||50});
@@ -2219,8 +2257,10 @@ function processData(ttRaw,igRaw,trendRaw,igProfileRaw){
   const trendPosts=Array.isArray(trendRaw)?trendRaw:[];
   const igProfile=Array.isArray(igProfileRaw)&&igProfileRaw[0]?igProfileRaw[0]:null;
   const ttProf=ttPosts[0]?.authorMeta||{};
+  // Likes IG: varios nombres de campo según versión del actor Apify
+  const igLikes=p=>Math.max(0,p.likesCount||p.likes||p.like_count||p.likeCount||p.edge_liked_by?.count||p.edge_media_preview_like?.count||0);
   const ttSorted=[...ttPosts].sort((a,b)=>(b.playCount||0)-(a.playCount||0));
-  const igSorted=[...igPosts].sort((a,b)=>(b.likesCount||0)-(a.likesCount||0));
+  const igSorted=[...igPosts].sort((a,b)=>igLikes(b)-igLikes(a));
   const ttHandle=(cfg.ttHandle||'').replace('@','');
   const igHandle=(cfg.igHandle||'').replace('@','');
 
@@ -2232,16 +2272,23 @@ function processData(ttRaw,igRaw,trendRaw,igProfileRaw){
   const ttUrl=p=>p.webVideoUrl||(p.id?`https://www.tiktok.com/@${ttHandle}/video/${p.id}`:`https://www.tiktok.com/@${ttHandle}`);
   const igUrl=p=>p.url||(p.shortCode?`https://www.instagram.com/p/${p.shortCode}/`:`https://www.instagram.com/${igHandle}/`);
 
-  // Followers IG: perfil dedicado > campos embebidos en posts (todos los nombres conocidos)
+  // Followers IG: perfil dedicado (apify~instagram-profile-scraper) > campos en posts
   const igFollowers=(()=>{
-    const fromProfile=igProfile?.followersCount||igProfile?.followers_count||igProfile?.edge_followed_by?.count||igProfile?.followersCount;
-    if(fromProfile>0) return fromProfile;
+    const fromProfile=igProfile?.followersCount||igProfile?.followerCount
+      ||igProfile?.followers_count||igProfile?.edge_followed_by?.count
+      ||igProfile?.userFollowersCount||igProfile?.followersNumber;
+    if(fromProfile>0){console.log('[IG] followers desde perfil:',fromProfile);return fromProfile;}
     for(const p of igSorted){
-      const f=p.followersCount||p.ownerFollowersCount||p.ownerfollowersCount
-        ||p.owner?.followersCount||p.owner?.edge_followed_by?.count
-        ||p.userFollowersCount||p.profileFollowersCount||p.authorFollowersCount;
-      if(f>0) return f;
+      const f=p.followersCount||p.followerCount||p.ownerFollowersCount||p.ownerfollowersCount
+        ||p.owner?.followersCount||p.owner?.followerCount||p.owner?.edge_followed_by?.count
+        ||p.userFollowersCount||p.profileFollowersCount||p.authorFollowersCount
+        ||p.user?.followersCount||p.user?.followerCount;
+      if(f>0){console.log('[IG] followers desde post:',f);return f;}
     }
+    // Debug: muestra qué devuelve Apify para saber el campo correcto
+    if(igProfile) console.warn('[IG DEBUG perfil] Campos disponibles:',JSON.stringify(igProfile).slice(0,400));
+    else console.warn('[IG DEBUG] igProfileRaw vacío — actor no devolvió datos');
+    if(igSorted[0]) console.warn('[IG DEBUG post[0]] Campos:',Object.keys(igSorted[0]).join(','));
     return D.instagram.followers;
   })();
 
@@ -2254,12 +2301,12 @@ function processData(ttRaw,igRaw,trendRaw,igProfileRaw){
     return 'Reel';
   };
 
-  // Views IG: videoViewCount > videoPlayCount > impressionsCount > likesCount (fallback)
-  const igViews=p=>p.videoViewCount||p.videoPlayCount||p.impressionsCount||p.likesCount||0;
+  // Views IG: solo contadores reales de vistas/plays, sin mezclar con likes
+  const igViews=p=>p.videoViewCount||p.videoPlayCount||p.playsCount||p.impressionsCount||p.viewsCount||0;
 
   // Posts
   const ttTop=ttSorted.map((p,i)=>({rank:i+1,title:(p.text||'').slice(0,120)||'Sin título',platform:'tt',type:detectType(p.text||''),views:p.playCount||0,likes:p.diggCount||0,comments:p.commentCount||0,shares:p.shareCount||0,eng:ttProf.fans?(((p.diggCount||0)+(p.commentCount||0))/(ttProf.fans||1)*100).toFixed(1):0,url:ttUrl(p),publishedAt:ttTs(p)}));
-  const igTop=igSorted.map((p,i)=>({rank:i+1,title:(p.caption||p.alt||p.accessibility_caption||'').slice(0,120)||'Sin título',platform:'ig',type:igType(p),views:igViews(p),likes:p.likesCount||0,comments:p.commentsCount||p.commentCount||0,shares:0,eng:igFollowers?(((p.likesCount||0)+(p.commentsCount||p.commentCount||0))/igFollowers*100).toFixed(2):0,url:igUrl(p),publishedAt:igTs(p)}));
+  const igTop=igSorted.map((p,i)=>({rank:i+1,title:(p.caption||p.alt||p.accessibility_caption||'').slice(0,120)||'Sin título',platform:'ig',type:igType(p),views:igViews(p),likes:igLikes(p),comments:Math.max(0,p.commentsCount||p.commentCount||p.comments||0),shares:0,eng:igFollowers?((igLikes(p)+(p.commentsCount||p.commentCount||0))/igFollowers*100).toFixed(2):0,url:igUrl(p),publishedAt:igTs(p)}));
 
   // Trending — solo posts del último mes
   const trendCutoff=new Date(Date.now()-30*24*60*60*1000);
@@ -2272,7 +2319,7 @@ function processData(ttRaw,igRaw,trendRaw,igProfileRaw){
 
   // Engagement real
   const ttEngReal=ttProf.fans&&ttSorted.length?((ttSorted.reduce((s,p)=>s+(p.diggCount||0)+(p.commentCount||0),0))/(ttProf.fans*ttSorted.length)*100).toFixed(1):D.tiktok.engagement;
-  const igEngReal=igFollowers&&igSorted.length?((igSorted.reduce((s,p)=>s+(p.likesCount||0)+(p.commentsCount||p.commentCount||0),0))/(igFollowers*igSorted.length)*100).toFixed(2):D.instagram.engagement;
+  const igEngReal=igFollowers&&igSorted.length?((igSorted.reduce((s,p)=>s+igLikes(p)+(p.commentsCount||p.commentCount||0),0))/(igFollowers*igSorted.length)*100).toFixed(2):D.instagram.engagement;
 
   // Vistas totales IG
   const igTotalViews=igSorted.reduce((s,p)=>s+igViews(p),0)||D.instagram.views;

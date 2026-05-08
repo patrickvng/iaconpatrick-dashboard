@@ -244,7 +244,7 @@ async function runAutoSync() {
   console.log(`[AUTO-SYNC] Iniciando — ${new Date().toISOString()}`);
   try {
     const ttRaw       = await runActorServer(token, 'clockworks~tiktok-scraper',        { profiles: [ttHandle], resultsType: 'posts', maxPostsPerPage: maxPosts, shouldDownloadVideos: false, shouldDownloadCovers: false });
-    const igProfileRaw= await runActorServer(token, 'apify~instagram-scraper',           { directUrls: [`https://www.instagram.com/${igHandle}/`], resultsType: 'posts', resultsLimit: 1 }).catch(()=>[]);
+    const igProfileRaw= await runActorServer(token, 'apify~instagram-profile-scraper',    { usernames: [igHandle] }).catch(()=>[]);
     const igRaw       = await runActorServer(token, 'apify~instagram-scraper',           { directUrls: [`https://www.instagram.com/${igHandle}/`], resultsType: 'posts', resultsLimit: maxPosts });
     const trendRaw    = await runActorServer(token, 'clockworks~tiktok-hashtag-scraper', { hashtags: kwArr, resultsPerPage: 50, postWithin: 30 });
     saveCacheFile({ ttRaw, igRaw, igProfileRaw, trendRaw, syncedAt: new Date().toISOString() });
