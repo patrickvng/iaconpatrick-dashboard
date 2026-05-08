@@ -1087,7 +1087,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
     const r=await fetch('/api/cache');
     const cached=await r.json();
     if(cached&&cached.ttRaw){
-      realData=processData(cached.ttRaw,cached.igRaw,cached.trendRaw);
+      realData=processData(cached.ttRaw,cached.igRaw,cached.trendRaw,cached.igProfileRaw);
       applyRealDataUI(cached.syncedAt);
       cacheLoaded=true;
       // Sincronizar también a localStorage por si el servidor se reinicia
@@ -1099,7 +1099,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
     try{
       const local=JSON.parse(localStorage.getItem('iac_raw_cache')||'null');
       if(local&&local.ttRaw){
-        realData=processData(local.ttRaw,local.igRaw,local.trendRaw);
+        realData=processData(local.ttRaw,local.igRaw,local.trendRaw,local.igProfileRaw);
         applyRealDataUI(local.syncedAt,'(local)');
       }
     }catch(e){}
@@ -2135,20 +2135,23 @@ async function triggerSync(){
   showLoad('INICIANDO SYNC...');
   try{
     setLoad(10,'SCRAPEANDO TIKTOK...',cfg.ttHandle);
-    const ttRaw=await runActor(token,'clockworks~tiktok-scraper',{profiles:[ttHandleClean],resultsType:'posts',maxPostsPerPage:parseInt(cfg.maxPosts)||30});
+    const ttRaw=await runActor(token,'clockworks~tiktok-scraper',{profiles:[ttHandleClean],resultsType:'posts',maxPostsPerPage:parseInt(cfg.maxPosts)||50,shouldDownloadVideos:false,shouldDownloadCovers:false});
 
-    setLoad(40,'SCRAPEANDO INSTAGRAM...',cfg.igHandle);
-    const igRaw=await runActor(token,'apify~instagram-scraper',{directUrls:[`https://www.instagram.com/${igHandleClean}/`],resultsType:'posts',resultsLimit:parseInt(cfg.maxPosts)||30});
+    setLoad(35,'OBTENIENDO PERFIL INSTAGRAM...',cfg.igHandle);
+    const igProfileRaw=await runActor(token,'apify~instagram-scraper',{directUrls:[`https://www.instagram.com/${igHandleClean}/`],resultsType:'posts',resultsLimit:1}).catch(()=>[]);
 
-    setLoad(72,'SCRAPEANDO TRENDING...','keywords: '+cfg.nicheKw.split(',')[0].trim());
+    setLoad(55,'SCRAPEANDO POSTS INSTAGRAM...',cfg.igHandle);
+    const igRaw=await runActor(token,'apify~instagram-scraper',{directUrls:[`https://www.instagram.com/${igHandleClean}/`],resultsType:'posts',resultsLimit:parseInt(cfg.maxPosts)||50});
+
+    setLoad(75,'SCRAPEANDO TRENDING...','keywords: '+cfg.nicheKw.split(',')[0].trim());
     const kwArr=cfg.nicheKw.split(',').slice(0,3).map(k=>k.trim());
-    const trendRaw=await runActor(token,'clockworks~tiktok-hashtag-scraper',{hashtags:kwArr,resultsPerPage:20});
+    const trendRaw=await runActor(token,'clockworks~tiktok-hashtag-scraper',{hashtags:kwArr,resultsPerPage:30});
 
-    setLoad(90,'PROCESANDO DATOS...','');
-    realData=processData(ttRaw,igRaw,trendRaw);
+    setLoad(92,'PROCESANDO DATOS...','');
+    realData=processData(ttRaw,igRaw,trendRaw,igProfileRaw);
     const syncedAt=new Date().toISOString();
     // Guardar en localStorage para que persista aunque Railway se reinicie
-    try{localStorage.setItem('iac_raw_cache',JSON.stringify({ttRaw,igRaw,trendRaw,syncedAt}));}catch(e){}
+    try{localStorage.setItem('iac_raw_cache',JSON.stringify({ttRaw,igRaw,igProfileRaw,trendRaw,syncedAt}));}catch(e){}
     setLoad(100,'SYNC COMPLETO ✓','');
     await sleep(600);hideLoad();
 
@@ -2194,39 +2197,67 @@ async function runActor(token,actorId,input){
   return ir.json();
 }
 
-function processData(ttRaw,igRaw,trendRaw){
+function processData(ttRaw,igRaw,trendRaw,igProfileRaw){
   const ttPosts=Array.isArray(ttRaw)?ttRaw:[];
   const igPosts=Array.isArray(igRaw)?igRaw:[];
   const trendPosts=Array.isArray(trendRaw)?trendRaw:[];
+  const igProfile=Array.isArray(igProfileRaw)&&igProfileRaw[0]?igProfileRaw[0]:null;
   const ttProf=ttPosts[0]?.authorMeta||{};
   const ttSorted=[...ttPosts].sort((a,b)=>(b.playCount||0)-(a.playCount||0));
   const igSorted=[...igPosts].sort((a,b)=>(b.likesCount||0)-(a.likesCount||0));
   const ttHandle=(cfg.ttHandle||'').replace('@','');
   const igHandle=(cfg.igHandle||'').replace('@','');
-  // Función para obtener timestamp ISO de un post de TikTok
+
+  // Timestamps
   const ttTs=p=>p.createTimeISO||(p.createTime?new Date(p.createTime*1000).toISOString():null);
-  // Función para obtener timestamp ISO de un post de Instagram
-  const igTs=p=>p.timestamp||(p.takenAt?new Date(p.takenAt*1000).toISOString():null)||(p.takenAtTimestamp?new Date(p.takenAtTimestamp*1000).toISOString():null);
-  // URL de vídeo TikTok: webVideoUrl > URL por ID > perfil
+  const igTs=p=>p.timestamp||(p.takenAt?new Date(p.takenAt*1000).toISOString():null)||(p.takenAtTimestamp?new Date(p.takenAtTimestamp*1000).toISOString():null)||(p.postedAt?new Date(p.postedAt).toISOString():null);
+
+  // URLs
   const ttUrl=p=>p.webVideoUrl||(p.id?`https://www.tiktok.com/@${ttHandle}/video/${p.id}`:`https://www.tiktok.com/@${ttHandle}`);
-  // URL de post IG: url > shortcode > perfil
   const igUrl=p=>p.url||(p.shortCode?`https://www.instagram.com/p/${p.shortCode}/`:`https://www.instagram.com/${igHandle}/`);
-  // Todos los posts (sin slice) para que renderPosts pueda filtrar por fecha
+
+  // Followers IG: perfil dedicado > campos embebidos en posts (todos los nombres conocidos)
+  const igFollowers=(()=>{
+    const fromProfile=igProfile?.followersCount||igProfile?.followers_count||igProfile?.edge_followed_by?.count||igProfile?.followersCount;
+    if(fromProfile>0) return fromProfile;
+    for(const p of igSorted){
+      const f=p.followersCount||p.ownerFollowersCount||p.ownerfollowersCount
+        ||p.owner?.followersCount||p.owner?.edge_followed_by?.count
+        ||p.userFollowersCount||p.profileFollowersCount||p.authorFollowersCount;
+      if(f>0) return f;
+    }
+    return D.instagram.followers;
+  })();
+
+  // Tipo de post IG normalizado
+  const igType=p=>{
+    const t=(p.type||p.productType||p.mediaType||'').toLowerCase();
+    if(t.includes('video')||t.includes('reel')||t.includes('clips')) return 'Reel';
+    if(t.includes('carousel')||t.includes('sidecar')||t.includes('album')) return 'Carrusel';
+    if(t.includes('image')||t.includes('photo')||t.includes('graphic')) return 'Foto';
+    return 'Reel';
+  };
+
+  // Views IG: videoViewCount > videoPlayCount > impressionsCount > likesCount (fallback)
+  const igViews=p=>p.videoViewCount||p.videoPlayCount||p.impressionsCount||p.likesCount||0;
+
+  // Posts
   const ttTop=ttSorted.map((p,i)=>({rank:i+1,title:(p.text||'').slice(0,120)||'Sin título',platform:'tt',type:detectType(p.text||''),views:p.playCount||0,likes:p.diggCount||0,comments:p.commentCount||0,shares:p.shareCount||0,eng:ttProf.fans?(((p.diggCount||0)+(p.commentCount||0))/(ttProf.fans||1)*100).toFixed(1):0,url:ttUrl(p),publishedAt:ttTs(p)}));
-  // Calcular followers de IG desde múltiples campos posibles
-  const igFollowers=(()=>{for(const p of igSorted){const f=p.ownerFollowersCount||p.ownerfollowersCount||p.followersCount||p.owner?.followersCount||p.ownerUsername&&null;if(f&&f>0)return f;}return D.instagram.followers;})();
-  const igTop=igSorted.map((p,i)=>({rank:i+1,title:(p.caption||p.alt||'').slice(0,120)||'Sin título',platform:'ig',type:p.type||p.productType||'Reel',views:p.videoViewCount||p.videoDuration&&p.likesCount||p.likesCount||0,likes:p.likesCount||0,comments:p.commentsCount||0,shares:0,eng:igFollowers?(((p.likesCount||0)+(p.commentsCount||0))/igFollowers*100).toFixed(1):0,url:igUrl(p),publishedAt:igTs(p)}));
-  // Trending: incluir URL de vídeo real con ID
+  const igTop=igSorted.map((p,i)=>({rank:i+1,title:(p.caption||p.alt||p.accessibility_caption||'').slice(0,120)||'Sin título',platform:'ig',type:igType(p),views:igViews(p),likes:p.likesCount||0,comments:p.commentsCount||p.commentCount||0,shares:0,eng:igFollowers?(((p.likesCount||0)+(p.commentsCount||p.commentCount||0))/igFollowers*100).toFixed(2):0,url:igUrl(p),publishedAt:igTs(p)}));
+
+  // Trending
   const trendItems=trendPosts.slice(0,8).map(p=>({title:(p.text||'').slice(0,100),handle:'@'+(p.authorMeta?.name||'unknown'),dur:p.videoMeta?.duration?Math.round(p.videoMeta.duration)+'s':'—',views:fn(p.playCount||0),likes:p.diggCount||0,saves:p.collectCount||0,comments:p.commentCount||0,shares:p.shareCount||0,tag:(p.hashtags||[]).slice(0,2).map(h=>'#'+h.name).join(' ')||'#ia',videoUrl:p.webVideoUrl||(p.id&&p.authorMeta?.name?`https://www.tiktok.com/@${p.authorMeta.name}/video/${p.id}`:`https://www.tiktok.com/@${p.authorMeta?.name||''}`),why:''}));
-  // Engagement TikTok real
-  const ttTotalLikes=ttSorted.reduce((s,p)=>s+(p.diggCount||0),0);
-  const ttTotalComments=ttSorted.reduce((s,p)=>s+(p.commentCount||0),0);
-  const ttEngReal=ttProf.fans&&ttSorted.length?((ttTotalLikes+ttTotalComments)/(ttProf.fans*ttSorted.length)*100).toFixed(1):D.tiktok.engagement;
-  // Engagement IG real (media por post)
-  const igEngReal=igFollowers&&igSorted.length?((igSorted.reduce((s,p)=>s+(p.likesCount||0)+(p.commentsCount||0),0))/(igFollowers*igSorted.length)*100).toFixed(1):D.instagram.engagement;
+
+  // Engagement real
+  const ttEngReal=ttProf.fans&&ttSorted.length?((ttSorted.reduce((s,p)=>s+(p.diggCount||0)+(p.commentCount||0),0))/(ttProf.fans*ttSorted.length)*100).toFixed(1):D.tiktok.engagement;
+  const igEngReal=igFollowers&&igSorted.length?((igSorted.reduce((s,p)=>s+(p.likesCount||0)+(p.commentsCount||p.commentCount||0),0))/(igFollowers*igSorted.length)*100).toFixed(2):D.instagram.engagement;
+
+  // Vistas totales IG
+  const igTotalViews=igSorted.reduce((s,p)=>s+igViews(p),0)||D.instagram.views;
+
   return{
     tiktok:{followers:ttProf.fans||D.tiktok.followers,followersDelta:0,views:ttSorted.reduce((s,p)=>s+(p.playCount||0),0)||D.tiktok.views,viewsDelta:0,engagement:parseFloat(ttEngReal)||D.tiktok.engagement,shares:ttSorted.reduce((s,p)=>s+(p.shareCount||0),0)||D.tiktok.shares,posts:ttPosts.length||D.tiktok.posts,viewsByDay:D.tiktok.viewsByDay,topPosts:ttTop.length>0?ttTop:D.tiktok.topPosts,hooks:D.tiktok.hooks,mix:D.tiktok.mix},
-    instagram:{followers:igFollowers,followersDelta:0,views:igSorted.reduce((s,p)=>s+(p.videoViewCount||p.likesCount||0),0)||D.instagram.views,viewsDelta:0,engagement:parseFloat(igEngReal)||D.instagram.engagement,shares:D.instagram.shares,posts:igPosts.length||D.instagram.posts,viewsByDay:D.instagram.viewsByDay,topPosts:igTop.length>0?igTop:D.instagram.topPosts,hooks:D.instagram.hooks,mix:D.instagram.mix},
+    instagram:{followers:igFollowers,followersDelta:0,views:igTotalViews,viewsDelta:0,engagement:parseFloat(igEngReal)||D.instagram.engagement,shares:0,posts:igPosts.length||D.instagram.posts,viewsByDay:D.instagram.viewsByDay,topPosts:igTop.length>0?igTop:D.instagram.topPosts,hooks:D.instagram.hooks,mix:D.instagram.mix},
     trending:{tt:trendItems.length>0?trendItems:[],ig:[]},
   };
 }

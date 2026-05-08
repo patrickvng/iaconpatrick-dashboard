@@ -243,11 +243,12 @@ async function runAutoSync() {
   const maxPosts = parseInt(cfg.maxPosts) || 30;
   console.log(`[AUTO-SYNC] Iniciando — ${new Date().toISOString()}`);
   try {
-    const ttRaw    = await runActorServer(token, 'clockworks~tiktok-scraper',       { profiles: [ttHandle], resultsType: 'posts', maxPostsPerPage: maxPosts });
-    const igRaw    = await runActorServer(token, 'apify~instagram-scraper',          { directUrls: [`https://www.instagram.com/${igHandle}/`], resultsType: 'posts', resultsLimit: maxPosts });
-    const trendRaw = await runActorServer(token, 'clockworks~tiktok-hashtag-scraper',{ hashtags: kwArr, resultsPerPage: 20 });
-    saveCacheFile({ ttRaw, igRaw, trendRaw, syncedAt: new Date().toISOString() });
-    console.log(`[AUTO-SYNC] ✓ Completado — ${ttRaw.length} TT, ${igRaw.length} IG`);
+    const ttRaw       = await runActorServer(token, 'clockworks~tiktok-scraper',        { profiles: [ttHandle], resultsType: 'posts', maxPostsPerPage: maxPosts, shouldDownloadVideos: false, shouldDownloadCovers: false });
+    const igProfileRaw= await runActorServer(token, 'apify~instagram-scraper',           { directUrls: [`https://www.instagram.com/${igHandle}/`], resultsType: 'posts', resultsLimit: 1 }).catch(()=>[]);
+    const igRaw       = await runActorServer(token, 'apify~instagram-scraper',           { directUrls: [`https://www.instagram.com/${igHandle}/`], resultsType: 'posts', resultsLimit: maxPosts });
+    const trendRaw    = await runActorServer(token, 'clockworks~tiktok-hashtag-scraper', { hashtags: kwArr, resultsPerPage: 30 });
+    saveCacheFile({ ttRaw, igRaw, igProfileRaw, trendRaw, syncedAt: new Date().toISOString() });
+    console.log(`[AUTO-SYNC] ✓ Completado — ${ttRaw.length} TT, ${igRaw.length} IG, followers en perfil: ${igProfileRaw[0]?.followersCount||'N/D'}`);
   } catch(e) { console.error('[AUTO-SYNC] Error:', e.message); }
 }
 
