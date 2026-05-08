@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-:root{--bg:#070706;--bg2:#1a1a18;--bg3:#252523;--bg4:#2e2e2c;--border:rgba(255,255,255,0.13);--border2:rgba(255,255,255,0.24);--accent:#e8ff47;--accent2:#ff4757;--accent3:#47ffe8;--accent4:#ff9f47;--text:#f0ede6;--text2:#b0afa8;--text3:#7a7a72;--tiktok:#fe2c55;--ig:#e1306c;--success:#47ff8a;--warn:#ffaa47;--mono:'JetBrains Mono',monospace}
+:root{--bg:#070706;--bg2:#1a1a18;--bg3:#252523;--bg4:#2e2e2c;--border:rgba(255,255,255,0.13);--border2:rgba(255,255,255,0.24);--accent:#e8ff47;--accent2:#ff4757;--accent3:#47ffe8;--accent4:#ff9f47;--text:#f0ede6;--text2:#b0afa8;--text3:#7a7a72;--tiktok:#4ade80;--ig:#f472b6;--success:#47ff8a;--warn:#ffaa47;--mono:'JetBrains Mono',monospace}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.025) 2px,rgba(0,0,0,0.025) 4px);pointer-events:none;z-index:9999}
@@ -35,11 +35,11 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .nav-btn:hover{background:var(--bg3);color:var(--text)}.nav-btn.active{background:var(--bg3);color:var(--accent);border-left:2px solid var(--accent);padding-left:16px}
 .ni{width:16px;text-align:center;font-style:normal}
 .acc-card{margin:0 10px 6px;padding:9px 11px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;transition:border-color .15s}
-.acc-card:hover{border-color:var(--border2)}.acc-card.active{border-color:var(--accent)}
+.acc-card:hover{border-color:var(--border2)}.acc-card.active{border-color:var(--accent)}.acc-card.active-tt{border-color:var(--tiktok);box-shadow:0 0 0 1px rgba(74,222,128,.15)}.acc-card.active-ig{border-color:var(--ig);box-shadow:0 0 0 1px rgba(244,114,182,.15)}.pb-tt{color:var(--tiktok)!important}.pb-ig{color:var(--ig)!important}.pb.active.pb-tt{background:rgba(74,222,128,.12)!important;border-color:var(--tiktok)!important}.pb.active.pb-ig{background:rgba(244,114,182,.12)!important;border-color:var(--ig)!important}
 .acc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
 .acc-name{font-size:12px;font-weight:700}
 .acc-badge{font-size:9px;letter-spacing:.08em;padding:2px 6px;font-weight:700}
-.b-tt{background:rgba(254,44,85,.12);color:var(--tiktok)}.b-ig{background:rgba(225,48,108,.12);color:var(--ig)}
+.b-tt{background:rgba(74,222,128,.12);color:var(--tiktok)}.b-ig{background:rgba(244,114,182,.12);color:var(--ig)}
 .acc-handle{font-size:10px;color:var(--text3)}.acc-stat{font-size:11px;color:var(--text2);margin-top:1px}.acc-stat b{color:var(--success)}
 .sb-status{padding:14px 18px;border-top:1px solid var(--border);margin-top:auto}
 .sb-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
@@ -455,25 +455,14 @@ body.light::before{display:none}
       <div class="acc-stat"><b id="sbIGFol">—</b> seguidores</div>
     </div>
   </div>
-  <div class="sb-section">
-    <div class="sb-label" data-i18n="period">PERÍODO</div>
-    <div style="padding:0 10px">
-      <div class="period-sel">
-        <button class="pb active" onclick="setPeriod('7d',this)">7D</button>
-        <button class="pb" onclick="setPeriod('30d',this)" style="border-left:1px solid var(--border)">30D</button>
-        <button class="pb" onclick="setPeriod('90d',this)" style="border-left:1px solid var(--border)">90D</button>
-        <button class="pb" onclick="setPeriod('custom',this)" style="border-left:1px solid var(--border);font-size:9px" id="customPeriodBtn">📅</button>
-      </div>
-      <div class="date-popup" id="datePicker">
-        <label>FECHA INICIO</label>
-        <input type="date" id="dateStart">
-        <label>FECHA FIN</label>
-        <input type="date" id="dateEnd">
-        <div style="margin-top:12px;display:flex;gap:6px">
-          <button class="btn-p" style="flex:1;font-size:10px;padding:6px" onclick="applyCustomRange()">APLICAR</button>
-          <button class="btn-s" style="font-size:10px;padding:6px" onclick="closeDatePicker()">✕</button>
-        </div>
-      </div>
+  <div class="date-popup" id="datePicker" style="margin:0 10px">
+    <label>FECHA INICIO</label>
+    <input type="date" id="dateStart">
+    <label>FECHA FIN</label>
+    <input type="date" id="dateEnd">
+    <div style="margin-top:12px;display:flex;gap:6px">
+      <button class="btn-p" style="flex:1;font-size:10px;padding:6px" onclick="applyCustomRange()">APLICAR</button>
+      <button class="btn-s" style="font-size:10px;padding:6px" onclick="closeDatePicker()">✕</button>
     </div>
   </div>
   <div class="sb-status">
@@ -502,12 +491,18 @@ body.light::before{display:none}
   <div class="ph">
     <div><div class="ph-title" data-i18n="overview">OVERVIEW</div><div class="ph-sub"><b id="ovAccountLabel">Todas las cuentas</b> · <b id="periodLabel">Últimos 7 días</b></div></div>
     <div style="display:flex;gap:8px;align-items:center">
-      <button class="dl-btn" onclick="downloadPage()">⬇ PDF</button>
-      <div class="period-sel">
-        <button class="pb active" id="ovBtnAll" onclick="setAccount('all')">TODAS</button>
-        <button class="pb" id="ovBtnTT" onclick="setAccount('tt')" style="border-left:1px solid var(--border)">TIKTOK</button>
-        <button class="pb" id="ovBtnIG" onclick="setAccount('ig')" style="border-left:1px solid var(--border)">INSTAGRAM</button>
+      <div class="period-sel" id="ovPeriodSel">
+        <button class="pb active" data-p="7d" onclick="setPeriod('7d',this)">7D</button>
+        <button class="pb" data-p="30d" onclick="setPeriod('30d',this)" style="border-left:1px solid var(--border)">30D</button>
+        <button class="pb" data-p="90d" onclick="setPeriod('90d',this)" style="border-left:1px solid var(--border)">90D</button>
+        <button class="pb" data-p="custom" onclick="setPeriod('custom',this)" style="border-left:1px solid var(--border);font-size:9px">📅</button>
       </div>
+      <div class="period-sel">
+        <button class="pb active" id="ovBtnAll" onclick="setAccount('all')">◈ TODAS</button>
+        <button class="pb pb-tt" id="ovBtnTT" onclick="setAccount('tt')" style="border-left:1px solid var(--border)">♪ TT</button>
+        <button class="pb pb-ig" id="ovBtnIG" onclick="setAccount('ig')" style="border-left:1px solid var(--border)">◎ IG</button>
+      </div>
+      <button class="dl-btn" onclick="downloadPage()">⬇ PDF</button>
     </div>
   </div>
   <div class="srv-banner" id="srvBanner">
@@ -517,28 +512,22 @@ body.light::before{display:none}
   <div class="charts-row">
     <div class="cc">
       <div class="cc-hd"><span>VISTAS / DÍA</span><b>TT + IG</b></div>
-      <div class="leg">
-        <div class="leg-i"><span class="leg-sq" style="background:#e8ff47"></span>TikTok</div>
-        <div class="leg-i"><span class="leg-sq" style="background:#e1306c"></span>Instagram</div>
+      <div class="leg" id="viewsLegend">
+        <div class="leg-i" id="legTT"><span class="leg-sq" style="background:#4ade80"></span>TikTok</div>
+        <div class="leg-i" id="legIG"><span class="leg-sq" style="background:#f472b6"></span>Instagram</div>
       </div>
       <div style="position:relative;height:185px"><canvas id="viewsChart" role="img" aria-label="Vistas diarias"></canvas></div>
     </div>
     <div class="cc">
-      <div class="cc-hd"><span>ENGAGEMENT POR TIPO</span><b>%</b></div>
-      <div class="leg">
-        <div class="leg-i"><span class="leg-sq" style="background:#e8ff47"></span>How-to</div>
-        <div class="leg-i"><span class="leg-sq" style="background:#47ffe8"></span>Storytelling</div>
-        <div class="leg-i"><span class="leg-sq" style="background:#ff4757"></span>Tutorial</div>
-        <div class="leg-i"><span class="leg-sq" style="background:#ff9f47"></span>Opinión</div>
-      </div>
-      <div style="position:relative;height:170px"><canvas id="engChart" role="img" aria-label="Engagement por tipo"></canvas></div>
+      <div class="cc-hd"><span id="chart2Title">PUBLICACIÓN POR DÍA</span><b id="chart2Sub">ENG PROMEDIO</b></div>
+      <div style="position:relative;height:185px"><canvas id="engChart" role="img" aria-label="Publicación por día"></canvas></div>
     </div>
   </div>
-  <div class="st">HOOK SCOREBOARD</div>
+  <div class="st" id="hookTitle">TIPO DE CONTENIDO</div>
   <div class="hk-grid" id="hookGrid"></div>
   <div class="charts-row">
-    <div class="cc"><div class="cc-hd"><span>CONTENT MIX</span><b>TIKTOK</b></div><div style="position:relative;height:145px"><canvas id="mixTT" role="img" aria-label="Mix TikTok"></canvas></div></div>
-    <div class="cc"><div class="cc-hd"><span>CONTENT MIX</span><b>INSTAGRAM</b></div><div style="position:relative;height:145px"><canvas id="mixIG" role="img" aria-label="Mix Instagram"></canvas></div></div>
+    <div class="cc" id="mixTTCard"><div class="cc-hd"><span>CONTENT MIX</span><b style="color:var(--tiktok)">♪ TIKTOK</b></div><div style="position:relative;height:145px"><canvas id="mixTT" role="img" aria-label="Mix TikTok"></canvas></div></div>
+    <div class="cc" id="mixIGCard"><div class="cc-hd"><span>CONTENT MIX</span><b style="color:var(--ig)">◎ INSTAGRAM</b></div><div style="position:relative;height:145px"><canvas id="mixIG" role="img" aria-label="Mix Instagram"></canvas></div></div>
   </div>
   <div class="st">ANÁLISIS SEMANAL IA</div>
   <div class="cfg-block" data-label="// RESUMEN" id="summaryBlock">
@@ -555,6 +544,11 @@ body.light::before{display:none}
   <div class="ph">
     <div><div class="ph-title" data-i18n="content_title">MI CONTENIDO</div><div class="ph-sub">Ordenado por rendimiento · <b id="contentPeriod">7 días</b></div></div>
     <div style="display:flex;gap:8px;align-items:center">
+      <div class="period-sel" id="ctPeriodSel">
+        <button class="pb active" data-p="7d" onclick="setPeriod('7d',this)">7D</button>
+        <button class="pb" data-p="30d" onclick="setPeriod('30d',this)" style="border-left:1px solid var(--border)">30D</button>
+        <button class="pb" data-p="90d" onclick="setPeriod('90d',this)" style="border-left:1px solid var(--border)">90D</button>
+      </div>
       <button class="dl-btn" onclick="downloadPage()">⬇ PDF</button>
       <span style="font-size:10px;color:var(--text3)" data-i18n="platform">PLATAFORMA:</span>
       <div class="period-sel">
@@ -609,9 +603,15 @@ body.light::before{display:none}
   </div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
     <div class="st" style="margin:0;flex:1" data-i18n="viral_videos">VIDEOS VIRALES · NICHO IA / MARKETING</div>
-    <button class="dl-btn" onclick="refreshTrending()" title="Refrescar videos">↺ REFRESCAR</button>
+    <div style="display:flex;gap:6px;align-items:center">
+      <div class="period-sel">
+        <button class="pb active" id="trendSortRel" onclick="setTrendSort('relevante',this)">↑ RELEVANTE</button>
+        <button class="pb" id="trendSortRec" onclick="setTrendSort('reciente',this)" style="border-left:1px solid var(--border)">🕐 RECIENTE</button>
+      </div>
+      <button class="dl-btn" onclick="refreshTrending()" title="Refrescar videos">↺</button>
+    </div>
   </div>
-  <div style="font-size:10px;color:var(--text3);margin-bottom:10px">Videos trending detectados por tus <b>keywords del nicho</b> (no por creadores específicos). Para ver contenido de tus creadores configurados, ve a <b>CREADORES</b>. Con SYNC real los vídeos enlazan directamente.</div>
+  <div style="font-size:10px;color:var(--text3);margin-bottom:10px">Videos trending detectados por tus <b>keywords del nicho</b>. <span style="color:var(--warn)">●</span> antigüedad · verde = último mes · amarillo = +30 días</div>
   <div class="trend-list" id="trendingList"></div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-top:22px;margin-bottom:6px">
     <div class="st" style="margin:0;flex:1" data-i18n="news_title">NOTICIAS DE ÚLTIMA HORA · IA + MARKETING</div>
@@ -671,6 +671,10 @@ body.light::before{display:none}
   <div id="savedNewsSection" style="display:none">
     <div class="st" style="margin-top:24px" data-i18n="saved_news">NOTICIAS GUARDADAS</div>
     <div id="savedNewsGrid"></div>
+  </div>
+  <div id="savedTrendingSection" style="display:none">
+    <div class="st" style="margin-top:24px">TRENDING GUARDADO · TU NICHO</div>
+    <div id="savedTrendingGrid"></div>
   </div>
 </div>
 
@@ -910,7 +914,7 @@ let cfg={apifyToken:'',ttHandle:'',igHandle:'',maxPosts:50,nicheKw:'',compTT:'',
 let realData=null,platformFilter='all',trendFilter='tt',compFilter='all';
 let vChart=null,eChart=null,serverOk=false;
 let selectedAccount='all',currentPeriod='7d',isDark=false,lang='es';
-let currentIdeas=[],currentHooks=[],savedIdeas=[],likedTags=[],dislikedTags=[],savedCreators=[],savedNews=[];
+let currentIdeas=[],currentHooks=[],savedIdeas=[],likedTags=[],dislikedTags=[],savedCreators=[],savedNews=[],savedTrending=[];
 let ideaTypeFilter='all',customDateStart='',customDateEnd='';
 let ideaScripts={}; // keyed by idea title, persists scripts across modal opens
 
@@ -1182,13 +1186,20 @@ function setAccount(acc){
   // Toggle off if clicking the already-active non-all button
   if(selectedAccount===acc&&acc!=='all') acc='all';
   selectedAccount=acc;
-  // Sidebar cards
-  document.getElementById('accTT').classList.toggle('active',acc==='tt');
-  document.getElementById('accIG').classList.toggle('active',acc==='ig');
-  // Overview top toggle
+  // Sidebar cards — color de plataforma en active
+  const ttCard=document.getElementById('accTT');
+  const igCard=document.getElementById('accIG');
+  ttCard.classList.remove('active','active-tt','active-ig');
+  igCard.classList.remove('active','active-tt','active-ig');
+  if(acc==='tt') ttCard.classList.add('active-tt');
+  else if(acc==='ig') igCard.classList.add('active-ig');
+  // Overview top toggle — color de plataforma
   ['all','tt','ig'].forEach(a=>{
     const btn=document.getElementById('ovBtn'+a[0].toUpperCase()+a.slice(1));
-    if(btn) btn.classList.toggle('active',selectedAccount===a);
+    if(!btn)return;
+    btn.classList.toggle('active',selectedAccount===a);
+    btn.classList.toggle('pb-tt',a==='tt'&&selectedAccount===a);
+    btn.classList.toggle('pb-ig',a==='ig'&&selectedAccount===a);
   });
   // Overview subtitle
   const ovLbl=document.getElementById('ovAccountLabel');
@@ -1264,7 +1275,11 @@ function goToContent(platform){
     const map={'ALL':'all','TT':'tt','IG':'ig'};
     b.classList.toggle('active',map[b.textContent.trim()]===platformFilter);
   });
-  showPage('content',document.querySelector('.nav-btn:nth-child(2)'));
+  // Fix: activar el nav-btn correcto
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-content').classList.add('active');
+  document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
   const d=realData||D;
   renderContentMetrics(d);renderPosts(d);
 }
@@ -1274,9 +1289,13 @@ function setPeriod(p,btn){
     if(picker){picker.classList.toggle('show');}
     return;
   }
-  btn.closest('.period-sel').querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
   currentPeriod=p;
+  // Sync todos los period selectors de página (ovPeriodSel + ctPeriodSel)
+  ['ovPeriodSel','ctPeriodSel'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    sel.querySelectorAll('.pb').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
+  });
   const lbs={'7d':'Últimos 7 días','30d':'Últimos 30 días','90d':'Últimos 90 días'};
   ['periodLabel','contentPeriod'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=lbs[p];});
   document.getElementById('datePicker')?.classList.remove('show');
@@ -1338,7 +1357,8 @@ function renderMetrics(d){
       {lbl:t('metric_fol_ig'),val:fn(d.instagram.followers),delta:'+'+d.instagram.followersDelta,up:true,c:'r',metric:'fol_ig'},
     ];
   }
-  document.getElementById('metricsGrid').innerHTML=items.map(i=>`<div class="mc ${i.c} clickable" onclick="openMetricDetail('${i.metric}')"><div class="mc-lbl">${i.lbl}</div><div class="mc-val">${i.val}</div><div class="mc-delta ${i.up?'up':'dn'}">${i.up?'▲':'▼'} ${i.delta} vs anterior</div><div style="font-size:9px;color:var(--accent);margin-top:6px;letter-spacing:.06em">VER TOP 3 →</div></div>`).join('');
+  const isFollowerMetric=m=>m.includes('fol_');
+  document.getElementById('metricsGrid').innerHTML=items.map(i=>`<div class="mc ${i.c} clickable" onclick="openMetricDetail('${i.metric}')"><div class="mc-lbl">${i.lbl}</div><div class="mc-val">${i.val}</div><div class="mc-delta ${i.up?'up':'dn'}">${i.up?'▲':'▼'} ${i.delta} vs anterior</div>${isFollowerMetric(i.metric)?'':`<div style="font-size:9px;color:var(--accent);margin-top:6px;letter-spacing:.06em">VER TOP 3 →</div>`}</div>`).join('');
   document.getElementById('sbTTFol').textContent=fn(d.tiktok.followers);
   document.getElementById('sbIGFol').textContent=fn(d.instagram.followers);
 }
@@ -1377,10 +1397,17 @@ function renderViewsChart(d){
   const labels=getLast(Math.min(pLen,14));
   const ttData=extend(d.tiktok.viewsByDay,Math.min(pLen,14)).slice(-labels.length);
   const igData=extend(d.instagram.viewsByDay,Math.min(pLen,14)).slice(-labels.length);
-  const datasets=[
-    {label:'TikTok',data:ttData,borderColor:'#e8ff47',backgroundColor:'rgba(232,255,71,.04)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#e8ff47',tension:.4,fill:true},
-    {label:'Instagram',data:igData,borderColor:'#e1306c',backgroundColor:'rgba(225,48,108,.04)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#e1306c',tension:.4,fill:true,borderDash:[4,3]},
-  ];
+  const showTT=selectedAccount!=='ig';
+  const showIG=selectedAccount!=='tt';
+  // Leyenda
+  const legTT=document.getElementById('legTT'); if(legTT) legTT.style.display=showTT?'':'none';
+  const legIG=document.getElementById('legIG'); if(legIG) legIG.style.display=showIG?'':'none';
+  // Header label
+  const hd=document.querySelector('#page-overview .cc-hd b');
+  if(hd) hd.textContent=selectedAccount==='tt'?'TIKTOK':selectedAccount==='ig'?'INSTAGRAM':'TT + IG';
+  const datasets=[];
+  if(showTT) datasets.push({label:'TikTok',data:ttData,borderColor:'#4ade80',backgroundColor:'rgba(74,222,128,.05)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#4ade80',tension:.4,fill:true});
+  if(showIG) datasets.push({label:'Instagram',data:igData,borderColor:'#f472b6',backgroundColor:'rgba(244,114,182,.05)',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#f472b6',tension:.4,fill:true,borderDash:[4,3]});
   const c=cc();
   vChart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
     x:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9},maxTicksLimit:7},grid:{color:c.grid},border:{color:c.border}},
@@ -1391,17 +1418,64 @@ function renderEngChart(){
   const ctx=document.getElementById('engChart').getContext('2d');
   if(eChart)eChart.destroy();
   const c=cc();
-  eChart=new Chart(ctx,{type:'bar',data:{labels:['How-to','Storytelling','Tutorial','Opinión','Carrusel'],datasets:[{data:[7.4,6.1,5.8,7.2,3.1],backgroundColor:['#e8ff47','#47ffe8','#ff4757','#ff9f47','#888880'],borderRadius:0,borderWidth:0}]},
+  const d=realData||D;
+  const days=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  // Agrupar posts reales por día de la semana (0=Dom en JS → reindex)
+  const dayData=days.map(()=>({total:0,count:0}));
+  const allPosts=[...d.tiktok.topPosts,...d.instagram.topPosts].filter(p=>selectedAccount==='tt'?p.platform==='tt':selectedAccount==='ig'?p.platform==='ig':true);
+  allPosts.forEach(p=>{
+    if(!p.publishedAt)return;
+    const dow=new Date(p.publishedAt).getDay();// 0=Dom
+    const idx=(dow===0)?6:dow-1;// reindex: 0=Lun
+    dayData[idx].total+=parseFloat(p.eng)||0;
+    dayData[idx].count++;
+  });
+  const vals=dayData.map(d=>d.count?parseFloat((d.total/d.count).toFixed(2)):null);
+  const color=selectedAccount==='ig'?'#f472b6':selectedAccount==='tt'?'#4ade80':'#e8ff47';
+  document.getElementById('chart2Title').textContent='MEJOR DÍA DE PUBLICACIÓN';
+  document.getElementById('chart2Sub').textContent='ENG PROMEDIO %';
+  eChart=new Chart(ctx,{type:'bar',data:{labels:days,datasets:[{data:vals,backgroundColor:vals.map(v=>v?color+'99':'rgba(255,255,255,.05)'),borderRadius:0,borderWidth:0}]},
   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
     x:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9}},grid:{display:false},border:{color:c.border}},
     y:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9},callback:v=>v+'%'},grid:{color:c.grid},border:{color:c.border}},
   }}});
 }
 function renderHooks(d){
-  const hooks=selectedAccount==='ig'?d.instagram.hooks:d.tiktok.hooks;
-  currentHooks=hooks;
-  const max=Math.max(...hooks.map(h=>h.views))||1;
-  document.getElementById('hookGrid').innerHTML=hooks.map((h,i)=>`<div class="hk" onclick="openHookDetail(${i})"><div class="hk-type">${h.type}</div><div class="hk-views">${fn(h.views)}<span>avg views</span></div><div class="hk-bar"><div class="hk-fill" style="width:${Math.round(h.views/max*100)}%"></div></div><div class="hk-meta">${h.videos} videos · ${h.rate}% like rate</div><div style="font-size:9px;color:var(--accent);margin-top:6px;letter-spacing:.08em">VER DETALLES →</div></div>`).join('');
+  const isTT=selectedAccount==='tt'||(selectedAccount==='all');
+  const isIG=selectedAccount==='ig';
+  const hookTitle=document.getElementById('hookTitle');
+  if(isIG){
+    // Instagram: TIPO DE CONTENIDO (carrusel/reel/foto)
+    if(hookTitle) hookTitle.textContent='TIPO DE CONTENIDO · INSTAGRAM';
+    const hooks=d.instagram.hooks;
+    currentHooks=hooks;
+    const max=Math.max(...hooks.map(h=>h.views))||1;
+    document.getElementById('hookGrid').innerHTML=hooks.map((h,i)=>`<div class="hk" onclick="openHookDetail(${i})"><div class="hk-type">${h.type}</div><div class="hk-views">${fn(h.views)}<span>avg views</span></div><div class="hk-bar"><div class="hk-fill" style="width:${Math.round(h.views/max*100)}%;background:var(--ig)"></div></div><div class="hk-meta">${h.videos} videos · ${h.rate}% like rate</div><div style="font-size:9px;color:var(--accent);margin-top:6px;letter-spacing:.08em">VER DETALLES →</div></div>`).join('');
+  } else {
+    // TikTok: DURACIÓN DE VÍDEOS
+    if(hookTitle) hookTitle.textContent='DURACIÓN DE VÍDEOS · TIKTOK';
+    const posts=d.tiktok.topPosts;
+    const buckets=[{label:'< 15s',min:0,max:15},{label:'15–30s',min:15,max:30},{label:'30–60s',min:30,max:60},{label:'> 60s',min:60,max:Infinity}];
+    const bData=buckets.map(b=>{
+      const ps=posts.filter(p=>(p.dur||0)>=b.min&&(p.dur||0)<b.max);
+      const avgEng=ps.length?parseFloat((ps.reduce((s,p)=>s+parseFloat(p.eng||0),0)/ps.length).toFixed(1)):0;
+      const avgViews=ps.length?Math.round(ps.reduce((s,p)=>s+(p.views||0),0)/ps.length):0;
+      return{label:b.label,count:ps.length,eng:avgEng,views:avgViews};
+    });
+    currentHooks=bData.map(b=>({type:b.label,videos:b.count,views:b.views,rate:b.eng}));
+    const maxV=Math.max(...bData.map(b=>b.views))||1;
+    document.getElementById('hookGrid').innerHTML=bData.map((b,i)=>`<div class="hk"><div class="hk-type">${b.label}</div><div class="hk-views">${fn(b.views)}<span>avg views</span></div><div class="hk-bar"><div class="hk-fill" style="width:${Math.round(b.views/maxV*100)}%;background:var(--tiktok)"></div></div><div class="hk-meta">${b.count} videos · ${b.eng}% eng</div></div>`).join('');
+  }
+}
+function renderMixCharts(d){
+  const showTT=selectedAccount!=='ig';
+  const showIG=selectedAccount!=='tt';
+  const ttCard=document.getElementById('mixTTCard');
+  const igCard=document.getElementById('mixIGCard');
+  if(ttCard) ttCard.style.display=showTT?'':'none';
+  if(igCard) igCard.style.display=showIG?'':'none';
+  if(showTT) mkDonut('mixTT',d.tiktok.mix,['#e8ff47','#47ffe8','#4ade80']);
+  if(showIG) mkDonut('mixIG',d.instagram.mix,['#f472b6','#ff9f47','#47ffe8']);
 }
 
 function openHookDetail(idx){
@@ -1444,8 +1518,8 @@ function renderContentMetrics(d){
   const avgEng=allPosts.length?((allPosts.reduce((s,p)=>s+parseFloat(p.eng||0),0)/allPosts.length).toFixed(1)+'%'):'—';
   document.getElementById('contentMetrics').innerHTML=[
     {lbl:t('metric_posts'),val:totalPosts,c:'g'},
-    {lbl:t('metric_avg_views'),val:fn(Math.round(totalViews/totalPosts)),c:'y'},
-    {lbl:t('metric_best'),val:'HOW-TO',c:'b',sm:true},
+    {lbl:t('metric_avg_views'),val:fn(Math.round(totalViews/(totalPosts||1))),c:'y'},
+    {lbl:'TOTAL SAVES',val:fn(allPosts.reduce((s,p)=>s+(p.saves||p.collectCount||0),0)),c:'b'},
     {lbl:t('metric_shares'),val:fn(Math.round(totalShares*m)),c:'r'},
     {lbl:t('metric_likes'),val:fn(totalLikes),c:'g'},
     {lbl:t('metric_comments'),val:fn(totalComments),c:'y'},
@@ -1623,14 +1697,77 @@ function syncComp(){
 }
 
 // ═══ TRENDING ═══
-function renderTrending(p){
+let trendSort='relevante';
+function setTrendSort(s,btn){
+  trendSort=s;
+  document.querySelectorAll('#trendSortRel,#trendSortRec').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderTrending(trendFilter);
+}
+function trendAge(t){
+  // Intenta extraer fecha del item de trending (createTime o publishedAt)
+  const ts=t.createTimeISO||t.publishedAt||null;
+  if(!ts) return null;
+  return Math.floor((Date.now()-new Date(ts).getTime())/(1000*60*60*24));
+}
+function trendAgeColor(days){
+  if(days===null) return 'var(--text3)';
+  if(days<=7) return 'var(--success)';
+  if(days<=30) return 'var(--tiktok)';
+  return 'var(--warn)';
+}
+function trendAgeLabel(days){
+  if(days===null) return '';
+  if(days===0) return 'hoy';
+  if(days===1) return 'ayer';
+  if(days<=30) return days+'d';
+  return Math.floor(days/30)+'mes';
+}
+function saveTrendItem(idx,p,e){
+  e.stopPropagation();
   const tData=realData||D;
   const items=p==='tt'?(tData.trending.tt.length?tData.trending.tt:TREND_TT):(tData.trending.ig.length?tData.trending.ig:TREND_IG);
-  document.getElementById('trendingList').innerHTML=items.map((t,idx)=>`
-    <div class="trend-item" onclick="openTrendingModal(${idx},'${p}')">
-      <div><div class="trend-title">${t.title}</div><div class="trend-meta"><span class="trend-handle">${t.handle}</span> · ${t.dur} <span style="font-size:9px;color:var(--accent3)">↗ ver stats</span></div><div class="trend-tag">${t.tag}</div></div>
-      <div class="trend-stats"><div class="trend-views">${t.views}</div><div class="trend-likes">♥ ${t.likes}</div></div>
-    </div>`).join('');
+  const item=items[idx];
+  const key=(item.videoUrl||item.title).slice(0,80);
+  const already=savedTrending.some(s=>((s.videoUrl||s.title).slice(0,80))===key);
+  if(already){showNotif('YA GUARDADO','Este vídeo ya está en Guardados.');return;}
+  savedTrending.push({...item,savedAt:new Date().toISOString(),platform:p});
+  localStorage.setItem('iac_saved_trending',JSON.stringify(savedTrending));
+  showNotif('VÍDEO GUARDADO',item.title.slice(0,50)+'...');
+  renderTrending(p);renderSaved();
+}
+function renderTrending(p){
+  const tData=realData||D;
+  let items=p==='tt'?(tData.trending.tt.length?tData.trending.tt:TREND_TT):(tData.trending.ig.length?tData.trending.ig:TREND_IG);
+  if(trendSort==='reciente'){
+    items=[...items].sort((a,b)=>{
+      const da=trendAge(a),db=trendAge(b);
+      if(da===null&&db===null)return 0;if(da===null)return 1;if(db===null)return-1;
+      return da-db;
+    });
+  }
+  document.getElementById('trendingList').innerHTML=items.map((t,idx)=>{
+    const days=trendAge(t);
+    const ageColor=trendAgeColor(days);
+    const ageLabel=trendAgeLabel(days);
+    const key=(t.videoUrl||t.title).slice(0,80);
+    const isSaved=savedTrending.some(s=>((s.videoUrl||s.title).slice(0,80))===key);
+    return`<div class="trend-item" onclick="openTrendingModal(${idx},'${p}')">
+      <div style="flex:1;min-width:0">
+        <div class="trend-title">${t.title}</div>
+        <div class="trend-meta">
+          <span class="trend-handle">${t.handle}</span> · ${t.dur}
+          ${ageLabel?`<span style="color:${ageColor};margin-left:6px;font-weight:700">● ${ageLabel}</span>`:''}
+          <span style="font-size:9px;color:var(--accent3);margin-left:6px">↗ ver stats</span>
+        </div>
+        <div class="trend-tag">${t.tag}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div class="trend-stats"><div class="trend-views">${t.views}</div><div class="trend-likes">♥ ${t.likes}</div></div>
+        <button onclick="saveTrendItem(${idx},'${p}',event)" style="background:none;border:1px solid ${isSaved?'var(--success)':'var(--border2)'};color:${isSaved?'var(--success)':'var(--text2)'};font-size:10px;padding:3px 8px;cursor:pointer;font-family:var(--mono);letter-spacing:.05em;white-space:nowrap" title="${isSaved?'Ya guardado':'Guardar vídeo'}">${isSaved?'✓ GUARDADO':'⊕ GUARDAR'}</button>
+      </div>
+    </div>`;
+  }).join('');
   renderNews();
 }
 
@@ -1693,9 +1830,10 @@ function openTrendingModal(idx,p){
       <div class="mc r"><div class="mc-lbl">CMTS</div><div class="mc-val" style="font-size:20px">${fn(t.comments||0)}</div></div>
     </div>
     ${t.why?`<div class="exec-tip"><div class="exec-label">POR QUÉ FUNCIONA</div><div class="exec-text">${t.why}</div></div>`:''}
-    <div style="margin-top:16px;display:flex;gap:8px;align-items:center">
+    <div style="margin-top:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <a href="${t.videoUrl}" target="_blank" rel="noopener" class="btn-p" style="text-decoration:none;display:inline-block">↗ VER VÍDEO</a>
-      ${!realData?`<span style="font-size:10px;color:var(--text3)">(datos demo: abre el perfil — con sync real abre el vídeo directo)</span>`:''}
+      ${(()=>{const key=(t.videoUrl||t.title).slice(0,80);const saved=savedTrending.some(s=>((s.videoUrl||s.title).slice(0,80))===key);return saved?`<button disabled style="opacity:.5;background:var(--success);color:#000;border:none;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;padding:9px 18px">✓ GUARDADO</button>`:`<button onclick="saveTrendItemModal(${idx},'${p}')" style="background:var(--ig);color:#fff;border:none;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;padding:9px 18px;cursor:pointer">⊕ GUARDAR VÍDEO</button>`;})()}
+      ${!realData?`<span style="font-size:10px;color:var(--text3)">(datos demo)</span>`:''}
     </div>`;
   openModal(t.title, html);
 }
@@ -1946,14 +2084,52 @@ function renderSaved(){
         </div>
       </div>
     </div>`).join('');
+  // Trending guardado
+  const trendSec=document.getElementById('savedTrendingSection');
+  const trendGrid=document.getElementById('savedTrendingGrid');
+  if(trendSec&&trendGrid){
+    if(!savedTrending.length){trendSec.style.display='none';}
+    else{
+      trendSec.style.display='block';
+      trendGrid.innerHTML=savedTrending.map((t,idx)=>`
+        <div class="trend-item">
+          <div style="flex:1;min-width:0">
+            <div class="trend-title"><a href="${t.videoUrl||'#'}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${t.title}</a></div>
+            <div class="trend-meta"><span class="trend-handle">${t.handle}</span> · ${t.dur} · <span style="color:var(--text3)">${new Date(t.savedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}</span></div>
+            <div class="trend-tag">${t.tag}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <div class="trend-stats"><div class="trend-views">${t.views}</div><div class="trend-likes">♥ ${t.likes}</div></div>
+            <button onclick="removeSavedTrending(${idx})" style="background:none;border:1px solid rgba(255,71,87,.3);color:var(--accent2);font-size:9px;padding:2px 8px;cursor:pointer;font-family:var(--mono)">✕ QUITAR</button>
+          </div>
+        </div>`).join('');
+    }
+  }
 }
 
 function removeSavedNews(idx){
   savedNews.splice(idx,1);
   localStorage.setItem('iac_saved_news',JSON.stringify(savedNews));
-  renderSaved();
-  renderNews();
+  renderSaved();renderNews();
   showNotif('ELIMINADA','Noticia removida de guardado.');
+}
+function removeSavedTrending(idx){
+  savedTrending.splice(idx,1);
+  localStorage.setItem('iac_saved_trending',JSON.stringify(savedTrending));
+  renderSaved();renderTrending(trendFilter);
+  showNotif('ELIMINADO','Vídeo removido de guardado.');
+}
+function saveTrendItemModal(idx,p){
+  const tData=realData||D;
+  const items=p==='tt'?(tData.trending.tt.length?tData.trending.tt:TREND_TT):(tData.trending.ig.length?tData.trending.ig:TREND_IG);
+  const item=items[idx];
+  const key=(item.videoUrl||item.title).slice(0,80);
+  const already=savedTrending.some(s=>((s.videoUrl||s.title).slice(0,80))===key);
+  if(already){showNotif('YA GUARDADO','Este vídeo ya está en Guardados.');return;}
+  savedTrending.push({...item,savedAt:new Date().toISOString(),platform:p});
+  localStorage.setItem('iac_saved_trending',JSON.stringify(savedTrending));
+  showNotif('VÍDEO GUARDADO',item.title.slice(0,50)+'...');
+  closeModal();renderTrending(p);renderSaved();
 }
 
 function openSavedDetail(idx){
@@ -2305,7 +2481,7 @@ function processData(ttRaw,igRaw,trendRaw,igProfileRaw){
   const igViews=p=>p.videoViewCount||p.videoPlayCount||p.playsCount||p.impressionsCount||p.viewsCount||0;
 
   // Posts
-  const ttTop=ttSorted.map((p,i)=>({rank:i+1,title:(p.text||'').slice(0,120)||'Sin título',platform:'tt',type:detectType(p.text||''),views:p.playCount||0,likes:p.diggCount||0,comments:p.commentCount||0,shares:p.shareCount||0,eng:ttProf.fans?(((p.diggCount||0)+(p.commentCount||0))/(ttProf.fans||1)*100).toFixed(1):0,url:ttUrl(p),publishedAt:ttTs(p)}));
+  const ttTop=ttSorted.map((p,i)=>({rank:i+1,title:(p.text||'').slice(0,120)||'Sin título',platform:'tt',type:detectType(p.text||''),views:p.playCount||0,likes:p.diggCount||0,comments:p.commentCount||0,shares:p.shareCount||0,saves:p.collectCount||p.bookmarkCount||0,eng:ttProf.fans?(((p.diggCount||0)+(p.commentCount||0))/(ttProf.fans||1)*100).toFixed(1):0,url:ttUrl(p),publishedAt:ttTs(p),dur:Math.round(p.videoMeta?.duration||p.video?.duration||0)}));
   const igTop=igSorted.map((p,i)=>({rank:i+1,title:(p.caption||p.alt||p.accessibility_caption||'').slice(0,120)||'Sin título',platform:'ig',type:igType(p),views:igViews(p),likes:igLikes(p),comments:Math.max(0,p.commentsCount||p.commentCount||p.comments||0),shares:0,eng:igFollowers?((igLikes(p)+(p.commentsCount||p.commentCount||0))/igFollowers*100).toFixed(2):0,url:igUrl(p),publishedAt:igTs(p)}));
 
   // Trending — solo posts del último mes
@@ -2613,6 +2789,7 @@ function loadCfg(){
     dislikedTags=JSON.parse(localStorage.getItem('iac_disliked_tags')||'[]');
     savedCreators=JSON.parse(localStorage.getItem('iac_saved_creators')||'[]');
     savedNews=JSON.parse(localStorage.getItem('iac_saved_news')||'[]');
+    savedTrending=JSON.parse(localStorage.getItem('iac_saved_trending')||'[]');
     updateProjectCtxSection();
     updateSidebarAccounts();
   }catch(e){}
