@@ -71,7 +71,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .hk-bar{margin-top:8px;background:var(--bg3);height:2px}.hk-fill{height:2px;background:var(--accent);transition:width .6s}
 .hk-meta{font-size:10px;color:var(--text3);margin-top:5px}
 .posts-list{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
-.post-row{background:var(--bg2);border:1px solid var(--border);padding:12px 14px;display:grid;grid-template-columns:28px 1fr auto auto auto auto auto;align-items:center;gap:12px;cursor:pointer;transition:all .12s}
+.post-row{background:var(--bg2);border:1px solid var(--border);padding:12px 14px;display:grid;grid-template-columns:28px 1fr auto auto auto auto auto auto;align-items:center;gap:12px;cursor:pointer;transition:all .12s}
 .post-row:hover{border-color:var(--border2);background:var(--bg3)}
 .pr-rank{font-size:16px;font-weight:700;color:var(--text3);text-align:center}
 .pr-rank.gold{color:var(--accent)}.pr-rank.silver{color:var(--text2)}.pr-rank.bronze{color:var(--warn)}
@@ -556,8 +556,9 @@ body.light::before{display:none}
       <span style="font-size:9px;color:var(--text3);letter-spacing:.08em">ORDENAR POR</span>
       <div class="period-sel" id="postSortSel">
         <button class="pb active" onclick="setPostSort('views',this)">VIEWS</button>
-        <button class="pb" onclick="setPostSort('eng',this)" style="border-left:1px solid var(--border)">ENG</button>
+        <button class="pb" onclick="setPostSort('eng',this)" style="border-left:1px solid var(--border)">ENG%</button>
         <button class="pb" onclick="setPostSort('likes',this)" style="border-left:1px solid var(--border)">LIKES</button>
+        <button class="pb" onclick="setPostSort('comments',this)" style="border-left:1px solid var(--border)">COMENT.</button>
         <button class="pb" onclick="setPostSort('shares',this)" style="border-left:1px solid var(--border)">SHARES</button>
         <button class="pb" onclick="setPostSort('saves',this)" style="border-left:1px solid var(--border)">SAVES</button>
       </div>
@@ -1520,9 +1521,14 @@ function renderHooks(d){
     // TikTok: DURACIÓN DE VÍDEOS
     if(hookTitle) hookTitle.textContent='DURACIÓN DE VÍDEOS · TIKTOK';
     const posts=d.tiktok.topPosts;
-    const buckets=[{label:'< 15s',min:0,max:15},{label:'15–30s',min:15,max:30},{label:'30–60s',min:30,max:60},{label:'> 60s',min:60,max:Infinity}];
+    const buckets=[
+      {label:'ESTÁTICOS',filter:p=>!(p.dur||0)},
+      {label:'< 30s',filter:p=>(p.dur||0)>0&&(p.dur||0)<30},
+      {label:'30–60s',filter:p=>(p.dur||0)>=30&&(p.dur||0)<60},
+      {label:'> 60s',filter:p=>(p.dur||0)>=60}
+    ];
     const bData=buckets.map(b=>{
-      const ps=posts.filter(p=>(p.dur||0)>=b.min&&(p.dur||0)<b.max);
+      const ps=posts.filter(b.filter);
       const avgEng=ps.length?parseFloat((ps.reduce((s,p)=>s+parseFloat(p.eng||0),0)/ps.length).toFixed(1)):0;
       const avgViews=ps.length?Math.round(ps.reduce((s,p)=>s+(p.views||0),0)/ps.length):0;
       return{label:b.label,count:ps.length,eng:avgEng,views:avgViews,posts:ps};
@@ -1648,6 +1654,7 @@ function renderPosts(d){
     views:(a,b)=>b.views-a.views,
     eng:(a,b)=>parseFloat(b.eng||0)-parseFloat(a.eng||0),
     likes:(a,b)=>b.likes-a.likes,
+    comments:(a,b)=>(b.comments||0)-(a.comments||0),
     shares:(a,b)=>b.shares-a.shares,
     saves:(a,b)=>(b.saves||b.collectCount||0)-(a.saves||a.collectCount||0),
   };
@@ -1666,9 +1673,10 @@ function renderPosts(d){
       <div><div class="pr-title">${p.title}</div><div class="pr-meta"><span class="${p.platform==='tt'?'tag-tt':'tag-ig'}">${p.platform==='tt'?'♪ TT':'◎ IG'}</span> · ${p.type}${p.publishedAt?' · '+new Date(p.publishedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'short'}):''} · Eng: <span style="${hl('eng')}">${p.eng}%</span></div></div>
       <div class="pr-stat"><div class="pr-val" style="${hl('views')}">${fn(p.views)}</div><div class="pr-lbl">VIEWS</div></div>
       <div class="pr-stat"><div class="pr-val" style="${hl('likes')}">${fn(p.likes)}</div><div class="pr-lbl">LIKES</div></div>
-      <div class="pr-stat"><div class="pr-val">${p.comments}</div><div class="pr-lbl">COMENT.</div></div>
+      <div class="pr-stat"><div class="pr-val" style="${hl('comments')}">${p.comments||0}</div><div class="pr-lbl">COMENT.</div></div>
       <div class="pr-stat"><div class="pr-val" style="${hl('shares')}">${fn(p.shares)}</div><div class="pr-lbl">SHARES</div></div>
       <div class="pr-stat"><div class="pr-val" style="${hl('saves')}">${fn(p.saves||0)}</div><div class="pr-lbl">SAVES</div></div>
+      <div class="pr-stat"><div class="pr-val" style="${hl('eng')}">${p.eng}%</div><div class="pr-lbl">ENG%</div></div>
     </a>`).join('');
 
   // Todos los posts ordenados cronológicamente (más reciente primero)
@@ -1693,8 +1701,10 @@ function renderPosts(d){
       <div><div class="pr-title">${p.title}</div><div class="pr-meta"><span class="${p.platform==='tt'?'tag-tt':'tag-ig'}">${p.platform==='tt'?'TIKTOK':'INSTAGRAM'}</span> · ${p.type}${p.publishedAt?' · '+new Date(p.publishedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'2-digit'}):' · sin fecha'} · Eng: ${p.eng}%</div></div>
       <div class="pr-stat"><div class="pr-val">${fn(p.views)}</div><div class="pr-lbl">VIEWS</div></div>
       <div class="pr-stat"><div class="pr-val">${fn(p.likes)}</div><div class="pr-lbl">LIKES</div></div>
-      <div class="pr-stat"><div class="pr-val">${p.comments}</div><div class="pr-lbl">CMTS</div></div>
-      <div class="pr-stat"><div class="pr-val">${p.eng}%</div><div class="pr-lbl">ENG</div></div>
+      <div class="pr-stat"><div class="pr-val">${p.comments||0}</div><div class="pr-lbl">COMENT.</div></div>
+      <div class="pr-stat"><div class="pr-val">${fn(p.shares||0)}</div><div class="pr-lbl">SHARES</div></div>
+      <div class="pr-stat"><div class="pr-val">${fn(p.saves||0)}</div><div class="pr-lbl">SAVES</div></div>
+      <div class="pr-stat"><div class="pr-val">${p.eng}%</div><div class="pr-lbl">ENG%</div></div>
     </a>`).join('');
 }
 
@@ -1792,19 +1802,7 @@ function renderComps(){
   else list=[...COMPS_TT,...COMPS_IG];
   // Filtrar por los handles que el usuario configuró en CONFIGURAR → CREADORES
   // Leer del input directamente para que siempre coincida con lo que se ve en CONFIGURAR
-  const rawTT=(document.getElementById('compTT')?.value||cfg.compTT||'');
-  const rawIG=(document.getElementById('compIG')?.value||cfg.compIG||'');
-  const userTT=rawTT.split(',').map(h=>h.trim().replace('@','').toLowerCase()).filter(Boolean);
-  const userIG=rawIG.split(',').map(h=>h.trim().replace('@','').toLowerCase()).filter(Boolean);
-  // Filter each platform independently — don't fall back if empty
-  if(userTT.length>0||userIG.length>0){
-    list=list.filter(c=>{
-      const h=c.handle.replace('@','').toLowerCase();
-      if(c.platform==='TikTok') return userTT.length===0||userTT.includes(h);
-      if(c.platform==='Instagram') return userIG.length===0||userIG.includes(h);
-      return true;
-    });
-  }
+  // COMPS_TT/COMPS_IG son el listado de referentes del nicho — se muestran todos sin filtrar
   // Hide already-saved creators from the main grid
   const savedKeys=savedCreators.map(s=>s.handle+'|'+s.platform);
   const main=list.filter(c=>!savedKeys.includes(c.handle+'|'+c.platform));
@@ -2507,8 +2505,21 @@ Genera un informe profundo que cite DATOS REALES y TÍTULOS CONCRETOS de sus pos
   "diferenciacion": "2-3 frases: qué hace DIFERENTE a este creador vs la media del nicho, y qué ventaja competitiva debería potenciar",
   "alerta": "1 riesgo o punto ciego importante que el creador no está viendo en sus datos"
 }`;
-    const text=await callAI(prompt, 1400);
-    const s=JSON.parse(text.replace(/```json|```/g,'').trim());
+    const text=await callAI(prompt, 2500);
+    const clean2=text.replace(/```(?:json)?\s*/gi,'').replace(/```\s*/g,'').trim();
+    const jMatch=clean2.match(/\{[\s\S]*\}/);
+    if(!jMatch) throw new Error('Respuesta sin JSON');
+    let s;
+    try{s=JSON.parse(jMatch[0]);}catch(pe){
+      // Intentar reparar JSON truncado cerrando strings y llaves abiertas
+      let partial=jMatch[0];
+      // Cerrar string abierto
+      if((partial.match(/"/g)||[]).length%2!==0) partial+='..."';
+      // Cerrar llaves abiertas
+      const opens=(partial.match(/\{/g)||[]).length-(partial.match(/\}/g)||[]).length;
+      partial+='}}'.repeat(Math.max(0,opens));
+      s=JSON.parse(partial);
+    }
     content.innerHTML=`
       <div style="margin-bottom:14px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent);font-weight:700;margin-bottom:8px">✦ QUÉ ESTÁ FUNCIONANDO</div><p style="line-height:1.7">${s.funcionando}</p></div>
       <div style="margin-bottom:14px"><div style="font-size:9px;letter-spacing:.14em;color:var(--accent2);font-weight:700;margin-bottom:8px">✕ QUÉ MEJORAR</div><p style="line-height:1.7">${s.mejorar}</p></div>
@@ -3148,16 +3159,20 @@ Responde SOLO con este JSON (sin texto extra, 5 noticias):
   }
 ]`;
   try{
-    const raw=await callAI(prompt,1200);
-    // Strip markdown code fences if present, then extract JSON array
+    const raw=await callAI(prompt,1800);
     const clean=raw.replace(/```(?:json)?\s*/gi,'').replace(/```\s*/g,'');
-    const match=clean.match(/\[[\s\S]*\]/);
+    const match=clean.match(/\[[\s\S]*/);
     if(!match) throw new Error('Formato inválido');
     let items;
-    try{items=JSON.parse(match[0]);}catch(pe){
-      // Try to extract up to the last complete object
-      const trimmed=match[0].replace(/,\s*\{[^}]*$/,']');
-      items=JSON.parse(trimmed);
+    try{items=JSON.parse(match[0].match(/\[[\s\S]*\]/)?.[0]||match[0]);}catch(pe){
+      // Repair truncated array: find last complete object ending with }
+      let arr=match[0];
+      const lastClose=arr.lastIndexOf('}');
+      if(lastClose<0) throw new Error('JSON no parseable');
+      arr=arr.slice(0,lastClose+1);
+      // Close unclosed strings (odd number of " after last { )
+      if(!arr.trim().endsWith(']')) arr+=']';
+      items=JSON.parse(arr);
     }
     if(!Array.isArray(items)||!items.length) throw new Error('Sin resultados');
     const tempItems=items.map((n,i)=>({...n,id:'ai_'+Date.now()+'_'+i,date:new Date().toISOString().slice(0,10)}));
