@@ -3112,7 +3112,8 @@ function renderCachedNews(items){
         <div class="news-meta">${n.date} <span class="na" style="color:var(--accent3);margin-left:6px">▼</span></div>
       </div>
       <div class="news-body">
-        <div class="news-summary" style="white-space:pre-line">${n.summary}</div>
+        ${n.summary?`<div class="news-summary">${n.summary}</div>`:''}
+        ${n.idea?`<div style="margin:8px 0 10px;padding:8px 12px;background:rgba(232,255,71,.06);border-left:2px solid var(--accent);font-size:11px;line-height:1.5">💡 <b>IDEA:</b> ${n.idea}</div>`:''}
         <div class="news-acts">
           ${n.url&&n.url!=='#'?`<a href="${n.url}" target="_blank" rel="noopener" class="btn-s" style="font-size:10px;padding:5px 12px;text-decoration:none">↗ LEER MÁS</a>`:''}
           <button class="btn-p" style="font-size:9px;padding:5px 12px" ${isSaved?'disabled style="opacity:.5"':''} onclick="savedNews.push({...${nStr},savedAt:new Date().toISOString()});localStorage.setItem('iac_saved_news',JSON.stringify(savedNews));this.disabled=true;this.textContent='✓ GUARDADA';renderSaved()">${isSaved?'✓ GUARDADA':'+ GUARDAR'}</button>
@@ -3123,11 +3124,19 @@ function renderCachedNews(items){
   }).join('');
 }
 
+function newsTagFromTitle(title){
+  const t=title.toLowerCase();
+  if(/claude|anthropic/.test(t)) return 'CLAUDE';
+  if(/chatgpt|openai|gpt/.test(t)) return 'CHATGPT';
+  if(/gemini|google/.test(t)) return 'TOOLS';
+  if(/tiktok/.test(t)) return 'TIKTOK';
+  if(/instagram|reels/.test(t)) return 'INSTAGRAM';
+  if(/automatiz|workflow|n8n/.test(t)) return 'AUTOMATIZACIÓN';
+  if(/creator|creador|contenido/.test(t)) return 'CREATOR ECONOMY';
+  return 'IA';
+}
+
 async function refreshNews(){
-  if(!hasAIKey()){
-    showNotif('SIN API IA','Configura tu API key de Claude, ChatGPT o Gemini en CONFIGURAR.');
-    return;
-  }
   const nl=document.getElementById('newsList');
   if(nl) nl.innerHTML=`<div style="padding:20px;text-align:center;font-size:11px;color:var(--text3)">📡 Buscando artículos reales...</div>`;
 
@@ -3137,85 +3146,79 @@ async function refreshNews(){
   const today=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
 
   try{
-    // 1. Obtener artículos reales vía RSS desde el servidor
+    // 1. Obtener artículos RSS — URL nunca pasa por la IA
     let articles=[];
-    if(serverOk){
-      try{
-        const rss=await apiFetch('/api/news');
-        if(rss.ok&&rss.articles?.length) articles=rss.articles;
-      }catch(e){console.warn('[news] RSS fetch failed:',e.message);}
-    }
-
-    let prompt, rawResponse;
+    try{
+      const rss=await apiFetch('/api/news');
+      if(rss.ok&&rss.articles?.length) articles=rss.articles;
+    }catch(e){console.warn('[news] RSS:',e.message);}
 
     if(articles.length>0){
-      if(nl) nl.innerHTML=`<div style="padding:20px;text-align:center;font-size:11px;color:var(--text3)">✦ IA seleccionando las noticias más relevantes para ti...</div>`;
-      const rssSlice=articles.slice(0,30);
-      // Numeramos desde 1; la IA solo devuelve el número — nunca toca el URL
-      const articleList=rssSlice.map((a,i)=>`[${i+1}] "${a.title}" (${a.source})`).join('\n');
-      prompt=`Eres un editor jefe de contenido digital especializado en IA y marketing. Hoy es ${today}.
-TODO EN ESPAÑOL.
-
-CREADOR: nicho "${niche}", audiencia "${audience}", keywords: ${keywords}
-
-ARTÍCULOS DISPONIBLES:
-${articleList}
-
-Selecciona los 5 artículos MÁS RELEVANTES para este creador. Para cada uno:
-- "n": número del artículo de la lista (entero, obligatorio)
-- "headline": traducción fiel al español del título original
-- "summary": 2 frases en español de por qué importa para su nicho, luego nueva línea "💡 IDEA: [gancho de vídeo concreto]"
-- "tag": CLAUDE|CHATGPT|TIKTOK|INSTAGRAM|AUTOMATIZACIÓN|CREATOR ECONOMY|TOOLS|IA
-
-Responde SOLO con JSON: [{"n":1,"headline":"...","summary":"...\\n💡 IDEA: ...","tag":"..."}]`;
-    }else{
-      // Fallback: sin RSS, IA genera tendencias (sin URLs a artículos específicos)
-      if(nl) nl.innerHTML=`<div style="padding:20px;text-align:center;font-size:11px;color:var(--text3)">✦ Generando radar de tendencias...</div>`;
-      prompt=`Eres un experto en tendencias de IA y marketing de contenidos. TODO EN ESPAÑOL. Hoy es ${today}.
-NICHO: ${niche} · AUDIENCIA: ${audience}
-Genera 5 tendencias relevantes para este creador. Todo el texto en español. Las URLs deben ser páginas PRINCIPALES de fuentes reales (blog.anthropic.com, openai.com/blog, techcrunch.com/ai, newsroom.tiktok.com) — NUNCA artículos específicos.
-Responde SOLO con JSON: [{"headline":"titular en español","summary":"resumen en español.\\n💡 IDEA: gancho en español","tag":"IA|TOOLS|TIKTOK|INSTAGRAM|AUTOMATIZACIÓN","url":"URL a página principal","source":"fuente"}]`;
-    }
-
-    rawResponse=await callAI(prompt,2000);
-    const clean=rawResponse.replace(/```(?:json)?\s*/gi,'').replace(/```\s*/g,'').trim();
-    const match=clean.match(/\[[\s\S]*\]/);
-    if(!match) throw new Error('Sin JSON en respuesta');
-    let items;
-    try{items=JSON.parse(match[0]);}catch(pe){
-      const lastClose=match[0].lastIndexOf('}');
-      if(lastClose<0) throw new Error('JSON no parseable');
-      items=JSON.parse(match[0].slice(0,lastClose+1)+']');
-    }
-    if(!Array.isArray(items)||!items.length) throw new Error('Sin resultados');
-    const rssRef=articles.slice(0,30); // mismo slice que usamos en el prompt
-    console.log('[news] rssRef.length=',rssRef.length,'| AI items=',JSON.stringify(items.map(x=>({n:x.n,h:x.headline?.slice(0,40)}))));
-    const tempItems=items.map((item,i)=>{
-      const idx=parseInt(item.n)-1; // n es 1-based
-      const orig=(idx>=0&&idx<rssRef.length)?rssRef[idx]:null;
-      // Si n no resuelve a un artículo real, descartamos la URL para no mostrar links rotos
-      return{
-        headline:item.headline||'',
-        summary:item.summary||'',
-        tag:item.tag||'IA',
-        url:orig?orig.url:(rssRef.length===0?(item.url||''):''),
-        source:orig?orig.source:'',
-        origTitle:orig?orig.title:'', // título original para debug
-        id:'ai_'+Date.now()+'_'+i,
+      // 2a. Mostrar artículos reales inmediatamente (sin IA, links garantizados)
+      const picked=articles.slice(0,8);
+      const baseItems=picked.map((a,i)=>({
+        headline:a.title,
+        summary:a.description||'',
+        tag:newsTagFromTitle(a.title),
+        url:a.url,
+        source:a.source,
+        idea:'',
+        id:'rss_'+Date.now()+'_'+i,
         date:new Date().toISOString().slice(0,10),
-        fromRss:!!orig
-      };
-    }).filter(item=>item.headline); // descartar items sin titular
-    localStorage.setItem('iac_news_cache',JSON.stringify(tempItems));
-    localStorage.setItem('iac_news_cache_ts',Date.now().toString());
-    renderCachedNews(tempItems);
-    const src=articles.length>0?`${items.length} artículos reales de TechCrunch, The Verge, etc.`:`${items.length} tendencias generadas por IA`;
-    showNotif('NOTICIAS ACTUALIZADAS',src);
+        fromRss:true
+      }));
+      renderCachedNews(baseItems);
+      localStorage.setItem('iac_news_cache',JSON.stringify(baseItems));
+      localStorage.setItem('iac_news_cache_ts',Date.now().toString());
+
+      // 3. Si hay API key: pedir a la IA solo las IDEAS (no toca URLs ni titulares)
+      if(hasAIKey()){
+        if(nl){const spinner=document.createElement('div');spinner.style.cssText='padding:6px 16px;font-size:10px;color:var(--text3)';spinner.textContent='✦ Añadiendo ideas de contenido...';nl.appendChild(spinner);}
+        try{
+          const titleList=picked.map((a,i)=>`[${i+1}] ${a.title}`).join('\n');
+          const ideaPrompt=`Eres un estratega de contenido digital. TODO EN ESPAÑOL.
+CREADOR: nicho "${niche}", audiencia "${audience}".
+
+ARTÍCULOS (en orden):
+${titleList}
+
+Para CADA artículo (del 1 al ${picked.length}), escribe UNA idea de vídeo corta y concreta que el creador pueda grabar esta semana inspirándose en ese artículo.
+Responde SOLO con JSON: [{"n":1,"idea":"gancho de vídeo en español"},{"n":2,"idea":"..."},...]`;
+          const raw=await callAI(ideaPrompt,800);
+          const m=raw.replace(/```(?:json)?\s*/gi,'').replace(/```\s*/g,'').match(/\[[\s\S]*\]/);
+          if(m){
+            const ideas=JSON.parse(m[0]);
+            ideas.forEach(x=>{
+              const idx=parseInt(x.n)-1;
+              if(idx>=0&&idx<baseItems.length&&x.idea) baseItems[idx].idea=x.idea;
+            });
+            localStorage.setItem('iac_news_cache',JSON.stringify(baseItems));
+            renderCachedNews(baseItems);
+          }
+        }catch(ie){console.warn('[news] ideas:',ie.message);}
+      }
+      showNotif('NOTICIAS ACTUALIZADAS',`${picked.length} artículos reales · Google News`);
+
+    }else if(hasAIKey()){
+      // 2b. Fallback sin RSS: IA genera tendencias con links a secciones de fuentes reales
+      if(nl) nl.innerHTML=`<div style="padding:20px;text-align:center;font-size:11px;color:var(--text3)">✦ Generando radar de tendencias...</div>`;
+      const raw=await callAI(`Eres experto en tendencias de IA y marketing digital. TODO EN ESPAÑOL. Hoy es ${today}.
+Nicho: ${niche}. Audiencia: ${audience}.
+Genera 5 tendencias actuales relevantes. Links SOLO a secciones principales (techcrunch.com/category/artificial-intelligence/, openai.com/blog, etc.) — nunca a artículos específicos.
+JSON: [{"headline":"...","summary":"descripción en español","idea":"gancho de vídeo en español","tag":"IA|TOOLS|TIKTOK|INSTAGRAM|AUTOMATIZACIÓN","url":"URL sección","source":"fuente"}]`,1200);
+      const m=raw.replace(/```(?:json)?\s*/gi,'').replace(/```\s*/g,'').match(/\[[\s\S]*\]/);
+      if(!m) throw new Error('Sin JSON');
+      const items=JSON.parse(m[0]).map((x,i)=>({...x,id:'ai_'+Date.now()+'_'+i,date:new Date().toISOString().slice(0,10),fromRss:false}));
+      localStorage.setItem('iac_news_cache',JSON.stringify(items));
+      localStorage.setItem('iac_news_cache_ts',Date.now().toString());
+      renderCachedNews(items);
+      showNotif('TENDENCIAS IA',`${items.length} tendencias generadas`);
+    }else{
+      renderNews();
+    }
   }catch(e){
-    // En error: mostrar caché si existe, si no hardcoded
     const cached=localStorage.getItem('iac_news_cache');
-    if(cached){try{renderCachedNews(JSON.parse(cached));}catch(ce){renderNews();}}
-    else renderNews();
+    if(cached){try{renderCachedNews(JSON.parse(cached));}catch(ce){renderNews();}}else renderNews();
     showNotif('ERROR NOTICIAS',e.message);
   }
 }
