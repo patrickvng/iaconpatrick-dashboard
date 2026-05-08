@@ -3151,30 +3151,26 @@ async function refreshNews(){
     if(articles.length>0){
       // Modo principal: IA curates artículos REALES con URLs reales
       if(nl) nl.innerHTML=`<div style="padding:20px;text-align:center;font-size:11px;color:var(--text3)">✦ IA seleccionando las noticias más relevantes para ti...</div>`;
-      const articleList=articles.slice(0,30).map((a,i)=>`${i+1}. [${a.source}] "${a.title}"${a.description?' — '+a.description.slice(0,150):''}\nURL: ${a.url}`).join('\n\n');
+      const rssSlice=articles.slice(0,30);
+      const articleList=rssSlice.map((a,i)=>`[${i+1}] ${a.source} — "${a.title}"${a.description?' · '+a.description.slice(0,120):''}`).join('\n');
       prompt=`Eres un editor jefe especializado en creadores de contenido de IA y marketing digital. Hoy es ${today}.
-IDIOMA DE RESPUESTA: TODO EN ESPAÑOL (titulares, resúmenes, ideas — todo).
+IDIOMA: TODO EN ESPAÑOL.
 
 PERFIL DEL CREADOR:
 - Nicho: ${niche}
 - Audiencia: ${audience}
 - Keywords: ${keywords}
 
-ARTÍCULOS REALES (de TechCrunch, The Verge, VentureBeat, Social Media Today):
+ARTÍCULOS DISPONIBLES (numerados):
 ${articleList}
 
-TAREA: Selecciona 5 artículos MÁS RELEVANTES para este creador. Para cada uno:
-1. Titular en español claro y específico (traduce del inglés si es necesario)
-2. 2 frases en español explicando por qué importa para su nicho
-3. Nueva línea: "💡 IDEA: [gancho concreto de vídeo en español para grabar esta semana]"
+TAREA: Selecciona los 5 artículos más relevantes para este creador. Por cada uno devuelve:
+- "n": el número del artículo (1-${rssSlice.length}) — SOLO el número, no el URL
+- "headline": titular adaptado al español
+- "summary": 2 frases en español de por qué importa + nueva línea "💡 IDEA: [gancho de vídeo concreto en español]"
+- "tag": una de CLAUDE|CHATGPT|TIKTOK|INSTAGRAM|AUTOMATIZACIÓN|CREATOR ECONOMY|TOOLS|IA
 
-REGLAS ESTRICTAS:
-- Todo el texto en ESPAÑOL
-- URL: copia el URL EXACTO de la lista, sin modificar ni inventar
-- No añadas texto fuera del JSON
-
-JSON de respuesta (sin texto extra):
-[{"headline":"titular en español","summary":"resumen en español.\\n💡 IDEA: gancho en español","tag":"CLAUDE|CHATGPT|TIKTOK|INSTAGRAM|AUTOMATIZACIÓN|CREATOR ECONOMY|TOOLS|IA","url":"URL exacto de la lista","source":"nombre fuente"}]`;
+JSON (sin texto extra): [{"n":3,"headline":"...","summary":"...\\n💡 IDEA: ...","tag":"..."}]`;
     }else{
       // Fallback: sin RSS, IA genera tendencias (sin URLs a artículos específicos)
       if(nl) nl.innerHTML=`<div style="padding:20px;text-align:center;font-size:11px;color:var(--text3)">✦ Generando radar de tendencias...</div>`;
@@ -3195,12 +3191,20 @@ Responde SOLO con JSON: [{"headline":"titular en español","summary":"resumen en
       items=JSON.parse(match[0].slice(0,lastClose+1)+']');
     }
     if(!Array.isArray(items)||!items.length) throw new Error('Sin resultados');
-    const tempItems=items.map((n,i)=>({
-      ...n,
-      id:'ai_'+Date.now()+'_'+i,
-      date:new Date().toISOString().slice(0,10),
-      fromRss:articles.length>0
-    }));
+    const tempItems=items.map((item,i)=>{
+      // Si la IA devolvió "n" (índice), tomamos URL y fuente del array original — nunca de la IA
+      const orig=articles.length>0&&item.n!=null?articles[(item.n-1)]||null:null;
+      return{
+        headline:item.headline||item.title||'',
+        summary:item.summary||'',
+        tag:item.tag||'IA',
+        url:orig?orig.url:(item.url||'#'),
+        source:orig?orig.source:(item.source||''),
+        id:'ai_'+Date.now()+'_'+i,
+        date:new Date().toISOString().slice(0,10),
+        fromRss:!!orig
+      };
+    });
     localStorage.setItem('iac_news_cache',JSON.stringify(tempItems));
     localStorage.setItem('iac_news_cache_ts',Date.now().toString());
     renderCachedNews(tempItems);
