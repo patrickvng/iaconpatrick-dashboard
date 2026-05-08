@@ -573,8 +573,8 @@ body.light::before{display:none}
       <button class="dl-btn" onclick="downloadPage()">⬇ PDF</button>
       <div class="period-sel">
         <button class="pb active" id="compBtnAll" onclick="setCompFilter('all',this)">TODOS</button>
-        <button class="pb" id="compBtnTT" onclick="setCompFilter('tt',this)" style="border-left:1px solid var(--border)">TIKTOK</button>
-        <button class="pb" id="compBtnIG" onclick="setCompFilter('ig',this)" style="border-left:1px solid var(--border)">INSTAGRAM</button>
+        <button class="pb pb-tt" id="compBtnTT" onclick="setCompFilter('tt',this)" style="border-left:1px solid var(--border)">♪ TT</button>
+        <button class="pb pb-ig" id="compBtnIG" onclick="setCompFilter('ig',this)" style="border-left:1px solid var(--border)">◎ IG</button>
       </div>
     </div>
   </div>
@@ -596,8 +596,8 @@ body.light::before{display:none}
     <div style="display:flex;gap:8px;align-items:center">
       <button class="dl-btn" onclick="downloadPage()">⬇ PDF</button>
       <div class="period-sel">
-        <button class="pb active" onclick="filterTrend('tt',this)">TIKTOK</button>
-        <button class="pb" onclick="filterTrend('ig',this)" style="border-left:1px solid var(--border)">INSTAGRAM</button>
+        <button class="pb pb-tt active" onclick="filterTrend('tt',this)">♪ TT</button>
+        <button class="pb pb-ig" onclick="filterTrend('ig',this)" style="border-left:1px solid var(--border)">◎ IG</button>
       </div>
     </div>
   </div>
@@ -1096,11 +1096,11 @@ window.addEventListener('DOMContentLoaded',async()=>{
   loadCfg();
   // Texto del bloque servidor según entorno
   const isLocal=window.location.hostname==='localhost';
+  const serverBlock=document.getElementById('serverBlock');
+  if(serverBlock&&!isLocal){serverBlock.style.display='none';}
   const si=document.getElementById('serverInfo');
-  if(si){
-    si.innerHTML=isLocal
-      ?'El dashboard necesita un servidor local para comunicarse con Apify sin errores de CORS.<br><b>1.</b> Asegúrate de tener <span class="hl">Node.js</span> instalado<br><b>2.</b> Abre una terminal en la carpeta del proyecto<br><b>3.</b> Ejecuta: <span class="hl">node server.js</span><br><b>4.</b> Abre el navegador en <span class="hl">http://localhost:3000</span>'
-      :'<b>→</b> Servidor corriendo en <span class="hl">Railway</span> ✓<br>No necesitas configurar nada aquí. El servidor está siempre encendido y hace sync automático cada semana.';
+  if(si&&isLocal){
+    si.innerHTML='El dashboard necesita un servidor local para comunicarse con Apify sin errores de CORS.<br><b>1.</b> Asegúrate de tener <span class="hl">Node.js</span> instalado<br><b>2.</b> Abre una terminal en la carpeta del proyecto<br><b>3.</b> Ejecuta: <span class="hl">node server.js</span><br><b>4.</b> Abre el navegador en <span class="hl">http://localhost:3000</span>';
   }
   checkServer(true);
   // Cargar cache — primero servidor, si no hay fallback a localStorage
@@ -1279,7 +1279,7 @@ function goToContent(platform){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-content').classList.add('active');
-  document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
+  document.querySelectorAll('.nav-btn')[1].classList.add('active');
   const d=realData||D;
   renderContentMetrics(d);renderPosts(d);
 }
@@ -1420,22 +1420,35 @@ function renderEngChart(){
   const c=cc();
   const d=realData||D;
   const days=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-  // Agrupar posts reales por día de la semana (0=Dom en JS → reindex)
-  const dayData=days.map(()=>({total:0,count:0}));
-  const allPosts=[...d.tiktok.topPosts,...d.instagram.topPosts].filter(p=>selectedAccount==='tt'?p.platform==='tt':selectedAccount==='ig'?p.platform==='ig':true);
-  allPosts.forEach(p=>{
-    if(!p.publishedAt)return;
-    const dow=new Date(p.publishedAt).getDay();// 0=Dom
-    const idx=(dow===0)?6:dow-1;// reindex: 0=Lun
-    dayData[idx].total+=parseFloat(p.eng)||0;
-    dayData[idx].count++;
-  });
-  const vals=dayData.map(d=>d.count?parseFloat((d.total/d.count).toFixed(2)):null);
-  const color=selectedAccount==='ig'?'#f472b6':selectedAccount==='tt'?'#4ade80':'#e8ff47';
   document.getElementById('chart2Title').textContent='MEJOR DÍA DE PUBLICACIÓN';
   document.getElementById('chart2Sub').textContent='ENG PROMEDIO %';
-  eChart=new Chart(ctx,{type:'bar',data:{labels:days,datasets:[{data:vals,backgroundColor:vals.map(v=>v?color+'99':'rgba(255,255,255,.05)'),borderRadius:0,borderWidth:0}]},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+  function calcDayVals(posts){
+    const dayData=days.map(()=>({total:0,count:0}));
+    posts.forEach(p=>{
+      if(!p.publishedAt)return;
+      const dow=new Date(p.publishedAt).getDay();
+      const idx=(dow===0)?6:dow-1;
+      dayData[idx].total+=parseFloat(p.eng)||0;
+      dayData[idx].count++;
+    });
+    return dayData.map(d=>d.count?parseFloat((d.total/d.count).toFixed(2)):null);
+  }
+  let datasets=[];
+  if(selectedAccount==='all'){
+    const ttVals=calcDayVals(d.tiktok.topPosts);
+    const igVals=calcDayVals(d.instagram.topPosts);
+    datasets=[
+      {label:'TikTok',data:ttVals,backgroundColor:ttVals.map(v=>v?'#4ade8099':'rgba(255,255,255,.05)'),borderRadius:0,borderWidth:0},
+      {label:'Instagram',data:igVals,backgroundColor:igVals.map(v=>v?'#f472b699':'rgba(255,255,255,.05)'),borderRadius:0,borderWidth:0}
+    ];
+  } else {
+    const posts=selectedAccount==='ig'?d.instagram.topPosts:d.tiktok.topPosts;
+    const color=selectedAccount==='ig'?'#f472b6':'#4ade80';
+    const vals=calcDayVals(posts);
+    datasets=[{label:selectedAccount==='ig'?'Instagram':'TikTok',data:vals,backgroundColor:vals.map(v=>v?color+'99':'rgba(255,255,255,.05)'),borderRadius:0,borderWidth:0}];
+  }
+  eChart=new Chart(ctx,{type:'bar',data:{labels:days,datasets},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:selectedAccount==='all',labels:{color:c.tick,font:{family:'JetBrains Mono',size:9},boxWidth:8,padding:8}}},scales:{
     x:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9}},grid:{display:false},border:{color:c.border}},
     y:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9},callback:v=>v+'%'},grid:{color:c.grid},border:{color:c.border}},
   }}});
@@ -1445,9 +1458,27 @@ function renderHooks(d){
   const isIG=selectedAccount==='ig';
   const hookTitle=document.getElementById('hookTitle');
   if(isIG){
-    // Instagram: TIPO DE CONTENIDO (carrusel/reel/foto)
+    // Instagram: TIPO DE CONTENIDO — calcular de posts reales
     if(hookTitle) hookTitle.textContent='TIPO DE CONTENIDO · INSTAGRAM';
-    const hooks=d.instagram.hooks;
+    const igPosts=d.instagram.topPosts;
+    let hooks;
+    if(igPosts.length>0&&igPosts[0].type){
+      const typeMap={};
+      igPosts.forEach(p=>{
+        const k=p.type||'Otro';
+        if(!typeMap[k])typeMap[k]={views:0,likes:0,count:0};
+        typeMap[k].views+=p.views||0;
+        typeMap[k].likes+=p.likes||0;
+        typeMap[k].count++;
+      });
+      hooks=Object.entries(typeMap).map(([type,v])=>({
+        type,videos:v.count,
+        views:Math.round(v.views/v.count),
+        rate:d.instagram.followers?parseFloat((v.likes/v.count/d.instagram.followers*100).toFixed(1)):0
+      })).sort((a,b)=>b.views-a.views);
+    } else {
+      hooks=d.instagram.hooks;
+    }
     currentHooks=hooks;
     const max=Math.max(...hooks.map(h=>h.views))||1;
     document.getElementById('hookGrid').innerHTML=hooks.map((h,i)=>`<div class="hk" onclick="openHookDetail(${i})"><div class="hk-type">${h.type}</div><div class="hk-views">${fn(h.views)}<span>avg views</span></div><div class="hk-bar"><div class="hk-fill" style="width:${Math.round(h.views/max*100)}%;background:var(--ig)"></div></div><div class="hk-meta">${h.videos} videos · ${h.rate}% like rate</div><div style="font-size:9px;color:var(--accent);margin-top:6px;letter-spacing:.08em">VER DETALLES →</div></div>`).join('');
@@ -2092,15 +2123,15 @@ function renderSaved(){
     else{
       trendSec.style.display='block';
       trendGrid.innerHTML=savedTrending.map((t,idx)=>`
-        <div class="trend-item">
+        <div class="trend-item" onclick="openSavedTrendModal(${idx})" style="cursor:pointer">
           <div style="flex:1;min-width:0">
-            <div class="trend-title"><a href="${t.videoUrl||'#'}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">${t.title}</a></div>
-            <div class="trend-meta"><span class="trend-handle">${t.handle}</span> · ${t.dur} · <span style="color:var(--text3)">${new Date(t.savedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}</span></div>
+            <div class="trend-title">${t.title}</div>
+            <div class="trend-meta"><span class="trend-handle">${t.handle}</span> · ${t.dur} · <span style="color:var(--text3)">${new Date(t.savedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}</span> <span style="font-size:9px;color:var(--accent3);margin-left:6px">↗ ver stats</span></div>
             <div class="trend-tag">${t.tag}</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
             <div class="trend-stats"><div class="trend-views">${t.views}</div><div class="trend-likes">♥ ${t.likes}</div></div>
-            <button onclick="removeSavedTrending(${idx})" style="background:none;border:1px solid rgba(255,71,87,.3);color:var(--accent2);font-size:9px;padding:2px 8px;cursor:pointer;font-family:var(--mono)">✕ QUITAR</button>
+            <button onclick="event.stopPropagation();removeSavedTrending(${idx})" style="background:none;border:1px solid rgba(255,71,87,.3);color:var(--accent2);font-size:9px;padding:2px 8px;cursor:pointer;font-family:var(--mono)">✕ QUITAR</button>
           </div>
         </div>`).join('');
     }
@@ -2118,6 +2149,28 @@ function removeSavedTrending(idx){
   localStorage.setItem('iac_saved_trending',JSON.stringify(savedTrending));
   renderSaved();renderTrending(trendFilter);
   showNotif('ELIMINADO','Vídeo removido de guardado.');
+}
+function openSavedTrendModal(idx){
+  const t=savedTrending[idx];
+  if(!t)return;
+  const html=`
+    <div style="margin-bottom:16px">
+      <div style="font-size:9px;letter-spacing:.14em;color:var(--accent3);font-weight:700;margin-bottom:6px">${(t.platform==='tt'?'♪ TIKTOK':'◎ INSTAGRAM')} · ${t.dur} · GUARDADO ${new Date(t.savedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}</div>
+      <div style="font-size:15px;font-weight:700;line-height:1.35;margin-bottom:6px">${t.title}</div>
+      <div style="font-size:11px;color:var(--text3)">${t.handle} · <span style="color:var(--accent)">${t.tag}</span></div>
+    </div>
+    <div class="mgrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+      <div class="mc g"><div class="mc-lbl">VIEWS</div><div class="mc-val" style="font-size:20px">${t.views}</div></div>
+      <div class="mc y"><div class="mc-lbl">LIKES</div><div class="mc-val" style="font-size:20px">${fn(t.likes)}</div></div>
+      <div class="mc b"><div class="mc-lbl">GUARDADOS</div><div class="mc-val" style="font-size:20px">${fn(t.saves||0)}</div></div>
+      <div class="mc r"><div class="mc-lbl">CMTS</div><div class="mc-val" style="font-size:20px">${fn(t.comments||0)}</div></div>
+    </div>
+    ${t.why?`<div class="exec-tip"><div class="exec-label">POR QUÉ FUNCIONA</div><div class="exec-text">${t.why}</div></div>`:''}
+    <div style="margin-top:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <a href="${t.videoUrl||'#'}" target="_blank" rel="noopener" class="btn-p" style="text-decoration:none;display:inline-block">↗ VER VÍDEO</a>
+      <button onclick="removeSavedTrending(${idx});closeModal()" style="background:none;border:1px solid rgba(255,71,87,.3);color:var(--accent2);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;padding:9px 18px;cursor:pointer">✕ QUITAR DE GUARDADOS</button>
+    </div>`;
+  openModal(t.title,html);
 }
 function saveTrendItemModal(idx,p){
   const tData=realData||D;
@@ -2491,7 +2544,7 @@ function processData(ttRaw,igRaw,trendRaw,igProfileRaw){
     return ts?new Date(ts)>=trendCutoff:false;
   });
   const trendSource=(trendFiltered.length>0?trendFiltered:trendPosts);
-  const trendItems=trendSource.slice(0,8).map(p=>({title:(p.text||'').slice(0,100),handle:'@'+(p.authorMeta?.name||'unknown'),dur:p.videoMeta?.duration?Math.round(p.videoMeta.duration)+'s':'—',views:fn(p.playCount||0),likes:p.diggCount||0,saves:p.collectCount||0,comments:p.commentCount||0,shares:p.shareCount||0,tag:(p.hashtags||[]).slice(0,2).map(h=>'#'+h.name).join(' ')||'#ia',videoUrl:p.webVideoUrl||(p.id&&p.authorMeta?.name?`https://www.tiktok.com/@${p.authorMeta.name}/video/${p.id}`:`https://www.tiktok.com/@${p.authorMeta?.name||''}`),why:''}));
+  const trendItems=trendSource.slice(0,8).map(p=>({title:(p.text||'').slice(0,100),handle:'@'+(p.authorMeta?.name||'unknown'),dur:p.videoMeta?.duration?Math.round(p.videoMeta.duration)+'s':'—',views:fn(p.playCount||0),likes:p.diggCount||0,saves:p.collectCount||0,comments:p.commentCount||0,shares:p.shareCount||0,tag:(p.hashtags||[]).slice(0,2).map(h=>'#'+h.name).join(' ')||'#ia',videoUrl:p.webVideoUrl||(p.id&&p.authorMeta?.name?`https://www.tiktok.com/@${p.authorMeta.name}/video/${p.id}`:`https://www.tiktok.com/@${p.authorMeta?.name||''}`),why:'',createTime:p.createTime||null,createTimeISO:p.createTimeISO||null}));
 
   // Engagement real
   const ttEngReal=ttProf.fans&&ttSorted.length?((ttSorted.reduce((s,p)=>s+(p.diggCount||0)+(p.commentCount||0),0))/(ttProf.fans*ttSorted.length)*100).toFixed(1):D.tiktok.engagement;
