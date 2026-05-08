@@ -428,6 +428,77 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ── GET /api/news — agrega RSS de fuentes reales
+  if (pathname === '/api/news' && req.method === 'GET') {
+    const RSS_SOURCES = [
+      { url: 'https://techcrunch.com/category/artificial-intelligence/feed/', name: 'TechCrunch AI' },
+      { url: 'https://www.theverge.com/ai-artificial-intelligence/rss/index.xml', name: 'The Verge AI' },
+      { url: 'https://venturebeat.com/category/ai/feed/', name: 'VentureBeat AI' },
+      { url: 'https://www.socialmediatoday.com/rss.xml', name: 'Social Media Today' },
+      { url: 'https://feeds.feedburner.com/Mediatapper', name: 'Social Media Examiner' },
+    ];
+
+    function parseRssItems(xml, sourceName, max) {
+      const items = [];
+      const re = /<item>([\s\S]*?)<\/item>/g;
+      let m;
+      while ((m = re.exec(xml)) !== null && items.length < max) {
+        const x = m[1];
+        const get = (tag) => {
+          const cdata = new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>`).exec(x);
+          if (cdata) return cdata[1].trim();
+          const plain = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`).exec(x);
+          return plain ? plain[1].replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&#039;/g,"'").replace(/&quot;/g,'"').trim() : '';
+        };
+        const title = get('title');
+        const link  = get('link') || (/<link\s+href="([^"]+)"/.exec(x)||[])[1] || '';
+        const pub   = get('pubDate') || get('published') || '';
+        const desc  = (get('description')||get('summary')).replace(/<[^>]*>/g,'').slice(0,220);
+        if (title && link) items.push({ title, url: link, source: sourceName, date: pub, description: desc });
+      }
+      return items;
+    }
+
+    function fetchRss(source, redirects = 0) {
+      return new Promise((resolve) => {
+        if (redirects > 3) return resolve([]);
+        try {
+          const parsed = new URL(source.url);
+          const mod = parsed.protocol === 'https:' ? https : http;
+          const opts = {
+            hostname: parsed.hostname,
+            path: parsed.pathname + parsed.search,
+            method: 'GET',
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SocialDash/2.0)', 'Accept': 'application/rss+xml, application/xml, text/xml' },
+          };
+          const r2 = mod.request(opts, (res2) => {
+            if (res2.statusCode >= 300 && res2.statusCode < 400 && res2.headers.location) {
+              return resolve(fetchRss({ ...source, url: res2.headers.location }, redirects + 1));
+            }
+            let data = '';
+            res2.setEncoding('utf8');
+            res2.on('data', c => data += c);
+            res2.on('end', () => resolve(parseRssItems(data, source.name, 8)));
+            res2.on('error', () => resolve([]));
+          });
+          r2.setTimeout(6000, () => { r2.destroy(); resolve([]); });
+          r2.on('error', () => resolve([]));
+          r2.end();
+        } catch (e) { resolve([]); }
+      });
+    }
+
+    Promise.all(RSS_SOURCES.map(s => fetchRss(s))).then(results => {
+      const articles = results.flat();
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ ok: true, count: articles.length, articles }));
+    }).catch(e => {
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ ok: false, error: e.message, articles: [] }));
+    });
+    return;
+  }
+
   // ── ARCHIVOS ESTÁTICOS
   let filePath = pathname === '/' ? '/index.html' : pathname;
   filePath = path.join(__dirname, filePath);
