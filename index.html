@@ -3108,7 +3108,7 @@ function renderCachedNews(items){
     const nStr=JSON.stringify(n).replace(/'/g,"&#39;").replace(/`/g,"&#96;");
     return`<div class="news-item" id="aiNewsItem${idx}">
       <div class="news-hd" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.na').textContent=this.nextElementSibling.classList.contains('open')?'▲':'▼'">
-        <div style="flex:1;min-width:0"><div class="news-title">${n.headline}</div><div class="news-tag">${n.tag}</div></div>
+        <div style="flex:1;min-width:0"><div class="news-title">${n.headline}</div>${n.origTitle&&n.origTitle!==n.headline?`<div style="font-size:9px;color:var(--text3);margin-top:2px;font-style:italic">${n.origTitle}</div>`:''}<div class="news-tag">${n.tag}</div></div>
         <div class="news-meta">${n.date} <span class="na" style="color:var(--accent3);margin-left:6px">▼</span></div>
       </div>
       <div class="news-body">
@@ -3149,28 +3149,25 @@ async function refreshNews(){
     let prompt, rawResponse;
 
     if(articles.length>0){
-      // Modo principal: IA curates artículos REALES con URLs reales
       if(nl) nl.innerHTML=`<div style="padding:20px;text-align:center;font-size:11px;color:var(--text3)">✦ IA seleccionando las noticias más relevantes para ti...</div>`;
       const rssSlice=articles.slice(0,30);
-      const articleList=rssSlice.map((a,i)=>`[${i+1}] ${a.source} — "${a.title}"${a.description?' · '+a.description.slice(0,120):''}`).join('\n');
-      prompt=`Eres un editor jefe especializado en creadores de contenido de IA y marketing digital. Hoy es ${today}.
-IDIOMA: TODO EN ESPAÑOL.
+      // Numeramos desde 1; la IA solo devuelve el número — nunca toca el URL
+      const articleList=rssSlice.map((a,i)=>`[${i+1}] "${a.title}" (${a.source})`).join('\n');
+      prompt=`Eres un editor jefe de contenido digital especializado en IA y marketing. Hoy es ${today}.
+TODO EN ESPAÑOL.
 
-PERFIL DEL CREADOR:
-- Nicho: ${niche}
-- Audiencia: ${audience}
-- Keywords: ${keywords}
+CREADOR: nicho "${niche}", audiencia "${audience}", keywords: ${keywords}
 
-ARTÍCULOS DISPONIBLES (numerados):
+ARTÍCULOS DISPONIBLES:
 ${articleList}
 
-TAREA: Selecciona los 5 artículos más relevantes para este creador. Por cada uno devuelve:
-- "n": el número del artículo (1-${rssSlice.length}) — SOLO el número, no el URL
-- "headline": titular adaptado al español
-- "summary": 2 frases en español de por qué importa + nueva línea "💡 IDEA: [gancho de vídeo concreto en español]"
-- "tag": una de CLAUDE|CHATGPT|TIKTOK|INSTAGRAM|AUTOMATIZACIÓN|CREATOR ECONOMY|TOOLS|IA
+Selecciona los 5 artículos MÁS RELEVANTES para este creador. Para cada uno:
+- "n": número del artículo de la lista (entero, obligatorio)
+- "headline": traducción fiel al español del título original
+- "summary": 2 frases en español de por qué importa para su nicho, luego nueva línea "💡 IDEA: [gancho de vídeo concreto]"
+- "tag": CLAUDE|CHATGPT|TIKTOK|INSTAGRAM|AUTOMATIZACIÓN|CREATOR ECONOMY|TOOLS|IA
 
-JSON (sin texto extra): [{"n":3,"headline":"...","summary":"...\\n💡 IDEA: ...","tag":"..."}]`;
+Responde SOLO con JSON: [{"n":1,"headline":"...","summary":"...\\n💡 IDEA: ...","tag":"..."}]`;
     }else{
       // Fallback: sin RSS, IA genera tendencias (sin URLs a artículos específicos)
       if(nl) nl.innerHTML=`<div style="padding:20px;text-align:center;font-size:11px;color:var(--text3)">✦ Generando radar de tendencias...</div>`;
@@ -3191,20 +3188,23 @@ Responde SOLO con JSON: [{"headline":"titular en español","summary":"resumen en
       items=JSON.parse(match[0].slice(0,lastClose+1)+']');
     }
     if(!Array.isArray(items)||!items.length) throw new Error('Sin resultados');
+    const rssRef=articles.slice(0,30); // mismo slice que usamos en el prompt
     const tempItems=items.map((item,i)=>{
-      // Si la IA devolvió "n" (índice), tomamos URL y fuente del array original — nunca de la IA
-      const orig=articles.length>0&&item.n!=null?articles[(item.n-1)]||null:null;
+      const idx=parseInt(item.n)-1; // n es 1-based
+      const orig=(idx>=0&&idx<rssRef.length)?rssRef[idx]:null;
+      // Si n no resuelve a un artículo real, descartamos la URL para no mostrar links rotos
       return{
-        headline:item.headline||item.title||'',
+        headline:item.headline||'',
         summary:item.summary||'',
         tag:item.tag||'IA',
-        url:orig?orig.url:(item.url||'#'),
-        source:orig?orig.source:(item.source||''),
+        url:orig?orig.url:'#',
+        source:orig?orig.source:'',
+        origTitle:orig?orig.title:'', // título original para debug
         id:'ai_'+Date.now()+'_'+i,
         date:new Date().toISOString().slice(0,10),
         fromRss:!!orig
       };
-    });
+    }).filter(item=>item.headline); // descartar items sin titular
     localStorage.setItem('iac_news_cache',JSON.stringify(tempItems));
     localStorage.setItem('iac_news_cache_ts',Date.now().toString());
     renderCachedNews(tempItems);
