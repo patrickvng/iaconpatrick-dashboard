@@ -605,10 +605,11 @@ body.light::before{display:none}
       </div>
     </div>
   </div>
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
     <div class="st" style="margin:0;flex:1" data-i18n="viral_videos">VIDEOS VIRALES · NICHO IA / MARKETING</div>
     <button class="dl-btn" onclick="refreshTrending()" title="Refrescar videos">↺ REFRESCAR</button>
   </div>
+  <div style="font-size:10px;color:var(--text3);margin-bottom:10px">Videos trending detectados por tus <b>keywords del nicho</b> (no por creadores específicos). Para ver contenido de tus creadores configurados, ve a <b>CREADORES</b>. Con SYNC real los vídeos enlazan directamente.</div>
   <div class="trend-list" id="trendingList"></div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-top:22px;margin-bottom:6px">
     <div class="st" style="margin:0;flex:1" data-i18n="news_title">NOTICIAS DE ÚLTIMA HORA · IA + MARKETING</div>
@@ -1274,7 +1275,9 @@ function closeDatePicker(){
 }
 function filterPlatform(p,btn){
   btn.closest('.period-sel').querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');platformFilter=p;renderPosts(realData||D);
+  btn.classList.add('active');platformFilter=p;
+  const d=realData||D;
+  renderContentMetrics(d);renderPosts(d);
 }
 function filterTrend(p,btn){
   btn.closest('.period-sel').querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
@@ -1402,12 +1405,14 @@ function mkDonut(id,mix,colors){
 // ═══ CONTENT ═══
 function renderContentMetrics(d){
   const m=periodMult();
-  const allPosts=[...d.tiktok.topPosts,...d.instagram.topPosts];
+  const allPosts=[];
+  if(platformFilter==='all'||platformFilter==='tt') allPosts.push(...d.tiktok.topPosts);
+  if(platformFilter==='all'||platformFilter==='ig') allPosts.push(...d.instagram.topPosts);
   const totalLikes=allPosts.reduce((s,p)=>s+p.likes,0);
   const totalComments=allPosts.reduce((s,p)=>s+p.comments,0);
-  const totalShares=d.tiktok.shares+d.instagram.shares;
-  const totalViews=d.tiktok.views+d.instagram.views;
-  const totalPosts=d.tiktok.posts+d.instagram.posts;
+  const totalShares=(platformFilter==='tt'?d.tiktok.shares:platformFilter==='ig'?d.instagram.shares:d.tiktok.shares+d.instagram.shares);
+  const totalViews=(platformFilter==='tt'?d.tiktok.views:platformFilter==='ig'?d.instagram.views:d.tiktok.views+d.instagram.views);
+  const totalPosts=(platformFilter==='tt'?d.tiktok.posts:platformFilter==='ig'?d.instagram.posts:d.tiktok.posts+d.instagram.posts);
   const avgEng=allPosts.length?((allPosts.reduce((s,p)=>s+parseFloat(p.eng||0),0)/allPosts.length).toFixed(1)+'%'):'—';
   document.getElementById('contentMetrics').innerHTML=[
     {lbl:t('metric_posts'),val:totalPosts,c:'g'},
@@ -1505,7 +1510,9 @@ function renderComps(){
   const userIG=(cfg.compIG||'').split(',').map(h=>h.trim().replace('@','').toLowerCase()).filter(Boolean);
   const allConfigured=[...userTT,...userIG];
   if(allConfigured.length>0){
-    list=list.filter(c=>allConfigured.includes(c.handle.replace('@','').toLowerCase()));
+    const filtered=list.filter(c=>allConfigured.includes(c.handle.replace('@','').toLowerCase()));
+    // Solo aplicar filtro si hay coincidencias; si no, mostrar todos
+    if(filtered.length>0) list=filtered;
   }
   // Hide already-saved creators from the main grid
   const savedKeys=savedCreators.map(s=>s.handle+'|'+s.platform);
@@ -1616,7 +1623,8 @@ function saveNewsItem(idx){
 }
 
 function openTrendingModal(idx,p){
-  const items=p==='tt'?TREND_TT:TREND_IG;
+  const tData=realData||D;
+  const items=p==='tt'?(tData.trending.tt.length?tData.trending.tt:TREND_TT):(tData.trending.ig.length?tData.trending.ig:TREND_IG);
   const t=items[idx];
   const html=`
     <div style="margin-bottom:16px">
@@ -2545,17 +2553,58 @@ function refreshTrending(){
   showNotif('VIDEOS REFRESCADOS','Orden actualizado con los últimos datos disponibles.');
 }
 
-function refreshNews(){
-  const nl=document.getElementById('newsList');
-  if(nl){
-    nl.style.opacity='0';
-    setTimeout(()=>{
-      renderNews();
-      nl.style.opacity='1';
-      nl.style.transition='opacity .3s';
-    },200);
+async function refreshNews(){
+  if(!hasAIKey()){
+    showNotif('SIN API IA','Configura tu API key de Claude, ChatGPT o Gemini en CONFIGURAR para generar noticias reales.');
+    return;
   }
-  showNotif('NOTICIAS REFRESCADAS','Noticias actualizadas. Con datos reales se mostrarían los últimos titulares del día.');
+  const nl=document.getElementById('newsList');
+  if(nl) nl.innerHTML=`<div style="padding:20px;text-align:center;font-size:11px;color:var(--text3)">✦ Generando noticias con IA...</div>`;
+  const keywords=(cfg.nicheKw||'IA,marketing,automatización').split(',').slice(0,5).map(k=>k.trim()).join(', ');
+  const niche=cfg.brandNiche||cfg.nicheKw||'IA y marketing digital';
+  const today=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+  const prompt=`Eres un periodista experto en tecnología e IA. Hoy es ${today}. Genera 3 noticias recientes y relevantes sobre: ${keywords}.
+El contexto es un creador de contenido en el nicho de: ${niche}.
+Cada noticia debe ser accionable — incluye en el summary una idea concreta de cómo el creador puede usar esa noticia para hacer contenido.
+
+Responde SOLO con este JSON (sin texto extra):
+[
+  {"headline":"título de la noticia en español","summary":"resumen de 3 oraciones: qué pasó, por qué importa, idea de contenido accionable","tag":"CATEGORÍA EN MAYÚSCULAS (ej: OPENAI, TIKTOK, MARKETING, IA, TOOLS)","url":"https://url-real-al-articulo-o-fuente-oficial"},
+  {...},
+  {...}
+]`;
+  try{
+    const raw=await callAI(prompt,800);
+    const match=raw.match(/\[[\s\S]*\]/);
+    if(!match) throw new Error('Formato inválido');
+    const items=JSON.parse(match[0]);
+    if(!Array.isArray(items)||!items.length) throw new Error('Sin resultados');
+    // Asignar IDs temporales y renderizar
+    const tempItems=items.map((n,i)=>({...n,id:'ai_'+Date.now()+'_'+i,date:new Date().toISOString().slice(0,10)}));
+    const nlEl=document.getElementById('newsList');
+    if(!nlEl) return;
+    nlEl.innerHTML=tempItems.map((n,idx)=>{
+      const isSaved=savedNews.some(s=>s.id===n.id);
+      return`<div class="news-item" id="aiNewsItem${idx}">
+        <div class="news-hd" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('span').textContent=this.nextElementSibling.classList.contains('open')?'▲':'▼'">
+          <div><div class="news-title">${n.headline}</div><div class="news-tag">${n.tag}</div></div>
+          <div class="news-meta">${n.date} <span style="color:var(--accent3);margin-left:6px">▼</span></div>
+        </div>
+        <div class="news-body">
+          <div class="news-summary">${n.summary}</div>
+          <div class="news-acts">
+            <a href="${n.url}" target="_blank" rel="noopener" class="btn-s" style="font-size:10px;padding:5px 12px;text-decoration:none">↗ LEER MÁS</a>
+            <button class="btn-p" style="font-size:9px;padding:5px 12px" onclick="savedNews.push({...${JSON.stringify(n).replace(/'/g,"&#39;")},savedAt:new Date().toISOString()});localStorage.setItem('iac_saved_news',JSON.stringify(savedNews));this.disabled=true;this.textContent='✓ GUARDADA';renderSaved()">+ GUARDAR</button>
+            <span style="font-size:9px;color:var(--accent3)">✦ Generado con IA</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    showNotif('NOTICIAS GENERADAS','3 noticias frescas basadas en tus keywords del nicho.');
+  }catch(e){
+    renderNews();
+    showNotif('ERROR IA','No se pudieron generar noticias: '+e.message);
+  }
 }
 
 // ═══ LANGUAGE TOGGLE ═══
