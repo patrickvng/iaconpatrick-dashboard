@@ -550,11 +550,10 @@ body.light::before{display:none}
         <button class="pb" data-p="90d" onclick="setPeriod('90d',this)" style="border-left:1px solid var(--border)">90D</button>
       </div>
       <button class="dl-btn" onclick="downloadPage()">⬇ PDF</button>
-      <span style="font-size:10px;color:var(--text3)" data-i18n="platform">PLATAFORMA:</span>
       <div class="period-sel">
-        <button class="pb active" onclick="filterPlatform('all',this)" data-i18n="all">ALL</button>
-        <button class="pb" onclick="filterPlatform('tt',this)" style="border-left:1px solid var(--border)">TT</button>
-        <button class="pb" onclick="filterPlatform('ig',this)" style="border-left:1px solid var(--border)">IG</button>
+        <button class="pb active" onclick="filterPlatform('all',this)">◈ ALL</button>
+        <button class="pb pb-tt" onclick="filterPlatform('tt',this)" style="border-left:1px solid var(--border)">♪ TT</button>
+        <button class="pb pb-ig" onclick="filterPlatform('ig',this)" style="border-left:1px solid var(--border)">◎ IG</button>
       </div>
     </div>
   </div>
@@ -1208,17 +1207,17 @@ function setAccount(acc){
   // Sync trending filter
   trendFilter=selectedAccount==='ig'?'ig':'tt';
   document.querySelectorAll('#page-trending .period-sel .pb').forEach(b=>{
-    b.classList.toggle('active',b.textContent.trim()===(trendFilter==='tt'?'TIKTOK':'INSTAGRAM'));
+    b.classList.toggle('active',b.textContent.trim()===(trendFilter==='tt'?'♪ TT':'◎ IG'));
   });
   // Sync content filter buttons (MI CONTENIDO)
   document.querySelectorAll('#page-content .period-sel .pb').forEach(b=>{
-    const map={'ALL':'all','TT':'tt','IG':'ig'};
+    const map={'◈ ALL':'all','♪ TT':'tt','◎ IG':'ig'};
     b.classList.toggle('active',map[b.textContent.trim()]===platformFilter);
   });
   // Sync competitors filter (CREADORES)
   compFilter=acc==='tt'?'tt':acc==='ig'?'ig':'all';
   document.querySelectorAll('#page-competitors .period-sel .pb').forEach(b=>{
-    const map={'TODOS':'all','TIKTOK':'tt','INSTAGRAM':'ig'};
+    const map={'TODOS':'all','♪ TT':'tt','◎ IG':'ig'};
     b.classList.toggle('active',map[b.textContent.trim()]===compFilter);
   });
   // Si estamos en sección irrelevante (sin filtro de red social), ir a overview
@@ -1272,7 +1271,7 @@ function showPage(id,btn){
 function goToContent(platform){
   platformFilter=platform||'all';
   document.querySelectorAll('#page-content .period-sel .pb').forEach(b=>{
-    const map={'ALL':'all','TT':'tt','IG':'ig'};
+    const map={'◈ ALL':'all','♪ TT':'tt','◎ IG':'ig'};
     b.classList.toggle('active',map[b.textContent.trim()]===platformFilter);
   });
   // Fix: activar el nav-btn correcto
@@ -1631,32 +1630,69 @@ function setCompFilter(f,btn){
 }
 
 function compCardHtml(c,isSaved=false){
-  const savedKey=c.handle+'|'+c.platform;
   const alreadySaved=savedCreators.some(s=>s.handle===c.handle&&s.platform===c.platform);
-  return `<div class="comp-card">
+  const platformColor=c.platform==='TikTok'?'var(--tiktok)':'var(--ig)';
+  const platformIcon=c.platform==='TikTok'?'♪':'◎';
+  const safeHandle=c.handle.replace(/'/g,"\\'");
+  const safePlatform=c.platform.replace(/'/g,"\\'");
+  return `<div class="comp-card" onclick="openCreatorModal('${safeHandle}','${safePlatform}')" style="cursor:pointer">
     <div style="display:flex;align-items:center;margin-bottom:10px">
       <div class="comp-av" style="color:${c.color};border-color:${c.color}44;background:${c.color}11">${c.av}</div>
-      <div style="margin-left:10px"><div class="comp-handle">${c.handle}</div><div class="comp-platform" style="color:${c.platform==='TikTok'?'var(--tiktok)':'var(--ig)'}">${c.platform}</div></div>
+      <div style="margin-left:10px;flex:1">
+        <div class="comp-handle">${c.handle}</div>
+        <div class="comp-platform" style="color:${platformColor}">${platformIcon} ${c.platform}</div>
+      </div>
+      <div style="font-size:9px;color:var(--accent3)">↗ expandir</div>
     </div>
     <div class="comp-fol">${c.followers}<span>seguidores</span></div>
     <div class="comp-stats">
       <div class="cs"><div class="cs-val" style="color:${c.color}">${c.eng}</div><div class="cs-lbl">ENGAGEMENT</div></div>
       <div class="cs"><div class="cs-val" style="color:${c.color}">${c.avgViews}</div><div class="cs-lbl">AVG VIEWS</div></div>
     </div>
-    <div class="comp-niche">${c.niche}</div>
-    <div style="margin-bottom:8px">
-      <a href="${c.profileUrl}" target="_blank" class="creator-link">↗ Ver perfil ${c.platform}</a>
+    <div class="comp-niche" style="margin-top:8px">${c.niche.slice(0,80)}${c.niche.length>80?'…':''}</div>
+    <div style="margin-top:10px;display:flex;gap:6px" onclick="event.stopPropagation()">
+      ${isSaved
+        ?`<button class="rm-btn" style="flex:1" onclick="removeCreator('${safeHandle}','${safePlatform}')">✕ QUITAR</button>`
+        :`<button class="btn-s" style="flex:1;font-size:9px;padding:5px" onclick="likeCreator('${safeHandle}','${safePlatform}')" ${alreadySaved?'disabled style="opacity:.4"':''}>👍 ${alreadySaved?'AÑADIDO':'ME INTERESA'}</button>
+          <button class="btn-s" style="flex:1;font-size:9px;padding:5px" onclick="dislikeCreator('${safeHandle}','${safePlatform}')">👎 NO</button>`
+      }
     </div>
-    <div class="ctv-lbl">TOP CONTENIDO</div>
-    ${c.topVideos.map(v=>`<div class="ctv-item"><div class="ctv-title">${v.t}</div><div class="ctv-views">${v.v}</div></div>`).join('')}
-    ${isSaved
-      ?`<button class="rm-btn" style="margin-top:10px;width:100%" onclick="removeCreator('${c.handle}','${c.platform}')">✕ QUITAR DE MIS CREADORES</button>`
-      :`<div style="display:flex;gap:6px;margin-top:10px">
-          <button class="btn-s" style="flex:1;font-size:9px;padding:5px" onclick="likeCreator('${c.handle}','${c.platform}')" ${alreadySaved?'disabled style="opacity:.4"':''}>👍 ${alreadySaved?'AÑADIDO':'ME INTERESA'}</button>
-          <button class="btn-s" style="flex:1;font-size:9px;padding:5px" onclick="dislikeCreator('${c.handle}','${c.platform}')">👎 NO</button>
-        </div>`
-    }
   </div>`;
+}
+function openCreatorModal(handle,platform){
+  const list=platform==='TikTok'?[...COMPS_TT,...savedCreators.filter(c=>c.platform==='TikTok')]:[...COMPS_IG,...savedCreators.filter(c=>c.platform==='Instagram')];
+  const c=list.find(x=>x.handle===handle&&x.platform===platform);
+  if(!c)return;
+  const platformColor=platform==='TikTok'?'var(--tiktok)':'var(--ig)';
+  const platformIcon=platform==='TikTok'?'♪':'◎';
+  const alreadySaved=savedCreators.some(s=>s.handle===handle&&s.platform===platform);
+  const html=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div class="comp-av" style="color:${c.color};border-color:${c.color}44;background:${c.color}11;width:48px;height:48px;font-size:16px;flex-shrink:0">${c.av}</div>
+      <div>
+        <div style="font-size:16px;font-weight:700">${c.handle}</div>
+        <div style="font-size:11px;color:${platformColor};margin-top:2px">${platformIcon} ${c.platform} · ${c.followers} seguidores</div>
+      </div>
+    </div>
+    <div class="mgrid" style="grid-template-columns:repeat(2,1fr);margin-bottom:16px">
+      <div class="mc g"><div class="mc-lbl">ENGAGEMENT</div><div class="mc-val" style="font-size:20px">${c.eng}</div></div>
+      <div class="mc y"><div class="mc-lbl">AVG VIEWS</div><div class="mc-val" style="font-size:20px">${c.avgViews}</div></div>
+    </div>
+    <div class="exec-tip" style="margin-bottom:16px"><div class="exec-label">NICHO</div><div class="exec-text">${c.niche}</div></div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--accent3);margin-bottom:8px">TOP VÍDEOS</div>
+    ${c.topVideos.map(v=>`
+      <a href="${c.profileUrl}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);margin-bottom:6px;text-decoration:none;color:inherit;transition:border-color .15s" onmouseover="this.style.borderColor='${c.color}'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:11px;line-height:1.4;flex:1;margin-right:12px">${v.t}</div>
+        <div style="font-size:12px;font-weight:700;color:${c.color};white-space:nowrap">${v.v} ↗</div>
+      </a>`).join('')}
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+      <a href="${c.profileUrl}" target="_blank" rel="noopener" class="btn-p" style="text-decoration:none">↗ VER PERFIL ${platform.toUpperCase()}</a>
+      ${alreadySaved
+        ?`<button onclick="removeCreator('${handle}','${platform}');closeModal()" style="background:none;border:1px solid rgba(255,71,87,.3);color:var(--accent2);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;padding:9px 16px;cursor:pointer">✕ QUITAR DE MIS CREADORES</button>`
+        :`<button onclick="likeCreator('${handle}','${platform}');closeModal()" style="background:var(--success);color:#000;border:none;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;padding:9px 16px;cursor:pointer">👍 ME INTERESA</button>`
+      }
+    </div>`;
+  openModal(handle,html);
 }
 
 function renderComps(){
@@ -1665,12 +1701,14 @@ function renderComps(){
   else if(compFilter==='ig') list=COMPS_IG;
   else list=[...COMPS_TT,...COMPS_IG];
   // Filtrar por los handles que el usuario configuró en CONFIGURAR → CREADORES
-  const userTT=(cfg.compTT||'').split(',').map(h=>h.trim().replace('@','').toLowerCase()).filter(Boolean);
-  const userIG=(cfg.compIG||'').split(',').map(h=>h.trim().replace('@','').toLowerCase()).filter(Boolean);
+  // Leer del input directamente para que siempre coincida con lo que se ve en CONFIGURAR
+  const rawTT=(document.getElementById('compTT')?.value||cfg.compTT||'');
+  const rawIG=(document.getElementById('compIG')?.value||cfg.compIG||'');
+  const userTT=rawTT.split(',').map(h=>h.trim().replace('@','').toLowerCase()).filter(Boolean);
+  const userIG=rawIG.split(',').map(h=>h.trim().replace('@','').toLowerCase()).filter(Boolean);
   const allConfigured=[...userTT,...userIG];
   if(allConfigured.length>0){
     const filtered=list.filter(c=>allConfigured.includes(c.handle.replace('@','').toLowerCase()));
-    // Solo aplicar filtro si hay coincidencias; si no, mostrar todos
     if(filtered.length>0) list=filtered;
   }
   // Hide already-saved creators from the main grid
