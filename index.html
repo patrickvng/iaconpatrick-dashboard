@@ -203,7 +203,7 @@ body.light::before{display:none}
 .dl-btn{background:none;border:1px solid var(--border2);color:var(--text3);font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:5px 12px;cursor:pointer;transition:all .15s}
 .dl-btn:hover{border-color:var(--accent3);color:var(--accent3)}
 /* ─── DATE POPUP ─────────────────────────────────────── */
-.date-popup{display:none;background:var(--bg3);border:1px solid var(--border2);padding:12px;margin-top:8px}
+.date-popup{display:none;background:var(--bg3);border:1px solid var(--border2);padding:16px;position:fixed;z-index:600;min-width:220px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
 .date-popup.show{display:block}
 .date-popup label{font-size:9px;letter-spacing:.12em;color:var(--text3);font-weight:700;display:block;margin-bottom:4px;margin-top:8px}
 .date-popup label:first-child{margin-top:0}
@@ -454,16 +454,6 @@ body.light::before{display:none}
       <div class="acc-top"><div class="acc-name" id="sbIGName">TU CUENTA</div><div class="acc-badge b-ig">INSTAGRAM</div></div>
       <div class="acc-handle" id="sbIGHandle">@tucuenta</div>
       <div class="acc-stat"><b id="sbIGFol">—</b> seguidores</div>
-    </div>
-  </div>
-  <div class="date-popup" id="datePicker" style="margin:0 10px">
-    <label>FECHA INICIO</label>
-    <input type="date" id="dateStart">
-    <label>FECHA FIN</label>
-    <input type="date" id="dateEnd">
-    <div style="margin-top:12px;display:flex;gap:6px">
-      <button class="btn-p" style="flex:1;font-size:10px;padding:6px" onclick="applyCustomRange()">APLICAR</button>
-      <button class="btn-s" style="font-size:10px;padding:6px" onclick="closeDatePicker()">✕</button>
     </div>
   </div>
   <div class="sb-status">
@@ -1306,7 +1296,18 @@ function goToContent(platform){
 function setPeriod(p,btn){
   if(p==='custom'){
     const picker=document.getElementById('datePicker');
-    if(picker){picker.classList.toggle('show');}
+    if(!picker)return;
+    const isOpen=picker.classList.contains('show');
+    picker.classList.remove('show');
+    if(!isOpen){
+      const rect=btn.getBoundingClientRect();
+      const pickerW=224;
+      let left=rect.left;
+      if(left+pickerW>window.innerWidth-8) left=window.innerWidth-pickerW-8;
+      picker.style.top=(rect.bottom+6)+'px';
+      picker.style.left=left+'px';
+      picker.classList.add('show');
+    }
     return;
   }
   currentPeriod=p;
@@ -1340,6 +1341,12 @@ function applyCustomRange(){
 function closeDatePicker(){
   document.getElementById('datePicker')?.classList.remove('show');
 }
+document.addEventListener('click',e=>{
+  const picker=document.getElementById('datePicker');
+  if(picker&&picker.classList.contains('show')&&!picker.contains(e.target)&&!e.target.closest('[data-p="custom"]')){
+    picker.classList.remove('show');
+  }
+});
 function filterPlatform(p,btn){
   btn.closest('.period-sel').querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');platformFilter=p;
@@ -1743,18 +1750,19 @@ function openCreatorModal(handle,platform){
         <div style="font-size:11px;color:${platformColor};margin-top:2px">${platformIcon} ${c.platform} · ${c.followers} seguidores</div>
       </div>
     </div>
-    <div class="mgrid" style="grid-template-columns:repeat(2,1fr);margin-bottom:4px">
-      <div class="mc g"><div class="mc-lbl">ENGAGEMENT</div><div class="mc-val" style="font-size:20px">${c.eng}</div></div>
-      <div class="mc y"><div class="mc-lbl">AVG VIEWS</div><div class="mc-val" style="font-size:20px">${c.avgViews}</div></div>
+    <div class="mgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+      <div class="mc g"><div class="mc-lbl">FOLLOWERS</div><div class="mc-val" style="font-size:18px">${c.followers}</div></div>
+      <div class="mc y"><div class="mc-lbl">ENGAGEMENT</div><div class="mc-val" style="font-size:18px">${c.eng}</div></div>
+      <div class="mc b"><div class="mc-lbl">AVG VIEWS</div><div class="mc-val" style="font-size:18px">${c.avgViews}</div></div>
     </div>
-    <div style="font-size:9px;color:var(--text3);margin-bottom:14px;letter-spacing:.05em">Datos estimados · publicados en su perfil público</div>
-    <div class="exec-tip" style="margin-bottom:16px"><div class="exec-label">NICHO</div><div class="exec-text">${c.niche}</div></div>
-    <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--accent3);margin-bottom:4px">TOP VÍDEOS <span style="font-weight:400;color:var(--text3);font-size:9px">· referencia de contenido destacado — click para ver su perfil</span></div>
-    ${c.topVideos.map(v=>`
-      <a href="${c.profileUrl}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);margin-bottom:6px;text-decoration:none;color:inherit;transition:border-color .15s" onmouseover="this.style.borderColor='${c.color}'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="font-size:11px;line-height:1.4;flex:1;margin-right:12px">${v.t}</div>
-        <div style="font-size:12px;font-weight:700;color:${c.color};white-space:nowrap">${v.v} ↗</div>
-      </a>`).join('')}
+    <div class="exec-tip" style="margin-bottom:16px"><div class="exec-label">POR QUÉ TE INTERESA</div><div class="exec-text">${c.niche}</div></div>
+    <a href="${c.profileUrl}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:${c.color}11;border:1px solid ${c.color}44;text-decoration:none;color:inherit;margin-bottom:16px;transition:background .15s" onmouseover="this.style.background='${c.color}22'" onmouseout="this.style.background='${c.color}11'">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:${c.color};letter-spacing:.06em">${platformIcon} VER CONTENIDO RECIENTE EN ${platform.toUpperCase()}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">${c.profileUrl}</div>
+      </div>
+      <div style="font-size:20px;color:${c.color}">↗</div>
+    </a>
     <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
       <a href="${c.profileUrl}" target="_blank" rel="noopener" class="btn-p" style="text-decoration:none">↗ VER PERFIL ${platform.toUpperCase()}</a>
       ${alreadySaved
@@ -3293,5 +3301,17 @@ function maybeShowOnboarding(){
   }
 }
 </script>
+<!-- Date picker flotante — posicionado por JS junto al botón 📅 -->
+<div class="date-popup" id="datePicker">
+  <div style="font-size:9px;letter-spacing:.12em;color:var(--text3);font-weight:700;margin-bottom:12px">RANGO PERSONALIZADO</div>
+  <label>FECHA INICIO</label>
+  <input type="date" id="dateStart">
+  <label>FECHA FIN</label>
+  <input type="date" id="dateEnd">
+  <div style="margin-top:12px;display:flex;gap:6px">
+    <button class="btn-p" style="flex:1;font-size:10px;padding:6px" onclick="applyCustomRange()">APLICAR</button>
+    <button class="btn-s" style="font-size:10px;padding:6px" onclick="closeDatePicker()">✕</button>
+  </div>
+</div>
 </body>
 </html>
