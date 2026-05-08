@@ -559,7 +559,19 @@ body.light::before{display:none}
     </div>
   </div>
   <div class="mgrid" id="contentMetrics" style="grid-template-columns:repeat(4,1fr)"></div>
-  <div class="st" data-i18n="best_posts">MEJORES POSTS</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;margin-bottom:8px">
+    <div class="st" style="margin:0" data-i18n="best_posts">MEJORES POSTS</div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:9px;color:var(--text3);letter-spacing:.08em">ORDENAR POR</span>
+      <div class="period-sel" id="postSortSel">
+        <button class="pb active" onclick="setPostSort('views',this)">VIEWS</button>
+        <button class="pb" onclick="setPostSort('eng',this)" style="border-left:1px solid var(--border)">ENG</button>
+        <button class="pb" onclick="setPostSort('likes',this)" style="border-left:1px solid var(--border)">LIKES</button>
+        <button class="pb" onclick="setPostSort('shares',this)" style="border-left:1px solid var(--border)">SHARES</button>
+        <button class="pb" onclick="setPostSort('saves',this)" style="border-left:1px solid var(--border)">SAVES</button>
+      </div>
+    </div>
+  </div>
   <div class="posts-list" id="postsGrid"></div>
   <div class="st" style="margin-top:24px">TODOS LOS POSTS <span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:6px">CRONOLÓGICO · MÁS RECIENTE PRIMERO</span></div>
   <div class="posts-list" id="postsChronGrid"></div>
@@ -911,7 +923,7 @@ async function apiFetch(url, opts){
 
 // ═══ STATE ═══
 let cfg={apifyToken:'',ttHandle:'',igHandle:'',maxPosts:50,nicheKw:'',compTT:'',compIG:'',igShares7d:0,igShares30d:0,igShares90d:0,anthropicKey:'',anthropicModel:'claude-sonnet-4-6',openaiKey:'',openaiModel:'gpt-4o',geminiKey:'',geminiModel:'gemini-2.0-flash',aiProvider:'claude',websiteUrl:'',creatorBio:'',brandTone:'',brandName:'',brandNiche:'',brandAudience:'',brandGoal:'',brandAvoid:'',claudeProjectCtx:''};
-let realData=null,platformFilter='all',trendFilter='tt',compFilter='all';
+let realData=null,platformFilter='all',trendFilter='tt',compFilter='all',postSortKey='views';
 let vChart=null,eChart=null,serverOk=false;
 let selectedAccount='all',currentPeriod='7d',isDark=false,lang='es';
 let currentIdeas=[],currentHooks=[],savedIdeas=[],likedTags=[],dislikedTags=[],savedCreators=[],savedNews=[],savedTrending=[];
@@ -1433,8 +1445,10 @@ function renderEngChart(){
   function calcDayVals(posts){
     const dayData=days.map(()=>({total:0,count:0}));
     posts.forEach(p=>{
-      if(!p.publishedAt)return;
-      const dow=new Date(p.publishedAt).getDay();
+      // Intentar obtener fecha por publishedAt o createTime (fallback para TT)
+      const dateStr=p.publishedAt||(p.createTime?new Date(p.createTime*1000).toISOString():null);
+      if(!dateStr)return;
+      const dow=new Date(dateStr).getDay();
       const idx=(dow===0)?6:dow-1;
       dayData[idx].total+=parseFloat(p.eng)||0;
       dayData[idx].count++;
@@ -1442,24 +1456,28 @@ function renderEngChart(){
     return dayData.map(d=>d.count?parseFloat((d.total/d.count).toFixed(2)):null);
   }
   let datasets=[];
-  if(selectedAccount==='all'){
+  const isAll=selectedAccount==='all';
+  if(isAll){
     const ttVals=calcDayVals(d.tiktok.topPosts);
     const igVals=calcDayVals(d.instagram.topPosts);
     datasets=[
-      {label:'TikTok',data:ttVals,backgroundColor:ttVals.map(v=>v?'#4ade8099':'rgba(255,255,255,.05)'),borderRadius:0,borderWidth:0},
-      {label:'Instagram',data:igVals,backgroundColor:igVals.map(v=>v?'#f472b699':'rgba(255,255,255,.05)'),borderRadius:0,borderWidth:0}
+      {label:'♪ TikTok',data:ttVals,backgroundColor:'#4ade8099',borderRadius:0,borderWidth:0,skipNull:true},
+      {label:'◎ Instagram',data:igVals,backgroundColor:'#f472b699',borderRadius:0,borderWidth:0,skipNull:true}
     ];
   } else {
     const posts=selectedAccount==='ig'?d.instagram.topPosts:d.tiktok.topPosts;
     const color=selectedAccount==='ig'?'#f472b6':'#4ade80';
+    const label=selectedAccount==='ig'?'◎ Instagram':'♪ TikTok';
     const vals=calcDayVals(posts);
-    datasets=[{label:selectedAccount==='ig'?'Instagram':'TikTok',data:vals,backgroundColor:vals.map(v=>v?color+'99':'rgba(255,255,255,.05)'),borderRadius:0,borderWidth:0}];
+    datasets=[{label,data:vals,backgroundColor:color+'99',borderRadius:0,borderWidth:0,skipNull:true}];
   }
   eChart=new Chart(ctx,{type:'bar',data:{labels:days,datasets},
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:selectedAccount==='all',labels:{color:c.tick,font:{family:'JetBrains Mono',size:9},boxWidth:8,padding:8}}},scales:{
-    x:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9}},grid:{display:false},border:{color:c.border}},
-    y:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9},callback:v=>v+'%'},grid:{color:c.grid},border:{color:c.border}},
-  }}});
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:isAll,labels:{color:c.tick,font:{family:'JetBrains Mono',size:9},boxWidth:8,padding:8}}},
+    scales:{
+      x:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9}},grid:{display:false},border:{color:c.border}},
+      y:{ticks:{color:c.tick,font:{family:'JetBrains Mono',size:9},callback:v=>v+'%'},grid:{color:c.grid},border:{color:c.border}},
+    }}});
 }
 function renderHooks(d){
   const isTT=selectedAccount==='tt'||(selectedAccount==='all');
@@ -1499,11 +1517,11 @@ function renderHooks(d){
       const ps=posts.filter(p=>(p.dur||0)>=b.min&&(p.dur||0)<b.max);
       const avgEng=ps.length?parseFloat((ps.reduce((s,p)=>s+parseFloat(p.eng||0),0)/ps.length).toFixed(1)):0;
       const avgViews=ps.length?Math.round(ps.reduce((s,p)=>s+(p.views||0),0)/ps.length):0;
-      return{label:b.label,count:ps.length,eng:avgEng,views:avgViews};
+      return{label:b.label,count:ps.length,eng:avgEng,views:avgViews,posts:ps};
     });
-    currentHooks=bData.map(b=>({type:b.label,videos:b.count,views:b.views,rate:b.eng}));
+    currentHooks=bData.map(b=>({type:b.label,videos:b.count,views:b.views,rate:b.eng,posts:b.posts}));
     const maxV=Math.max(...bData.map(b=>b.views))||1;
-    document.getElementById('hookGrid').innerHTML=bData.map((b,i)=>`<div class="hk"><div class="hk-type">${b.label}</div><div class="hk-views">${fn(b.views)}<span>avg views</span></div><div class="hk-bar"><div class="hk-fill" style="width:${Math.round(b.views/maxV*100)}%;background:var(--tiktok)"></div></div><div class="hk-meta">${b.count} videos · ${b.eng}% eng</div></div>`).join('');
+    document.getElementById('hookGrid').innerHTML=bData.map((b,i)=>`<div class="hk" onclick="openDurationDetail(${i})" style="cursor:pointer"><div class="hk-type">${b.label}</div><div class="hk-views">${fn(b.views)}<span>avg views</span></div><div class="hk-bar"><div class="hk-fill" style="width:${Math.round(b.views/maxV*100)}%;background:var(--tiktok)"></div></div><div class="hk-meta">${b.count} videos · ${b.eng}% eng</div><div style="font-size:9px;color:var(--accent);margin-top:6px;letter-spacing:.08em">VER VÍDEOS →</div></div>`).join('');
   }
 }
 function renderMixCharts(d){
@@ -1532,6 +1550,34 @@ function openHookDetail(idx){
   html+=`<div class="st" style="margin-top:16px">CÓMO HACER MÁS ${h.type.toUpperCase()}</div>`;
   html+=tips.map(t=>`<div class="exec-tip"><div class="exec-label">${t.label}</div><div class="exec-text" style="white-space:pre-line">${t.text}</div></div>`).join('');
   openModal(`HOOK SCOREBOARD · ${h.type.toUpperCase()} (${h.videos} videos · ${fn(h.views)} avg views)`,html);
+}
+function openDurationDetail(bucketIdx){
+  const b=currentHooks[bucketIdx];
+  if(!b)return;
+  const posts=b.posts||[];
+  let html=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+      <div class="mc g"><div class="mc-lbl">AVG VIEWS</div><div class="mc-val" style="font-size:18px">${fn(b.views)}</div></div>
+      <div class="mc y"><div class="mc-lbl">AVG ENG</div><div class="mc-val" style="font-size:18px">${b.rate}%</div></div>
+      <div class="mc b"><div class="mc-lbl">VÍDEOS</div><div class="mc-val" style="font-size:18px">${b.videos}</div></div>
+    </div>`;
+  if(posts.length){
+    html+=`<div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--accent3);margin-bottom:8px">VÍDEOS EN ESTE RANGO</div>`;
+    html+=posts.map(p=>`
+      <a href="${p.url||'#'}" target="_blank" rel="noopener" style="display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);margin-bottom:6px;text-decoration:none;color:inherit;transition:border-color .15s" onmouseover="this.style.borderColor='var(--tiktok)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div>
+          <div style="font-size:12px;font-weight:500;line-height:1.35;margin-bottom:3px">${p.title?.slice(0,80)||'Sin título'}</div>
+          <div style="font-size:9px;color:var(--text3)">${p.dur?p.dur+'s':'—'} · ${p.publishedAt?new Date(p.publishedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'short'}):''}</div>
+        </div>
+        <div style="text-align:right;min-width:48px"><div style="font-size:13px;font-weight:700;color:var(--tiktok)">${fn(p.views)}</div><div style="font-size:9px;color:var(--text3)">views</div></div>
+        <div style="text-align:right;min-width:40px"><div style="font-size:13px;font-weight:700">${p.eng}%</div><div style="font-size:9px;color:var(--text3)">eng</div></div>
+        <div style="text-align:right;min-width:36px"><div style="font-size:13px;font-weight:700">${fn(p.likes)}</div><div style="font-size:9px;color:var(--text3)">likes</div></div>
+      </a>`).join('');
+    html+=`<div style="font-size:9px;color:var(--accent3);text-align:right;margin-top:4px">↗ click en cada vídeo para verlo en TikTok</div>`;
+  } else {
+    html+=`<div class="empty">No hay vídeos de TikTok con datos de duración en este rango.<br><span style="color:var(--text3);font-size:10px">Los datos de duración se cargan tras hacer SYNC con datos reales de Apify.</span></div>`;
+  }
+  openModal(`DURACIÓN ${b.type} · ${fn(b.views)} avg views`,html);
 }
 function renderMixCharts(d){
   mkDonut('mixTT',d.tiktok.mix,['#e8ff47','#47ffe8','#ff4757']);
@@ -1566,6 +1612,12 @@ function renderContentMetrics(d){
     {lbl:'TASA SHARES',val:fn(Math.round(totalShares/(totalPosts||1))+'/post'),c:'r',sm:true},
   ].map(m=>`<div class="mc ${m.c}"><div class="mc-lbl">${m.lbl}</div><div class="mc-val" style="${m.sm?'font-size:18px':''}">${m.val}</div></div>`).join('');
 }
+function setPostSort(key,btn){
+  postSortKey=key;
+  document.querySelectorAll('#postSortSel .pb').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderPosts(realData||D);
+}
 function renderPosts(d){
   let posts=[];
   if(platformFilter==='all'||platformFilter==='tt')posts.push(...d.tiktok.topPosts);
@@ -1584,8 +1636,14 @@ function renderPosts(d){
       if(withDate.length>0) posts=withDate;
     }
   }
-  posts.sort((a,b)=>b.views-a.views);
-  // Reasignar rank tras filtrado y ordenación
+  const sortFn={
+    views:(a,b)=>b.views-a.views,
+    eng:(a,b)=>parseFloat(b.eng||0)-parseFloat(a.eng||0),
+    likes:(a,b)=>b.likes-a.likes,
+    shares:(a,b)=>b.shares-a.shares,
+    saves:(a,b)=>(b.saves||b.collectCount||0)-(a.saves||a.collectCount||0),
+  };
+  posts.sort(sortFn[postSortKey]||sortFn.views);
   posts=posts.slice(0,30).map((p,i)=>({...p,rank:i+1}));
   const rc=i=>i===0?'gold':i===1?'silver':i===2?'bronze':'';
   const rs=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
@@ -1593,14 +1651,16 @@ function renderPosts(d){
     document.getElementById('postsGrid').innerHTML=`<div class="empty">No hay posts en este período. Amplía el rango de fechas o haz un nuevo SYNC.</div>`;
     return;
   }
+  const hl=k=>k===postSortKey?'color:var(--accent);font-weight:700':'';
   document.getElementById('postsGrid').innerHTML=posts.map((p,i)=>`
     <a class="post-row" href="${p.url||'#'}" target="_blank" rel="noopener">
       <div class="pr-rank ${rc(i)}">${rs(i)}</div>
-      <div><div class="pr-title">${p.title}</div><div class="pr-meta"><span class="${p.platform==='tt'?'tag-tt':'tag-ig'}">${p.platform==='tt'?'TIKTOK':'INSTAGRAM'}</span> · ${p.type}${p.publishedAt?' · '+new Date(p.publishedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'short'}):''} · Eng: ${p.eng}%</div></div>
-      <div class="pr-stat"><div class="pr-val">${fn(p.views)}</div><div class="pr-lbl">VIEWS</div></div>
-      <div class="pr-stat"><div class="pr-val">${fn(p.likes)}</div><div class="pr-lbl">LIKES</div></div>
+      <div><div class="pr-title">${p.title}</div><div class="pr-meta"><span class="${p.platform==='tt'?'tag-tt':'tag-ig'}">${p.platform==='tt'?'♪ TT':'◎ IG'}</span> · ${p.type}${p.publishedAt?' · '+new Date(p.publishedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'short'}):''} · Eng: <span style="${hl('eng')}">${p.eng}%</span></div></div>
+      <div class="pr-stat"><div class="pr-val" style="${hl('views')}">${fn(p.views)}</div><div class="pr-lbl">VIEWS</div></div>
+      <div class="pr-stat"><div class="pr-val" style="${hl('likes')}">${fn(p.likes)}</div><div class="pr-lbl">LIKES</div></div>
       <div class="pr-stat"><div class="pr-val">${p.comments}</div><div class="pr-lbl">CMTS</div></div>
-      <div class="pr-stat"><div class="pr-val">${p.shares}</div><div class="pr-lbl">SHARES</div></div>
+      <div class="pr-stat"><div class="pr-val" style="${hl('shares')}">${fn(p.shares)}</div><div class="pr-lbl">SHARES</div></div>
+      <div class="pr-stat"><div class="pr-val" style="${hl('saves')}">${fn(p.saves||0)}</div><div class="pr-lbl">SAVES</div></div>
     </a>`).join('');
 
   // Todos los posts ordenados cronológicamente (más reciente primero)
