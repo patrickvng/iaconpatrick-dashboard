@@ -3114,7 +3114,7 @@ function renderCachedNews(items){
       <div class="news-body">
         <div class="news-summary" style="white-space:pre-line">${n.summary}</div>
         <div class="news-acts">
-          <a href="${n.url}" target="_blank" rel="noopener" class="btn-s" style="font-size:10px;padding:5px 12px;text-decoration:none">↗ LEER MÁS</a>
+          ${n.url&&n.url!=='#'?`<a href="${n.url}" target="_blank" rel="noopener" class="btn-s" style="font-size:10px;padding:5px 12px;text-decoration:none">↗ LEER MÁS</a>`:''}
           <button class="btn-p" style="font-size:9px;padding:5px 12px" ${isSaved?'disabled style="opacity:.5"':''} onclick="savedNews.push({...${nStr},savedAt:new Date().toISOString()});localStorage.setItem('iac_saved_news',JSON.stringify(savedNews));this.disabled=true;this.textContent='✓ GUARDADA';renderSaved()">${isSaved?'✓ GUARDADA':'+ GUARDAR'}</button>
           <span style="font-size:9px;color:var(--accent3)">${n.fromRss?'📡 RSS · curado por IA':'✦ IA · tendencias'}${n.source?' · '+n.source:''}</span>
         </div>
@@ -3189,6 +3189,7 @@ Responde SOLO con JSON: [{"headline":"titular en español","summary":"resumen en
     }
     if(!Array.isArray(items)||!items.length) throw new Error('Sin resultados');
     const rssRef=articles.slice(0,30); // mismo slice que usamos en el prompt
+    console.log('[news] rssRef.length=',rssRef.length,'| AI items=',JSON.stringify(items.map(x=>({n:x.n,h:x.headline?.slice(0,40)}))));
     const tempItems=items.map((item,i)=>{
       const idx=parseInt(item.n)-1; // n es 1-based
       const orig=(idx>=0&&idx<rssRef.length)?rssRef[idx]:null;
@@ -3197,7 +3198,7 @@ Responde SOLO con JSON: [{"headline":"titular en español","summary":"resumen en
         headline:item.headline||'',
         summary:item.summary||'',
         tag:item.tag||'IA',
-        url:orig?orig.url:'#',
+        url:orig?orig.url:(rssRef.length===0?(item.url||''):''),
         source:orig?orig.source:'',
         origTitle:orig?orig.title:'', // título original para debug
         id:'ai_'+Date.now()+'_'+i,
