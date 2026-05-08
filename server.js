@@ -428,33 +428,48 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // ── GET /api/news — agrega RSS de fuentes reales
+  // ── GET /api/news — agrega RSS de fuentes que funcionan desde servidores en la nube
   if (pathname === '/api/news' && req.method === 'GET') {
+    // Google News RSS: siempre accesible, devuelve noticias reales y actuales
     const RSS_SOURCES = [
-      { url: 'https://techcrunch.com/category/artificial-intelligence/feed/', name: 'TechCrunch AI' },
-      { url: 'https://www.theverge.com/ai-artificial-intelligence/rss/index.xml', name: 'The Verge AI' },
-      { url: 'https://venturebeat.com/category/ai/feed/', name: 'VentureBeat AI' },
-      { url: 'https://www.socialmediatoday.com/rss.xml', name: 'Social Media Today' },
-      { url: 'https://feeds.feedburner.com/Mediatapper', name: 'Social Media Examiner' },
+      { url: 'https://news.google.com/rss/search?q=inteligencia+artificial+marketing+creadores&hl=es&gl=ES&ceid=ES:es', name: 'Google News IA' },
+      { url: 'https://news.google.com/rss/search?q=TikTok+Instagram+algoritmo+creadores+contenido&hl=es&gl=ES&ceid=ES:es', name: 'Google News Social' },
+      { url: 'https://news.google.com/rss/search?q=ChatGPT+Claude+Gemini+herramientas+IA&hl=es&gl=ES&ceid=ES:es', name: 'Google News LLMs' },
+      { url: 'https://www.reddit.com/r/artificial+ChatGPT+MachineLearning/.rss?limit=10', name: 'Reddit AI' },
+      { url: 'https://www.reddit.com/r/socialmedia+marketing/.rss?limit=8', name: 'Reddit Marketing' },
     ];
 
+    function decodeEntities(s) {
+      return s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&#039;/g,"'").replace(/&quot;/g,'"').replace(/&#(\d+);/g,(_,c)=>String.fromCharCode(c));
+    }
+    function getText(tag, xml) {
+      const cdata = new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>`).exec(xml);
+      if (cdata) return decodeEntities(cdata[1].trim());
+      const plain = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`).exec(xml);
+      return plain ? decodeEntities(plain[1].replace(/<[^>]*>/g,'').trim()) : '';
+    }
+    function getLink(xml) {
+      // Atom: <link href="..."/>  or  <link rel="alternate" href="..."/>
+      const atom = /<link[^>]+href="([^"]+)"/.exec(xml);
+      if (atom) return atom[1];
+      // RSS 2.0: <link>url</link>
+      const rss = /<link>([^<]+)<\/link>/.exec(xml);
+      return rss ? rss[1].trim() : '';
+    }
     function parseRssItems(xml, sourceName, max) {
       const items = [];
-      const re = /<item>([\s\S]*?)<\/item>/g;
+      // Soporta RSS (<item>) y Atom (<entry>)
+      const re = /<(?:item|entry)>([\s\S]*?)<\/(?:item|entry)>/g;
       let m;
       while ((m = re.exec(xml)) !== null && items.length < max) {
         const x = m[1];
-        const get = (tag) => {
-          const cdata = new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>`).exec(x);
-          if (cdata) return cdata[1].trim();
-          const plain = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`).exec(x);
-          return plain ? plain[1].replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&#039;/g,"'").replace(/&quot;/g,'"').trim() : '';
-        };
-        const title = get('title');
-        const link  = get('link') || (/<link\s+href="([^"]+)"/.exec(x)||[])[1] || '';
-        const pub   = get('pubDate') || get('published') || '';
-        const desc  = (get('description')||get('summary')).replace(/<[^>]*>/g,'').slice(0,220);
-        if (title && link) items.push({ title, url: link, source: sourceName, date: pub, description: desc });
+        const title = getText('title', x);
+        const link  = getLink(x) || getText('link', x);
+        const pub   = getText('pubDate', x) || getText('published', x) || getText('updated', x);
+        const desc  = (getText('description', x) || getText('summary', x)).replace(/<[^>]*>/g,'').slice(0,220);
+        // Google News wraps real URL in <link> with redirect — extraer URL real de source si existe
+        const sourceUrl = (/<source[^>]+url="([^"]+)"/.exec(x)||[])[1] || '';
+        if (title && link) items.push({ title, url: link, source: sourceName, date: pub, description: desc, sourceUrl });
       }
       return items;
     }
